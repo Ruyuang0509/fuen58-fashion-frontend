@@ -44,7 +44,8 @@ const brands = computed(() => [...new Set(props.outfit.items.map((item) => item.
 <template>
   <figure class="look" :class="{ sway }" :style="{ '--h': `${height}px` }">
     <div class="swing">
-      <div class="stack" aria-hidden="true">
+      <!-- data-flip-id：卡片上的這一套和穿搭頁上的這一套是同一個 id，換頁時衣服才飛得過去（motion/lookFlip.js） -->
+      <div class="stack" :data-flip-id="`look-${outfit.id}`" aria-hidden="true">
         <img
           v-for="item in layers"
           :key="item.productId"

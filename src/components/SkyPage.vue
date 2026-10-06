@@ -2,8 +2,10 @@
 // 探索區的頁面骨架：天空在上，內容在下。
 // 首頁、主題頁、穿搭頁、全部穿搭都用它——同一片天空貫穿整個探索區，只是高度、時刻、染色不同。
 //   頂欄浮在天空上，捲過天空後變實、一路黏在上面；
-//   天空最下面淡進紙色（地平線）；天空捲出畫面就停（IntersectionObserver）；
+//   天空最下面淡進紙色（地平線）；天空捲出畫面就停；
 //   滑鼠在天空上移動會推出風：雲被推一下，掛著的衣服也跟著擺（--wind 這個 CSS 變數）。
+// 捲動的連動（第十二輪，GSAP ScrollTrigger）：往下捲時天空比頁面慢一點（視差）、天空裡的字往上飄並淡出、
+// 頂欄的底色隨捲動漸漸實起來——三件事綁在同一條捲動進度上，不是各跳各的門檻。
 import '@fontsource/noto-serif-tc/400.css'
 import '@fontsource/noto-serif-tc/600.css'
 import '@fontsource/noto-sans-tc/400.css'
@@ -11,6 +13,7 @@ import '@fontsource/space-mono/400.css'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import SiteHeader from '@/components/SiteHeader.vue'
+import { gsap, ScrollTrigger, reducedMotion } from '@/motion/gsap'
 import { createSky, skyWantsDarkText, sunNow, weatherLook } from '@/sky/sky'
 
 const props = defineProps({
@@ -29,17 +32,20 @@ const props = defineProps({
   footer: { type: Boolean, default: true },
 })
 
+const root = ref(null)
 const canvas = ref(null)
 const hero = ref(null)
+const heroBody = ref(null)
 const darkText = ref(true)
 const pastHero = ref(false)
 const heroHeight = ref(0)
 const wind = ref(0)
+const solid = ref(0) // 頂欄底色實到什麼程度：0 透明 → 1 紙色
 let sky = null
-let observer = null
 let lastPointer = null
 let decayTimer = 0
-const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+let motion = null // gsap.context：離開頁面時一次清掉所有 ScrollTrigger 與補間
+const reduced = reducedMotion()
 
 const hexToUnit = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
 
@@ -83,15 +89,44 @@ onMounted(() => {
   paint()
   measureHero()
   window.addEventListener('resize', measureHero, { passive: true })
-  observer = new IntersectionObserver(
-    ([entry]) => {
-      pastHero.value = !entry.isIntersecting
-      if (entry.isIntersecting) sky?.resume()
-      else sky?.pause()
-    },
-    { threshold: 0.02 },
-  )
-  observer.observe(hero.value)
+
+  // 頂欄的底色實到什麼程度：看捲了天空的幾成（捲到後半才開始變實，捲完全實）
+  function updateSolid() {
+    const fraction = window.scrollY / Math.max(1, heroHeight.value)
+    solid.value = reduced ? (fraction >= 1 ? 1 : 0) : Math.min(1, Math.max(0, (fraction - 0.55) / 0.4))
+  }
+
+  motion = gsap.context(() => {
+    // 捲過天空：頂欄變實、天空停下（減少動態時也要）。
+    // 「天空還在畫面裡」的範圍是：天空的頂碰到視窗底（一開始就成立）到天空的底碰到視窗頂；
+    // 不能用 'top top' 當起點——天空頂在 0 的那一點有次像素誤差，一開始會被判成還沒進入。
+    const gate = ScrollTrigger.create({
+      trigger: hero.value,
+      start: 'top bottom',
+      end: 'bottom top',
+      onToggle: (self) => {
+        pastHero.value = !self.isActive
+        if (self.isActive) sky?.resume()
+        else sky?.pause()
+        updateSolid()
+      },
+      onUpdate: updateSolid,
+    })
+    // 重新整理時已經捲在下面：直接用現況，不等 toggle
+    pastHero.value = !gate.isActive
+    if (pastHero.value) sky?.pause()
+    updateSolid()
+
+    // 視差：天空慢一點、字快一點；字在捲到七成前就淡掉，不會頂到頂欄
+    if (!reduced) {
+      gsap
+        .timeline({ scrollTrigger: { trigger: hero.value, start: 'top top', end: 'bottom top', scrub: 0.5 } })
+        .to(canvas.value, { yPercent: 16, ease: 'none', duration: 1 }, 0)
+        .to(heroBody.value, { yPercent: -8, ease: 'none', duration: 1 }, 0)
+        .to(heroBody.value, { opacity: 0, ease: 'none', duration: 0.7 }, 0)
+    }
+  }, root.value)
+
   // 風沒人推就慢慢停
   decayTimer = setInterval(() => {
     if (Math.abs(wind.value) < 0.005) wind.value = 0
@@ -102,7 +137,7 @@ onMounted(() => {
 watch(() => [props.weather, props.hour, props.tint], paint, { deep: true })
 
 onBeforeUnmount(() => {
-  observer?.disconnect()
+  motion?.revert()
   clearInterval(decayTimer)
   window.removeEventListener('resize', measureHero)
   sky?.dispose()
@@ -114,20 +149,21 @@ defineExpose({
   running: () => !pastHero.value,
   dark: () => darkText.value,
   pastHero: () => pastHero.value,
+  solid: () => solid.value,
 })
 </script>
 
 <template>
-  <div class="sky-page" :class="{ dark: darkText, past: pastHero }">
+  <div ref="root" class="sky-page" :class="{ dark: darkText, past: pastHero }">
     <a class="skip" :href="skipTarget">{{ skipLabel }}</a>
-    <!-- 頂欄黏在最上面；在天空上是透明的，捲過天空後變回有底色的 -->
-    <div class="header-slot">
+    <!-- 頂欄黏在最上面；在天空上是透明的，隨捲動漸漸實起來 -->
+    <div class="header-slot" :style="{ '--header-solid': solid.toFixed(3) }">
       <SiteHeader :float="!pastHero" />
     </div>
 
     <section ref="hero" class="hero" :style="{ '--hero-h': height, '--hero-min': minHeight, '--wind': wind.toFixed(3) }" @pointermove="onMove">
       <canvas ref="canvas" class="sky" aria-hidden="true"></canvas>
-      <div class="hero-body">
+      <div ref="heroBody" class="hero-body">
         <slot name="hero" :dark="darkText" :wind="wind" />
       </div>
     </section>
@@ -160,16 +196,17 @@ defineExpose({
   top: var(--s1);
 }
 
+/* 頂欄的字色：天空上是 --hdr-fg（白天深、夜裡淺），底色愈實愈靠近墨色 */
 .header-slot {
+  --hdr-fg: var(--fg);
   position: sticky;
   top: 0;
   z-index: 20;
-  color: var(--fg);
-  transition: color 0.6s ease;
+  color: color-mix(in srgb, var(--ink) calc(var(--header-solid, 0) * 100%), var(--hdr-fg));
 }
 
 .sky-page:not(.dark) .header-slot {
-  color: #f3f1ec;
+  --hdr-fg: #f3f1ec;
 }
 
 .sky-page.past .header-slot {
@@ -201,6 +238,7 @@ defineExpose({
   width: 100%;
   height: 100%;
   display: block;
+  will-change: transform;
 }
 
 /* 地平線：最下面一段淡進紙色 */
@@ -220,6 +258,7 @@ defineExpose({
   inset: 0;
   padding-top: var(--header-h);
   z-index: 2;
+  will-change: transform, opacity;
 }
 
 .hero :deep(a) {

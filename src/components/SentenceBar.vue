@@ -1,8 +1,9 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { getThemes, getWeather } from '@/api'
 import { useFilters } from '@/composables/useFilters'
 import { CATEGORIES, OCCASIONS, SIZES } from '@/filters/options'
+import { Flip, reducedMotion } from '@/motion/gsap'
 
 // offset：這一列上方還有多高的東西（首頁的天空），收合的門檻從那裡起算
 const props = defineProps({
@@ -32,6 +33,22 @@ function onScroll() {
 function reopen() {
   reopenedAt.value = window.scrollY
 }
+
+// 改條件時整句重排有過程（第十二輪，GSAP Flip）：選了比較長或比較短的詞，後面的字滑到新位置，不是跳過去。
+// 位置要在使用者「打開選單之前」記（focus／pointerdown）：原生 <select> 一選好就自己變寬，等到 change 事件再記已經晚了。
+const line = ref(null)
+let before = null
+function capture() {
+  if (reducedMotion() || !line.value) return
+  before = Flip.getState(line.value.querySelectorAll('.clause'))
+}
+watch(filters, async () => {
+  if (!before) return
+  const state = before
+  before = null
+  await nextTick()
+  if (line.value) Flip.from(state, { duration: 0.45, ease: 'power2.out' })
+})
 
 onMounted(async () => {
   window.addEventListener('scroll', onScroll, { passive: true })
@@ -70,40 +87,40 @@ const summary = computed(() => {
       <span class="hint">改條件</span>
     </button>
 
-    <p v-else class="line">
-      <!-- 每個 clause 是一個不換行的小段，標點跟著前面的字走，不會掉到下一列的開頭 -->
-      <span v-if="weather" class="clause">今天 {{ weather.temperature }}°C，</span>
-      <span class="clause">
+    <p v-else ref="line" class="line">
+      <!-- 每個 clause 是一個不換行的小段，標點跟著前面的字走，不會掉到下一列的開頭；data-flip-id 給重排的動畫對位置 -->
+      <span v-if="weather" class="clause" data-flip-id="clause-weather">今天 {{ weather.temperature }}°C，</span>
+      <span class="clause" data-flip-id="clause-occasion">
         <label>
           <span class="visually-hidden">場合</span>
-          <select :value="filters.occasion" @change="setFilter('occasion', $event.target.value)">
+          <select @focus="capture" @pointerdown="capture" :value="filters.occasion" @change="setFilter('occasion', $event.target.value)">
             <option v-for="option in OCCASIONS" :key="option.value" :value="option.value">{{ option.label }}</option>
           </select> </label
         >，
       </span>
-      <span class="clause">
+      <span class="clause" data-flip-id="clause-style">
         想穿
         <label>
           <span class="visually-hidden">風格</span>
-          <select :value="filters.style" @change="setFilter('style', $event.target.value)">
+          <select @focus="capture" @pointerdown="capture" :value="filters.style" @change="setFilter('style', $event.target.value)">
             <option v-for="option in styleOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
           </select> </label
         >，
       </span>
-      <span class="clause">
+      <span class="clause" data-flip-id="clause-category">
         找
         <label>
           <span class="visually-hidden">類別</span>
-          <select :value="filters.category" @change="setFilter('category', $event.target.value)">
+          <select @focus="capture" @pointerdown="capture" :value="filters.category" @change="setFilter('category', $event.target.value)">
             <option v-for="option in CATEGORIES" :key="option.value" :value="option.value">{{ option.label }}</option>
           </select> </label
         >，
       </span>
-      <span class="clause">
+      <span class="clause" data-flip-id="clause-size">
         尺寸
         <label>
           <span class="visually-hidden">尺寸</span>
-          <select :value="filters.size" @change="setFilter('size', $event.target.value)">
+          <select @focus="capture" @pointerdown="capture" :value="filters.size" @change="setFilter('size', $event.target.value)">
             <option v-for="option in SIZES" :key="option.value" :value="option.value">{{ option.label }}</option>
           </select> </label
         >。

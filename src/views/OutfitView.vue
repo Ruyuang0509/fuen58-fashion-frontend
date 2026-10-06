@@ -4,9 +4,10 @@
 // 右邊是這套掛在天空下。底下是三件單品：選尺寸、換一件（同路線同類別的別件），整套加入購物車。
 // 滑過單品清單的某一件，上面人形裡那一件會提出來。
 import '@fontsource/space-mono/400.css'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getOutfit, getOutfits, getProducts, getThemes, getWeather } from '@/api'
+import { flyLookIn, rememberLook, takeLook } from '@/motion/lookFlip'
 import GarmentImage from '@/components/GarmentImage.vue'
 import Icon from '@/components/Icon.vue'
 import OutfitLook from '@/components/OutfitLook.vue'
@@ -58,6 +59,15 @@ async function load(id) {
   status.value = 'loading'
   swapping.value = null
   alternatives.value = []
+  // 從卡片點進來的：先用帶過來的資料把衣服掛出來，從卡片的位置飛到這裡，再等細節
+  const remembered = takeLook(id)
+  if (remembered) {
+    outfit.value = remembered.outfit
+    pieces.value = remembered.outfit.items.map((item) => ({ ...item }))
+    sizes.value = Object.fromEntries(remembered.outfit.items.map((item) => [item.productId, item.sizes.length === 1 ? item.sizes[0] : '']))
+    await nextTick()
+    flyLookIn(look.value?.$el?.querySelector('.stack'), remembered.state)
+  }
   try {
     const [found, today, themeList] = await Promise.all([getOutfit(id), getWeather(), getThemes()])
     if (ticket !== latest) return
@@ -208,7 +218,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
         <div class="pieces-inner">
           <h2 class="section-title">{{ themeName }}路線的其他穿搭</h2>
           <div class="row">
-            <RouterLink v-for="entry in others" :key="entry.id" :to="{ name: 'outfit', params: { id: entry.id } }" class="look-link">
+            <RouterLink v-for="entry in others" :key="entry.id" :to="{ name: 'outfit', params: { id: entry.id } }" class="look-link" @click="rememberLook(entry, $event.currentTarget)">
               <OutfitLook :outfit="entry" :height="240" />
             </RouterLink>
           </div>

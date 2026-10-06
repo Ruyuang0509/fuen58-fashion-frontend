@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 import OutfitLook from '@/components/OutfitLook.vue'
 import { useFlyToCart } from '@/composables/useFlyToCart'
+import { rememberLook } from '@/motion/lookFlip'
 import { useCart } from '@/stores/cart'
 import { accentOf } from '@/theme/themes'
 
@@ -43,12 +44,13 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
 <template>
   <article ref="root" class="card" :style="{ '--card-accent': accentOf(outfit.themeCode) }">
     <!-- 穿搭的樣子：三件疊成人形（正式版換成照片，版面不變）；底是主題色加大量白；整塊連到這套的頁面 -->
-    <RouterLink :to="{ name: 'outfit', params: { id: outfit.id } }" class="photo" :aria-label="`看這套：${outfit.title}`">
+    <!-- 點了之後衣服從這裡飛到穿搭頁（rememberLook 記下位置） -->
+    <RouterLink :to="{ name: 'outfit', params: { id: outfit.id } }" class="photo" :aria-label="`看這套：${outfit.title}`" @click="rememberLook(outfit, $event.currentTarget)">
       <OutfitLook :outfit="outfit" :height="220" :caption="false" />
     </RouterLink>
 
     <div class="body">
-      <h3><RouterLink :to="{ name: 'outfit', params: { id: outfit.id } }" class="title">{{ outfit.title }}</RouterLink></h3>
+      <h3><RouterLink :to="{ name: 'outfit', params: { id: outfit.id } }" class="title" @click="rememberLook(outfit, root)">{{ outfit.title }}</RouterLink></h3>
       <p class="meta">{{ themeName }} · {{ outfit.items.length }} 件 · NT$ {{ price.format(total) }}</p>
 
       <ul class="items">

@@ -45,16 +45,32 @@ await send('Runtime.enable')
 await send('Page.enable')
 await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: W < 600 })
 const ev = async (expression) => (await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true })).result?.value
-// SHOT_WAIT：每頁等幾毫秒再拍（字型多的頁面要久一點）。url 結尾 "#hover=<選擇器>" 會先把滑鼠移到那個元素上再拍。
+// SHOT_WAIT：每頁等幾毫秒再拍（字型多的頁面要久一點）。
+// url 結尾 "#hover=<選擇器>" 會先把滑鼠移到那個元素上再拍；"#click=<選擇器>" 會點那個元素，等 SHOT_AFTER 毫秒再拍（抓換頁動畫的中間一格）；
+// "#scroll=<像素>" 會先捲到那個位置再拍。
 const WAIT = +(process.env.SHOT_WAIT ?? 2000)
+const AFTER = +(process.env.SHOT_AFTER ?? 350)
 const report = {}
 for (const raw of urls) {
   const zoom = raw.endsWith('#zoom')
   const hoverMatch = raw.match(/#hover=(.+)$/)
-  const url = zoom ? raw.slice(0, -5) : hoverMatch ? raw.slice(0, hoverMatch.index) : raw
+  const clickMatch = raw.match(/#click=(.+)$/)
+  const scrollMatch = raw.match(/#scroll=(\d+)$/)
+  const cut = hoverMatch ?? clickMatch ?? scrollMatch
+  const url = zoom ? raw.slice(0, -5) : cut ? raw.slice(0, cut.index) : raw
   await send('Page.navigate', { url })
   await sleep(WAIT)
   let name = url.replace(/^https?:\/\/[^/]+/, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'root'
+  if (scrollMatch) {
+    await ev(`window.scrollTo({ top: ${+scrollMatch[1]}, behavior: 'instant' })`)
+    await sleep(700)
+    name += `-scroll${scrollMatch[1]}`
+  }
+  if (clickMatch) {
+    const clicked = await ev(`(() => { const el = document.querySelector(${JSON.stringify(clickMatch[1])}); if (!el) return false; el.click(); return true })()`)
+    await sleep(AFTER)
+    if (clicked) name += `-click${AFTER}`
+  }
   if (hoverMatch) {
     const centre = await ev(`(() => { const el = document.querySelector(${JSON.stringify(hoverMatch[1])}); if (!el) return null; const b = el.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 } })()`)
     if (centre) {

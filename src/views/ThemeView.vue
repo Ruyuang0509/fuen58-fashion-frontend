@@ -1,9 +1,11 @@
 <script setup>
 // 路線（主題）頁：這條路線自己的時刻。天空用這個路線的時刻（幾點、什麼天），不用今天的天氣；
 // 從一條路線換到另一條，太陽與雲會慢慢移過去，不是切換。底下是一句話篩選列和這條路線全部的穿搭。
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getOutfits, getThemes } from '@/api'
+import { gsap, reducedMotion } from '@/motion/gsap'
+import { rememberLook } from '@/motion/lookFlip'
 import Icon from '@/components/Icon.vue'
 import OutfitLook from '@/components/OutfitLook.vue'
 import OutfitStage from '@/components/OutfitStage.vue'
@@ -41,6 +43,14 @@ async function load() {
 }
 watch(code, load, { immediate: true })
 
+// 換一條路線：天空慢慢移過去的同時，左邊的字一行行從下面浮上來
+const sayEl = ref(null)
+watch(code, async (next, previous) => {
+  if (!previous || reducedMotion()) return
+  await nextTick()
+  if (sayEl.value) gsap.fromTo(sayEl.value.children, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.06, overwrite: 'auto' })
+})
+
 function toList() {
   document.getElementById('list')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
 }
@@ -49,7 +59,7 @@ function toList() {
 <template>
   <SkyPage v-if="theme && moment" class="theme-page" :weather="moment.weather" :hour="moment.hour" :tint="accentOf(code)" height="78svh" min-height="32rem" skip-target="#list" skip-label="跳到穿搭">
     <template #hero>
-      <div class="say">
+      <div ref="sayEl" class="say">
         <p class="moment">{{ theme.name }}路線的時刻<span class="sep">　／　</span>{{ moment.line }}</p>
         <h1 class="line">{{ theme.name }}</h1>
         <p class="tagline">{{ theme.tagline }}</p>
@@ -61,7 +71,7 @@ function toList() {
 
       <section class="looks" aria-label="這條路線的穿搭">
         <TransitionGroup name="look" tag="div" class="row">
-          <RouterLink v-for="(outfit, i) in looks" :key="outfit.id" :to="{ name: 'outfit', params: { id: outfit.id } }" class="look-link" :style="{ '--i': i }">
+          <RouterLink v-for="(outfit, i) in looks" :key="outfit.id" :to="{ name: 'outfit', params: { id: outfit.id } }" class="look-link" :style="{ '--i': i }" @click="rememberLook(outfit, $event.currentTarget)">
             <OutfitLook :outfit="outfit" :height="250" />
           </RouterLink>
         </TransitionGroup>
@@ -181,19 +191,14 @@ function toList() {
   transition: opacity 0.6s ease calc(var(--i) * 0.1s), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 0.1s);
 }
 
+/* 離開的那幾套直接拿掉：留著淡出會和新進來的疊在一起 */
 .look-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  position: absolute;
+  display: none;
 }
 
 .look-enter-from {
   opacity: 0;
   transform: translateY(26px);
-}
-
-.look-leave-to {
-  opacity: 0;
-  transform: translateY(14px);
 }
 
 .down {

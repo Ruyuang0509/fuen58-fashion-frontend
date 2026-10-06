@@ -7,7 +7,7 @@
 // 沒有人動的時候，詞自己每幾秒換一個，像在想；一碰就停。
 //
 // 往下捲，天空在地平線處淡進紙色，底下是店：共用的一句話篩選列黏在頂欄下面，接著是全部的穿搭。
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getOutfits, getThemes, getWeather } from '@/api'
 import Icon from '@/components/Icon.vue'
@@ -15,6 +15,8 @@ import OutfitLook from '@/components/OutfitLook.vue'
 import OutfitStage from '@/components/OutfitStage.vue'
 import SentenceBar from '@/components/SentenceBar.vue'
 import SkyPage from '@/components/SkyPage.vue'
+import { gsap, reducedMotion } from '@/motion/gsap'
+import { rememberLook } from '@/motion/lookFlip'
 import { accentOf } from '@/theme/themes'
 
 const CYCLE_MS = 3600 // 沒有人動時，幾秒換一個詞
@@ -61,6 +63,15 @@ function choose(code, byUser = true) {
   active.value = code
   if (byUser) touched.value = true
 }
+
+// 換詞的時候：新的詞與那一句 tagline 從下面浮上來（第十二輪，GSAP）
+const wordEl = ref(null)
+const taglineEl = ref(null)
+watch(active, async (code, previous) => {
+  if (previous === null || reducedMotion()) return
+  await nextTick()
+  gsap.fromTo([wordEl.value, taglineEl.value].filter(Boolean), { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.06, overwrite: 'auto' })
+})
 
 function go(code) {
   touched.value = true
@@ -133,9 +144,9 @@ onBeforeUnmount(stopCycle)
         </p>
         <h1 class="line">
           今天，<br />走<button type="button" class="slot" :aria-label="theme ? `進入「${theme.name}」` : '風格'" @click="theme && go(theme.code)">
-            <span class="bracket">［</span><span class="word">{{ theme?.name ?? '　　' }}</span><span class="bracket">］</span></button>路線。
+            <span class="bracket">［</span><span ref="wordEl" class="word">{{ theme?.name ?? '　　' }}</span><span class="bracket">］</span></button>路線。
         </h1>
-        <p class="tagline">{{ theme?.tagline ?? '　' }}</p>
+        <p ref="taglineEl" class="tagline">{{ theme?.tagline ?? '　' }}</p>
 
         <!-- 全部的風格：指到換詞；按 Enter 或點進去 -->
         <nav class="words" aria-label="風格">
@@ -158,7 +169,7 @@ onBeforeUnmount(stopCycle)
       <section class="looks" aria-label="今天的穿搭" @pointerenter="touched = true">
         <h2 class="looks-title">今天的穿搭<span v-if="theme">　／　{{ theme.name }}</span></h2>
         <TransitionGroup name="look" tag="div" class="row">
-          <RouterLink v-for="(outfit, i) in picks" :key="outfit.id" :to="{ name: 'outfit', params: { id: outfit.id } }" class="look-link" :style="{ '--i': i }">
+          <RouterLink v-for="(outfit, i) in picks" :key="outfit.id" :to="{ name: 'outfit', params: { id: outfit.id } }" class="look-link" :style="{ '--i': i }" @click="rememberLook(outfit, $event.currentTarget)">
             <OutfitLook :outfit="outfit" :height="250" />
           </RouterLink>
         </TransitionGroup>
@@ -313,19 +324,14 @@ onBeforeUnmount(stopCycle)
   transition: opacity 0.6s ease calc(var(--i) * 0.1s), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 0.1s);
 }
 
+/* 離開的那幾套直接拿掉：留著淡出會和新進來的疊在一起 */
 .look-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  position: absolute;
+  display: none;
 }
 
 .look-enter-from {
   opacity: 0;
   transform: translateY(26px);
-}
-
-.look-leave-to {
-  opacity: 0;
-  transform: translateY(14px);
 }
 
 .empty {

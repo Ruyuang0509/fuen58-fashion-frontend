@@ -146,10 +146,10 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
   transition: background-color var(--ease), border-color var(--ease), color var(--ease);
 }
 
-/* 浮在天空上：透明、沒有線，顏色繼承 */
+/* 浮在天空上：底色與線隨 --header-solid（SkyPage 照捲動進度給）從透明漸漸實起來；顏色繼承外面 */
 .site-header.float {
-  background: transparent;
-  border-bottom-color: transparent;
+  background: color-mix(in srgb, var(--bg) calc(var(--header-solid, 0) * 100%), transparent);
+  border-bottom-color: color-mix(in srgb, var(--line) calc(var(--header-solid, 0) * 100%), transparent);
   color: inherit;
 }
 
