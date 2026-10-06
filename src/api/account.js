@@ -56,7 +56,8 @@ function newToken() {
 }
 
 function publicUser(member) {
-  // 收藏另外用 getFavorites 拿，不跟著會員資料走（登入狀態存的是會員資料的快照，收藏會一直變）
+  // 收藏另外用 getFavorites 拿，不跟著會員資料走（登入狀態存的是會員資料的快照，收藏會一直變）；
+  // 偏好（preferences）跟著走：不常變，而且登入那一刻舞台就要知道怎麼排
   const { password, favorites, ...user } = member
   return copy(user)
 }
@@ -680,6 +681,50 @@ export async function mergeFavorites(token, incoming) {
   }
   write(db)
   return copy(favorites)
+}
+
+// ── 偏好（第十五輪子輪 4；契約 §12）──
+// 會員的偏好：{ audience, themes: { code: weight }, pickedOutfitIds, updatedAt }，沒挑過是 null。
+// 真正後端是 members.audience 加 member_preferences（member_id、theme_code、weight）與挑過的名單；這裡掛在會員物件上。
+const AUDIENCE_CODES = ['women', 'men', 'unisex', 'kids']
+
+function cleanPreferences(data) {
+  const audience = AUDIENCE_CODES.includes(data?.audience) ? data.audience : null
+  const themes = {}
+  if (data?.themes && typeof data.themes === 'object') {
+    for (const [code, raw] of Object.entries(data.themes)) {
+      const weight = Number(raw)
+      if (/^[a-z]+$/.test(code) && Number.isFinite(weight) && weight > 0) themes[code] = Math.round(weight * 100) / 100
+    }
+  }
+  const pickedOutfitIds = [...new Set((Array.isArray(data?.pickedOutfitIds) ? data.pickedOutfitIds : []).map(Number).filter(Number.isInteger))]
+  return { audience, themes, pickedOutfitIds, updatedAt: new Date().toISOString() }
+}
+
+export async function getPreferences(token) {
+  await wait(150)
+  const db = read()
+  const member = memberFromToken(db, token)
+  return member.preferences ? copy(member.preferences) : null
+}
+
+/** 存整包（PUT：每次都是整包換掉，不是局部更新）；回存好的那包 */
+export async function savePreferences(token, data) {
+  await wait(150)
+  const db = read()
+  const member = memberFromToken(db, token)
+  member.preferences = cleanPreferences(data)
+  write(db)
+  return copy(member.preferences)
+}
+
+export async function clearPreferences(token) {
+  await wait(150)
+  const db = read()
+  const member = memberFromToken(db, token)
+  member.preferences = null
+  write(db)
+  return true
 }
 
 export async function resetDemoData() {

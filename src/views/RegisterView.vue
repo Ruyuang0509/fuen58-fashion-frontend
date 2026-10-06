@@ -31,20 +31,14 @@ const errors = reactive({
 const formError = ref('')
 const busy = ref(false)
 
-// 只接受站內路徑，避免被帶去別的網站
-const target = () => {
+// 原本要去的網址：只接受站內路徑，避免被帶去別的網站；沒有就是空字串
+const safeRedirect = () => {
   const value = route.query.redirect
-  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//')
-    ? value
-    : '/account'
+  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : ''
 }
+const redirectQuery = () => (safeRedirect() ? { redirect: safeRedirect() } : {})
 
-const loginLink = computed(() => ({
-  name: 'login',
-  query: typeof route.query.redirect === 'string'
-    ? { redirect: route.query.redirect }
-    : {},
-}))
+const loginLink = computed(() => ({ name: 'login', query: redirectQuery() }))
 
 // 強度只是提示，真正的門檻是 PASSWORD_RULE
 const strength = computed(() => {
@@ -130,7 +124,8 @@ const submit = async () => {
       password: form.password,
       name: form.name,
     })
-    await router.push(target())
+    // 註冊成功先去挑風格（第十五輪子輪 4；只有註冊會，登入不會）；原本要去的網址交給那一頁，挑完或略過再回去
+    await router.push({ name: 'onboarding-style', query: redirectQuery() })
   } catch (error) {
     if (error instanceof ApiError && error.field && error.field in errors) {
       errors[error.field] = error.message

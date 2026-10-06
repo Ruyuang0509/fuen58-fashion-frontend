@@ -19,6 +19,19 @@ export const THEME_VISUALS = {
   ryousan: { accent: '#9b3b5e', moment: { hour: 14, weather: { condition: 'cloudy', humidity: 60, temperature: 25 }, line: '下午兩點，商店街正熱鬧。' } },
 }
 
+// 相鄰的路線（第十五輪子輪 4，偏好調查用）：挑了一套某路線的，就從這兩條相鄰的路線各補一套還沒出現的進來讓人再挑。
+// 相鄰 = 衣櫃裡常常一起出現的：簡約和正式、復古；街頭和龐克、戶外……順序有意義，前面那條先補
+export const THEME_NEIGHBOURS = {
+  minimal: ['formal', 'vintage'],
+  street: ['punk', 'outdoor'],
+  vintage: ['minimal', 'lolita'],
+  outdoor: ['street', 'minimal'],
+  formal: ['minimal', 'vintage'],
+  punk: ['street', 'vintage'],
+  lolita: ['ryousan', 'vintage'],
+  ryousan: ['lolita', 'street'],
+}
+
 export const DEFAULT_ACCENT = '#3f4a54'
 
 export function accentOf(themeCode) {

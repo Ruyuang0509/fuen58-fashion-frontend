@@ -1,5 +1,5 @@
 <script setup>
-// 會員預覽：登入了就是一個小選單（個人資料、訂單、看過的、登出）；沒登入就是登入／註冊兩顆鈕。
+// 會員預覽：登入了就是一個小選單（個人資料、訂單、我的偏好、看過的、登出）；沒登入就是登入／註冊兩顆鈕。
 import { useRouter } from 'vue-router'
 import Icon from '@/components/Icon.vue'
 import { useSession } from '@/stores/session'
@@ -10,6 +10,7 @@ const { user, loggedIn, logout } = useSession()
 const links = [
   { name: 'account', label: '個人資料', icon: 'user' },
   { name: 'account-orders', label: '訂單紀錄', icon: 'bag' },
+  { name: 'account-style', label: '我的偏好', icon: 'palette' },
   { name: 'history', label: '看過的', icon: 'clock' },
 ]
 

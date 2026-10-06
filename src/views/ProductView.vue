@@ -16,6 +16,7 @@ import { useFlyToCart } from '@/composables/useFlyToCart'
 import { CATEGORY_NAMES, formatPrice, warmthText } from '@/products/labels'
 import { useCart } from '@/stores/cart'
 import { useHistory } from '@/stores/history'
+import { useTaste } from '@/stores/taste'
 import { accentOf } from '@/theme/themes'
 
 const route = useRoute()
@@ -23,11 +24,14 @@ const router = useRouter()
 const { add } = useCart()
 const { fly } = useFlyToCart()
 const { record } = useHistory()
+const taste = useTaste()
 
 const product = ref(null)
 const outfits = ref([])
 const related = ref([])
 const sameBrand = ref([]) // 同品牌的新品（第十五輪）：看完這件還能往哪走
+const alsoLike = ref([]) // 你可能也想看（第十五輪子輪 4）：照推測的喜好挑的單品，附理由
+const alsoWhy = ref('')
 const themes = ref([])
 const status = ref('loading') // loading | ready | missing | error
 
@@ -59,6 +63,22 @@ const fitText = computed(() => {
   return oneSize.value ? `${who}：${fit.note}` : `${who}，穿 ${fit.size}：${fit.note}`
 })
 
+// 你可能也想看：照推測的喜好（stores/taste.js），從這件「不屬於」的路線裡挑——它自己的路線已經有「同路線的其他單品」那一排，
+// 再排一次會重複。首選路線不夠 6 件就往第二、第三順位補；理由用的是真的拿來挑的那條路線
+async function alsoLikeFor(item) {
+  await taste.whenReady()
+  const profile = taste.profile.value
+  if (!profile) return { list: [], why: '' }
+  const codes = profile.reasons.map((reason) => reason.code).filter((code) => !item.themeCodes.includes(code))
+  const list = []
+  for (const code of codes) {
+    if (list.length >= 6) break
+    const more = await getProducts({ theme: code, exclude: [item.productId, ...list.map((entry) => entry.productId)] })
+    list.push(...more.slice(0, 6 - list.length))
+  }
+  return { list, why: profile.reasons.find((reason) => reason.code === codes[0])?.text ?? '' }
+}
+
 // 連續換頁時，先送出的請求可能比較晚回來；只採用最後一次的結果
 let latest = 0
 
@@ -81,16 +101,19 @@ async function load(id) {
     if (item.sizes.length === 1) size.value = item.sizes[0]
     status.value = 'ready'
     record('products', item.productId) // 瀏覽紀錄：看到了才算
-    // 下面三段是陪襯，晚一點到也沒關係
-    const [inOutfits, others, fromBrand] = await Promise.all([
+    // 下面四段是陪襯，晚一點到也沒關係
+    const [inOutfits, others, fromBrand, also] = await Promise.all([
       getOutfitsWithProduct(id),
       getProducts({ theme: item.themeCodes[0], exclude: [item.productId] }),
       getProducts({ brand: item.brandCode, exclude: [item.productId], sort: 'new' }),
+      alsoLikeFor(item),
     ])
     if (ticket !== latest) return
     outfits.value = inOutfits
     related.value = others.slice(0, 6)
     sameBrand.value = fromBrand.slice(0, 4)
+    alsoLike.value = also.list
+    alsoWhy.value = also.why
   } catch {
     if (ticket === latest) status.value = 'error'
   }
@@ -269,6 +292,14 @@ function closeZoom(event) {
         <RouterLink v-for="outfit in outfits" :key="outfit.id" :to="{ name: 'outfit', params: { id: outfit.id } }" class="look-link" :title="`看這套：${outfit.title}`">
           <OutfitLook :outfit="outfit" :height="260" />
         </RouterLink>
+      </div>
+    </section>
+
+    <section v-if="alsoLike.length" class="section also">
+      <h2 class="section-title">你可能也想看</h2>
+      <p class="why">因為{{ alsoWhy }}。</p>
+      <div class="grid">
+        <ProductCard v-for="item in alsoLike" :key="item.productId" :product="item" />
       </div>
     </section>
 
@@ -729,6 +760,13 @@ legend,
 .section-title a {
   color: var(--ink);
   text-underline-offset: 0.3em;
+}
+
+/* 你可能也想看的理由：緊貼在標題底下 */
+.why {
+  margin: calc(-1 * var(--s2)) 0 var(--s3);
+  color: var(--ink-soft);
+  font-size: var(--fs-0);
 }
 
 .looks {

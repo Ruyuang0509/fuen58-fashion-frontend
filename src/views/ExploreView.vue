@@ -11,10 +11,14 @@ import OutfitStage from '@/components/OutfitStage.vue'
 import ProductCard from '@/components/ProductCard.vue'
 import SentenceBar from '@/components/SentenceBar.vue'
 import SkyPage from '@/components/SkyPage.vue'
+import { useFilters } from '@/composables/useFilters'
 import { useExploreSky } from '@/stores/explore'
+import { useTaste } from '@/stores/taste'
 
 const route = useRoute()
 const { sky } = useExploreSky()
+const { filters } = useFilters()
+const { profile, forYou, setForYou, nameOf } = useTaste()
 const page = ref(null)
 const weather = ref(null)
 const themes = ref([])
@@ -82,6 +86,16 @@ const waiting = computed(() => route.name === 'campaign' && !campaign.value)
 
 // 全部穿搭的天空矮，一句話列早一點收合
 const offsetExtra = computed(() => (route.name === 'outfits' ? 200 : 320))
+
+// 為你排（第十五輪子輪 4）：舞台說它現在是照喜好排的，標題就多一格「，照你的喜好排」；
+// 底下一行是理由（「你挑了 3 套街頭，街頭的排前面。」）和關掉的鈕；關著的時候那行說「照原本的順序」並給開回來的鈕。
+// 選了風格或在活動頁就沒有這一行：那裡本來就不照喜好排
+const sorted = ref(false)
+const tasteLine = computed(() => !!profile.value && !filters.value.style && route.name !== 'campaign')
+const reason = computed(() => {
+  const top = profile.value?.reasons[0]
+  return top ? `${top.text}，${nameOf(top.code)}的排前面。` : ''
+})
 </script>
 
 <template>
@@ -104,8 +118,15 @@ const offsetExtra = computed(() => (route.name === 'outfits' ? 200 : 320))
       <div id="shop" class="shop">
         <SentenceBar :offset="heroHeight + offsetExtra" />
         <main class="stage">
-          <h2 class="shop-title">{{ title }}<span v-if="count !== null" class="count">　{{ count }} 套</span></h2>
-          <OutfitStage :campaigns="tiles" :ids="stageIds" :waiting="waiting" @count="count = $event" />
+          <div class="shop-head">
+            <h2 class="shop-title">{{ title }}<span v-if="count !== null" class="count">　{{ count }} 套</span><span v-if="sorted" class="for-you">，照你的喜好排</span></h2>
+            <p v-if="tasteLine" class="taste-line">
+              <template v-if="forYou">{{ reason }}</template>
+              <template v-else>照原本的順序。</template>
+              <button type="button" class="taste-toggle" @click="setForYou(!forYou)">{{ forYou ? '不要照喜好排' : '照我的喜好排' }}</button>
+            </p>
+          </div>
+          <OutfitStage :campaigns="tiles" :ids="stageIds" :waiting="waiting" @count="count = $event" @sorted="sorted = $event" />
 
           <section v-if="route.name === 'campaign' && campaignProducts.length" class="campaign-items" aria-label="這檔活動的單品">
             <h2 class="shop-title">這檔活動的單品<span class="count">　{{ campaignProducts.length }} 件</span></h2>
@@ -140,6 +161,33 @@ const offsetExtra = computed(() => (route.name === 'outfits' ? 200 : 320))
 .count {
   font-family: 'Space Mono', monospace;
   font-size: 0.85em;
+}
+
+/* 標題與底下的為你排那一行一組；標題自己的下邊距交給這一組 */
+.shop-head {
+  margin-bottom: var(--s4);
+}
+
+.shop-head .shop-title {
+  margin-bottom: 0;
+}
+
+.taste-line {
+  margin: var(--s1) 0 0;
+  color: var(--ink-soft);
+  font-size: var(--fs-0);
+}
+
+.taste-toggle {
+  margin-left: var(--s2);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  cursor: pointer;
 }
 
 .campaign-items {

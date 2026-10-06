@@ -12,6 +12,7 @@ import OutfitLook from '@/components/OutfitLook.vue'
 import { gsap, reducedMotion } from '@/motion/gsap'
 import { rememberLook } from '@/motion/lookFlip'
 import { useExploreSky } from '@/stores/explore'
+import { useTaste } from '@/stores/taste'
 import { accentOf } from '@/theme/themes'
 
 const CYCLE_MS = 3600 // 沒有人動時，幾秒換一個詞
@@ -19,6 +20,7 @@ const CYCLE_MS = 3600 // 沒有人動時，幾秒換一個詞
 const router = useRouter()
 const page = inject('skyPage', ref(null))
 const { setSky } = useExploreSky()
+const taste = useTaste()
 const themes = ref([])
 const weather = ref(null)
 const outfits = ref([])
@@ -94,11 +96,15 @@ function toShop() {
 
 onMounted(async () => {
   try {
-    const [themeList, today, outfitList] = await Promise.all([getThemes(), getWeather(), getOutfits()])
+    const [themeList, today, outfitList] = await Promise.all([getThemes(), getWeather(), getOutfits(), taste.whenReady()])
     themes.value = themeList
     weather.value = today
     outfits.value = outfitList
-    if (!active.value && themeList.length) choose(themeList[0].code, false)
+    if (!active.value && themeList.length) {
+      // 第一個詞：推測得出喜好就用首選的那條路線（第十五輪子輪 4），不然照清單的第一個
+      const top = taste.profile.value?.top
+      choose(themeList.some((item) => item.code === top) ? top : themeList[0].code, false)
+    }
   } catch {
     themes.value = []
   }

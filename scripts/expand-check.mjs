@@ -1,5 +1,6 @@
-// Headless Chrome over raw CDP: acceptance checks for the expansion rounds (docs/09). Section 1 = sub-round 1
-// (footer, home shelves, campaigns, six more outfits). usage: node scripts/expand-check.mjs <origin> <outDir> [width] [height]
+// Headless Chrome over raw CDP: acceptance checks for the expansion rounds (docs/09). Sections: sub-round 1
+// (footer, home shelves, campaigns, six more outfits), 2 (favourites, history), 3 (multi-select, /products), header peeks,
+// 4 (style quiz, taste profile, for-you ordering). usage: node scripts/expand-check.mjs <origin> <outDir> [width] [height]
 import { spawn } from 'node:child_process'
 import { mkdirSync, readFileSync, writeFileSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -215,7 +216,8 @@ check('fav merge: logged in and landed on /account', (await ev('location.pathnam
 check('fav merge: header count still 2', (await favCount()) === '2', await favCount())
 check('fav merge: local copy cleared', (await ev('localStorage.getItem("favorites")')) === null, await ev('localStorage.getItem("favorites")'))
 check('fav merge: the account now holds 1 product + 1 outfit', (await ev('(() => { const db = JSON.parse(localStorage.getItem("account")); const m = db.members.find((x) => x.email === "demo@example.com"); return m.favorites?.products?.length === 1 && m.favorites?.outfits?.length === 1 })()')) === true)
-check('account nav: 5 tabs incl. 收藏 and 看過的', JSON.stringify(await ev('[...document.querySelectorAll(".account-nav a")].map((a) => a.textContent.trim())')) === JSON.stringify(['個人資料', '地址簿', '訂單紀錄', '收藏', '看過的']), await ev('[...document.querySelectorAll(".account-nav a")].map((a) => a.textContent.trim()).join("|")'))
+// 子輪 4 加了「我的偏好」：五個分頁變六個
+check('account nav: 6 tabs incl. 我的偏好, 收藏 and 看過的', JSON.stringify(await ev('[...document.querySelectorAll(".account-nav a")].map((a) => a.textContent.trim())')) === JSON.stringify(['個人資料', '地址簿', '訂單紀錄', '我的偏好', '收藏', '看過的']), await ev('[...document.querySelectorAll(".account-nav a")].map((a) => a.textContent.trim()).join("|")'))
 await go('/products/101', 2400)
 check('fav merge: product heart on after login', (await pressed('.buy .fav')) === 'true', await pressed('.buy .fav'))
 await click('.buy .fav')
@@ -341,6 +343,100 @@ if (W >= 768) {
   await sleep(300)
   check('peek: no popover on the phone (tap goes straight to the page)', (await count('.peek-panel')) === 0, await count('.peek-panel'))
 }
+
+// ── 子輪 4：偏好調查、推測、為你排 ──
+// 到這裡：登入的是 demo（收藏 1 套、看過 101）。先登出，註冊一個新帳號走一遍調查
+const firstTheme = () => ev('document.querySelector(".grid .card")?.dataset.theme')
+const firstHref = () => ev('document.querySelector(".grid .card a")?.getAttribute("href")')
+const tileThemes = () => ev('[...document.querySelectorAll(".pick-tile")].map((t) => t.dataset.theme).join(",")')
+await go('/account', 2200)
+await click('.account-nav .logout')
+await sleep(800)
+check('quiz: logged out from the account page', (await ev('location.pathname')) === '/', await ev('location.pathname'))
+const quizEmail = `quiz-${Date.now()}@example.com`
+await go('/register?redirect=' + encodeURIComponent('/outfits'), 2000)
+await setValue('#register-name', '偏好測試')
+await setValue('#register-email', quizEmail)
+await setValue('#register-password', 'Quiz1234')
+await setValue('#register-confirm', 'Quiz1234')
+await click('form.register button[type=submit]')
+await sleep(2400)
+// vue-router 寫網址時斜線不轉義（redirect=/outfits），所以解碼後比
+check('quiz: registering lands on /onboarding/style and keeps the redirect', (await ev('location.pathname')) === '/onboarding/style' && (await ev('new URLSearchParams(location.search).get("redirect")')) === '/outfits', await ev('location.pathname + location.search'))
+check('quiz: step 1 offers 4 audiences and 先不選', (await count('.audiences .big')) === 4 && (await ev('[...document.querySelectorAll(".quiz .link")].some((b) => b.textContent.trim() === "先不選")')) === true, await count('.audiences .big'))
+await click('.audiences .big', 0) // 女生
+await sleep(1000)
+check('quiz: step 2 starts with 8 looks, one per route', (await count('.pick-tile')) === 8 && (await ev('new Set([...document.querySelectorAll(".pick-tile")].map((t) => t.dataset.theme)).size')) === 8, await tileThemes())
+check('quiz: 看我的比例 is disabled before 3 picks', (await ev('document.querySelector(".quiz .primary")?.disabled')) === true)
+check('quiz: overflow 0 with the grid open', (await overflow()) <= 0 && JSON.stringify(await spill()) === '[]', `${await overflow()} / ${JSON.stringify(await spill())}`)
+await click('.pick-tile[data-theme=street]')
+await sleep(1000)
+// 街頭的相鄰是龐克、戶外：各補一套還沒出現的，插在街頭那一套後面
+check('quiz: picking 街頭 adds a 龐克 and a 戶外 look right after it (8 → 10)', (await count('.pick-tile')) === 10 && (await ev('[...document.querySelectorAll(".pick-tile")].slice(1, 4).map((t) => t.dataset.theme).join(",")')) === 'street,punk,outdoor' && (await ev('document.querySelector(".pick-tile[data-theme=street]").getAttribute("aria-pressed")')) === 'true', await tileThemes())
+await click('.pick-tile[data-theme=punk]') // 剛補進來的那一套
+await sleep(1000)
+await click('.pick-tile[data-theme=outdoor]') // 剛補進來的那一套
+await sleep(1000)
+const pickedThemes = await ev('[...document.querySelectorAll(".pick-tile[aria-pressed=true]")].map((t) => t.dataset.theme)')
+check('quiz: 3 picked (街頭、龐克、戶外) → 已挑 3 套, button enabled', JSON.stringify(pickedThemes) === JSON.stringify(['street', 'punk', 'outdoor']) && ((await text('.quiz .status')) ?? '').includes('已挑 3 套') && (await ev('document.querySelector(".quiz .primary")?.disabled')) === false, `${JSON.stringify(pickedThemes)} / ${await text('.quiz .status')}`)
+await shot('quiz-picks')
+await click('.quiz .primary')
+await sleep(1400)
+// 三套三條路線各 1/3：34／33／33，多出來的 1% 給路線順序在前的（街頭），所以街頭是首選
+check('quiz: result bar has 3 segments, 街頭 first with 34%', (await count('.taste .seg')) === 3 && (await ev('document.querySelector(".taste .seg")?.dataset.code')) === 'street' && ((await text('.taste .text')) ?? '').startsWith('34% 街頭') && ((await text('.taste .text')) ?? '').includes('%'), await text('.taste .text'))
+check('quiz: preferences saved on the new member (women, 3 picks, weights sum 1)', (await ev(`(() => { const db = JSON.parse(localStorage.getItem("account")); const p = db.members.find((x) => x.email === ${JSON.stringify(quizEmail)})?.preferences; if (!p) return "none"; const sum = Object.values(p.themes).reduce((a, b) => a + b, 0); return p.pickedOutfitIds.length === 3 && p.audience === "women" && Math.round(sum * 100) === 100 && p.themes.street === 0.34 })()`)) === true, await ev(`JSON.stringify(JSON.parse(localStorage.getItem("account")).members.find((x) => x.email === ${JSON.stringify(quizEmail)})?.preferences)`))
+check('quiz: 開始逛 goes back to the redirect with ?for=women', (await ev('document.querySelector(".result .btn")?.getAttribute("href")')) === '/outfits?for=women', await ev('document.querySelector(".result .btn")?.getAttribute("href")'))
+await shot('quiz-result')
+// 會員中心：同一條橫條、理由、六個分頁
+await go('/account/style', 2600)
+await shot('account-style')
+check('account style: 你挑的 bar has the same 3 segments, 街頭 first', (await count('.picked-panel .taste .seg')) === 3 && (await ev('document.querySelector(".picked-panel .taste .seg")?.dataset.code')) === 'street', await text('.picked-panel .taste .text'))
+check('account style: the guess panel lists 你挑了 1 套街頭', ((await text('.guess-panel .reasons')) ?? '').includes('你挑了 1 套街頭'), await text('.guess-panel .reasons'))
+check('account style: nav has 6 tabs with 我的偏好 current', (await count('.account-nav a')) === 6 && (await ev('document.querySelector(".account-nav a.current")?.textContent.trim()')) === '我的偏好', await ev('document.querySelector(".account-nav a.current")?.textContent.trim()'))
+// 六個分頁：桌機兩列都看得到；手機一列橫向捲，目前的那個要捲到看得見（第一版在 390 寬被切在右邊）
+check('account style: the current tab is fully visible inside the nav', (await ev('(() => { const a = document.querySelector(".account-nav a.current"); const u = a.closest("ul").getBoundingClientRect(); const r = a.getBoundingClientRect(); return r.left >= u.left - 1 && r.right <= u.right + 1 })()')) === true, await ev('(() => { const a = document.querySelector(".account-nav a.current"); return Math.round(a.getBoundingClientRect().right - a.closest("ul").getBoundingClientRect().right) })()'))
+if (W >= 768) check('account style: on the desktop every tab is inside the column', (await ev('[...document.querySelectorAll(".account-nav a")].every((a) => a.getBoundingClientRect().right <= a.closest("ul").getBoundingClientRect().right + 1)')) === true)
+check('account style: overflow 0', (await overflow()) <= 0, await overflow())
+// 全部穿搭：照喜好排、可以關
+await go('/outfits', 2800)
+check('for-you: first card is 街頭 and the title says 照你的喜好排', (await firstTheme()) === 'street' && ((await text('.shop-title')) ?? '').includes('照你的喜好排'), `${await firstTheme()} / ${await text('.shop-title')}`)
+check('for-you: reason line under the title', ((await text('.taste-line')) ?? '').includes('你挑了 1 套街頭') && ((await text('.taste-line')) ?? '').includes('街頭的排前面'), await text('.taste-line'))
+// 權重一樣的三條照路線順序排在一起（街頭、戶外、龐克），不交錯；之後才是其他路線照 id
+check('for-you: picked routes grouped first (3 街頭, 3 戶外, 2 龐克), then id order', (await ev('[...document.querySelectorAll(".grid .card")].slice(0, 9).map((c) => c.dataset.theme).join(",")')) === 'street,street,street,outdoor,outdoor,outdoor,punk,punk,minimal', await ev('[...document.querySelectorAll(".grid .card")].slice(0, 9).map((c) => c.dataset.theme).join(",")'))
+await ev('document.querySelector(".shop-head")?.scrollIntoView()')
+await sleep(500)
+await shot('outfits-for-you')
+await click('.taste-toggle')
+await sleep(1000)
+check('for-you: turning it off → id order, no clause in the title, forYou=0 stored', (await firstHref()) === '/outfits/1' && !((await text('.shop-title')) ?? '').includes('照你的喜好排') && (await ev('localStorage.getItem("forYou")')) === '0', `${await firstHref()} / ${await text('.shop-title')}`)
+check('for-you: the line now says 照原本的順序 and offers 照我的喜好排', ((await text('.taste-line')) ?? '').includes('照原本的順序') && (await text('.taste-toggle')) === '照我的喜好排', await text('.taste-line'))
+await click('.taste-toggle')
+await sleep(1000)
+check('for-you: back on → clause returns, forYou key removed', ((await text('.shop-title')) ?? '').includes('照你的喜好排') && (await firstTheme()) === 'street' && (await ev('localStorage.getItem("forYou")')) === null, await text('.shop-title'))
+await go('/themes/street', 2600)
+check('for-you: a route page is not re-sorted and has no line', !((await text('.shop-title')) ?? '').includes('照你的喜好排') && (await count('.taste-line')) === 0, await text('.shop-title'))
+// 首頁第一個詞
+await go('/', 2800)
+check('for-you: home first word is 街頭 (profile.top), not the default 簡約', (await text('.home-hero .word')) === '街頭', await text('.home-hero .word'))
+// 商品頁：你可能也想看
+await go('/products/101', 2800)
+check('also-like: 你可能也想看 with a reason and 1–6 cards', (await ev('[...document.querySelectorAll(".section-title")].some((h) => h.textContent.trim() === "你可能也想看")')) === true && ((await text('.also .why')) ?? '').includes('因為你挑了') && (await count('.also .card')) >= 1 && (await count('.also .card')) <= 6, `${await text('.also .why')} / ${await count('.also .card')}`)
+check('also-like: none of the cards is the product itself', (await ev('[...document.querySelectorAll(".also .card a")].every((a) => !a.getAttribute("href").endsWith("/products/101"))')) === true)
+await ev('document.querySelector(".also")?.scrollIntoView()')
+await sleep(500)
+await shot('product-also-like')
+// 清掉偏好、清掉看過的 → 全部消失
+await go('/account/style', 2600)
+await click('.picked-panel .link') // 清掉偏好
+await sleep(900)
+check('clear: preferences gone → 去挑三套 shows, member record null', (await ev('[...document.querySelectorAll(".picked-panel a")].some((a) => a.textContent.trim() === "去挑三套")')) === true && (await ev(`JSON.parse(localStorage.getItem("account")).members.find((x) => x.email === ${JSON.stringify(quizEmail)})?.preferences`)) === null)
+await go('/history', 2400)
+await click('.clear')
+await sleep(500)
+await go('/outfits', 2800)
+check('clear: no signals left → no clause, no line, id order', !((await text('.shop-title')) ?? '').includes('照你的喜好排') && (await count('.taste-line')) === 0 && (await firstHref()) === '/outfits/1', await text('.shop-title'))
+await go('/products/101', 2600)
+check('clear: 你可能也想看 gone too', (await count('.also')) === 0, await count('.also'))
 
 const summary = { origin, size: `${W}x${H}`, passed: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok), problems }
 console.log(JSON.stringify(summary, null, 1))

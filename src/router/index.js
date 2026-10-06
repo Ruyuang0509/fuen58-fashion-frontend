@@ -38,7 +38,8 @@ const routes = [
   { path: '/wall/:id', name: 'wall-post', component: todo, meta: { title: '穿搭照', zone: 'explore', level: '特', note: '單張穿搭照與照片上的商品標註。' } },
   // 天氣穿搭就是首頁第一屏（天氣、一句理由、合今天的幾套、可換風格），所以這個網址直接回首頁（2026-10-06 使用者裁決）
   { path: '/weather', name: 'weather', redirect: '/' },
-  { path: '/onboarding/style', name: 'onboarding-style', component: todo, meta: { title: '選偏好', zone: 'explore', level: '特', note: '註冊後引導第一步：至少選三張風格圖片；可略過。' } },
+  // 偏好調查（第十五輪子輪 4）：註冊成功後進來，帶 ?redirect= 原本要去的網址；三步都能略過。要登入（結果存在會員身上）
+  { path: '/onboarding/style', name: 'onboarding-style', component: () => import('@/views/OnboardingStyleView.vue'), meta: { title: '挑你的風格', zone: 'explore', auth: true } },
   { path: '/fitting', name: 'fitting', component: todo, meta: { title: '試穿間', zone: 'explore', level: '加', note: '2D 人偶試穿；先試做再決定是否排入。' } },
 
   // 交易區
@@ -55,7 +56,7 @@ const routes = [
   { path: '/account/orders', name: 'account-orders', component: () => import('@/views/OrdersView.vue'), meta: { title: '訂單紀錄', zone: 'transaction', auth: true } },
   { path: '/account/orders/:id', name: 'account-order', component: () => import('@/views/OrderView.vue'), meta: { title: '訂單明細', zone: 'transaction', auth: true } },
   { path: '/account/body', name: 'account-body', component: todo, meta: { title: '身形資料', zone: 'transaction', level: '特', note: '供尺寸推薦與試穿使用。' } },
-  { path: '/account/style', name: 'account-style', component: todo, meta: { title: '我的偏好', zone: 'transaction', level: '特', note: '以風格組成比例呈現；可重選。' } },
+  { path: '/account/style', name: 'account-style', component: () => import('@/views/AccountStyleView.vue'), meta: { title: '我的偏好', zone: 'transaction', auth: true } },
   // 收藏與看過的（第十五輪子輪 2）：不需要登入——訪客存在本機，登入後併進帳號；會員中心的分頁列也連到這兩頁
   { path: '/favorites', name: 'favorites', component: () => import('@/views/FavoritesView.vue'), meta: { title: '收藏', zone: 'transaction' } },
   { path: '/history', name: 'history', component: () => import('@/views/HistoryView.vue'), meta: { title: '你看過的', zone: 'transaction' } },

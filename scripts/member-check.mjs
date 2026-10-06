@@ -93,7 +93,8 @@ check('login: success returns to /account', (await pathname()) === '/account', a
 // ── 2. 個人資料 ──
 await shot('account')
 // 第十五輪子輪 2：分頁列多了收藏、看過的
-check('account: nav has 5 links', (await count('.account-nav a')) === 5, await count('.account-nav a'))
+// 子輪 4 加了「我的偏好」：五個變六個
+check('account: nav has 6 links', (await count('.account-nav a')) === 6, await count('.account-nav a'))
 check('account: name prefilled', (await ev('document.querySelector("#profile-name")?.value')) === '林示範', await ev('document.querySelector("#profile-name")?.value'))
 await type('#profile-name', '林示範二')
 await click('form.profile button[type=submit]')
@@ -205,8 +206,16 @@ check('register: still on register page', (await pathname()) === '/register')
 await type('#register-password', 'abcd1234')
 await type('#register-confirm', 'abcd1234')
 await click('form.register button[type=submit]')
+await sleep(1400)
+// 子輪 4：註冊成功先到偏好調查（三步都能略過）；這裡走略過的路，確認略過後才是會員中心
+check('register: success logs in and lands on /onboarding/style', (await pathname()) === '/onboarding/style', await pathname())
+await click('.quiz .link') // 先不選
 await sleep(900)
-check('register: success logs in and lands on /account', (await pathname()) === '/account', await pathname())
+check('register: quiz step 2 shows 8 looks', (await count('.pick-tile')) === 8, await count('.pick-tile'))
+await click('.quiz .foot .link') // 先不挑，直接開始逛
+await sleep(1200)
+check('register: skipping the quiz lands on the home page', (await pathname()) === '/', await pathname())
+await go('/account', 1500)
 check('register: new member name prefilled', (await ev('document.querySelector("#profile-name")?.value')) === '新會員', await ev('document.querySelector("#profile-name")?.value'))
 await go('/account/orders', 1500)
 check('register: new member has no orders (empty state)', (await count('.order')) === 0 && (await count('.empty')) === 1, `${await count('.order')} / ${await count('.empty')}`)

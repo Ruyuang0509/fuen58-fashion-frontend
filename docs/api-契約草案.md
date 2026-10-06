@@ -215,10 +215,34 @@
 資料表：`member_favorite_products`（member_id、product_id、colour_code、added_at，主鍵 member_id + product_id）、`member_favorite_outfits`（member_id、outfit_id、added_at）。
 瀏覽紀錄**不進後端**（前台本機存、各 24 筆）；若要跨裝置同步再開 `GET/PUT /api/me/history`（組員清單裡是「加」）。
 
-## 11. 還沒定的
+## 11. 偏好（需登入；第十五輪子輪 4，功能規劃「特」）
+
+註冊成功後的三步調查（給誰穿、挑至少三套、看風格組成比例）存在這裡；登入不會再問。前台另外用收藏與看過的一起推測喜好（純前端算，不進後端），所以後端只要存調查的結果。
+
+| 端點 | 內容 |
+|---|---|
+| `GET /api/me/preferences` | 整包或 `null`（沒挑過） |
+| `PUT /api/me/preferences` | body 是整包（少 `updatedAt`）；**整包換掉**，不是局部更新。後端驗：`audience` 是四個代碼之一或 `null`、`themes` 的 key 是存在的路線代碼、權重 0–1、`pickedOutfitIds` 是存在的穿搭編號；回存好的那包 |
+| `DELETE /api/me/preferences` | 清掉（會員中心「清掉偏好」）；之後 `GET` 回 `null` |
+
+```json
+{
+  "audience": "women",
+  "themes": { "street": 0.34, "outdoor": 0.33, "punk": 0.33 },
+  "pickedOutfitIds": [4, 14, 18],
+  "updatedAt": "2026-10-06T09:40:00+08:00"
+}
+```
+
+- `audience`：women｜men｜unisex｜kids｜null（第一步「先不選」）。
+- `themes`：各路線被挑的套數 ÷ 總數，兩位小數、總和 1；只挑了給誰穿、沒挑穿搭時是 `{}`。前台顯示用它，推測時若有 `pickedOutfitIds` 會重算。
+- 資料表：`members.audience`；`member_preferences`（member_id、theme_code、weight，主鍵 member_id + theme_code）；`member_preference_picks`（member_id、outfit_id）。`updatedAt` 取三張表最新的那個時間就好。
+- 前台把 `preferences` 當會員資料的一部分：`GET /api/me`（§6）回的會員物件**要帶 `preferences`**（沒挑過是 `null`），登入那一刻舞台才知道怎麼排，不必多打一次。
+
+## 12. 還沒定的
 
 1. 品況（二手）欄位——等 10/12 定案。
 2. 穿搭牆（穿搭照、標註、按讚、審核）——等照片來源定案；前台導覽列先藏。
-3. 偏好與身形（註冊後引導、尺寸推薦）——特色項目，資料表可先留 `member_preferences`（theme_code、weight）與 `member_body`（height、weight、bust、waist、hips）。第四子輪前台會先做偏好（`GET/PUT /api/me/preferences`），到時補完整形狀。
+3. 身形（尺寸推薦）——特色項目，資料表可先留 `member_body`（height、weight、bust、waist、hips）；偏好已在 §11。
 4. 商品清單的多值條件——第三子輪：`brand`、`colour`（色系代碼）、`size` 逗號分隔、任一符合。
 5. **登入憑證放哪**（2026-10-06 使用者：交給後端決定）：(a) 現在寫的 Bearer token，前台存 localStorage／sessionStorage，寫法簡單、跨網域也行，但 XSS 拿得到；(b) 後端發 `httpOnly; Secure; SameSite=Lax` 的 cookie，前台不碰 token、XSS 拿不到，但要處理 CSRF（同站 cookie 加自訂 header 或 token）與跨網域的部署設定。前台兩種都能接；選了 (b) 就把 §6 的 `Authorization` 改成 cookie、所有需登入的請求帶 `credentials: 'include'`。

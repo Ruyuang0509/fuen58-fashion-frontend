@@ -46,7 +46,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
 </script>
 
 <template>
-  <article ref="root" class="card" :style="{ '--card-accent': accentOf(outfit.themeCode) }">
+  <article ref="root" class="card" :data-theme="outfit.themeCode" :style="{ '--card-accent': accentOf(outfit.themeCode) }">
     <!-- 穿搭的樣子：三件疊成人形（正式版換成照片，版面不變）；底是主題色加大量白；整塊連到這套的頁面。點了之後衣服從這裡飛到穿搭頁 -->
     <RouterLink :to="{ name: 'outfit', params: { id: outfit.id } }" class="photo" :aria-label="`看這套：${outfit.title}`" @click="rememberLook(outfit, $event.currentTarget)">
       <OutfitLook :outfit="outfit" :height="220" :caption="false" :highlight="hovered" />

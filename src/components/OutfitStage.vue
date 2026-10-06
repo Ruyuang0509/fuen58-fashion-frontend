@@ -4,6 +4,8 @@ import { getOutfits, getThemes } from '@/api'
 import CampaignTile from '@/components/CampaignTile.vue'
 import OutfitCard from '@/components/OutfitCard.vue'
 import { useFilters } from '@/composables/useFilters'
+import { useTaste } from '@/stores/taste'
+import { sortByWeights } from '@/taste/profile'
 
 const props = defineProps({
   // 舞台裡要插的活動（第十五輪）：最多兩張，插在第 3 張與第 9 張穿搭之後
@@ -14,16 +16,25 @@ const props = defineProps({
   waiting: { type: Boolean, default: false },
 })
 
-// count：目前有幾套（外面的標題會說「N 套」）
-const emit = defineEmits(['count'])
+// count：目前有幾套（外面的標題會說「N 套」）；sorted：現在是不是照喜好排的（外面的標題多一格）
+const emit = defineEmits(['count', 'sorted'])
 
 const { filters } = useFilters()
+const taste = useTaste()
 const outfits = ref([])
 const themes = ref([])
 // 每個要資料的畫面都有三種狀態：載入中、有結果（可能是空的）、出錯
 const status = ref('loading')
 
 const themeNames = computed(() => Object.fromEntries(themes.value.map((theme) => [theme.code, theme.name])))
+
+// 為你排（第十五輪子輪 4）：沒選風格、不是活動頁（ids）、開關開著、而且推測得出喜好 → 照路線權重排；
+// 選了風格就是那條路線的頁面，沒什麼好排的
+const personalised = computed(() => !props.ids && !filters.value.style && taste.forYou.value && !!taste.profile.value)
+const shown = computed(() => (
+  personalised.value ? sortByWeights(outfits.value, taste.profile.value.weights, themes.value.map((theme) => theme.code)) : outfits.value
+))
+watch(personalised, (on) => emit('sorted', on), { immediate: true })
 
 // 條件連續變動時，先送出的請求可能比較晚回來；只採用最後一次送出的結果
 let latest = 0
@@ -34,7 +45,8 @@ async function load() {
   status.value = 'loading'
   try {
     const query = props.ids ? { ...filters.value, ids: props.ids } : filters.value
-    const [outfitList, themeList] = await Promise.all([getOutfits(query), getThemes()])
+    // 推測的資料也一起等：不然卡片先照 id 排好、半秒後再跳成照喜好排
+    const [outfitList, themeList] = await Promise.all([getOutfits(query), getThemes(), taste.whenReady()])
     if (ticket !== latest) return
     outfits.value = outfitList
     themes.value = themeList
@@ -53,7 +65,7 @@ watch([filters, () => props.ids, () => props.waiting], load, { immediate: true }
 // 4 與 10 不是隨便挑的：寬度循環是 4-5-3／3-5-4，第 5 格與第 11 格都是最寬的那格（span 5），插卡落在那裡才放得下字和人形
 const AFTER = [4, 10]
 const cells = computed(() => {
-  const cards = outfits.value
+  const cards = shown.value
   if (!cards.length) return []
   const tiles = props.campaigns.slice(0, AFTER.length)
   const out = []
