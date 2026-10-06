@@ -4,6 +4,9 @@ import { getOutfits, getThemes } from '@/api'
 import OutfitCard from '@/components/OutfitCard.vue'
 import { useFilters } from '@/composables/useFilters'
 
+// count：目前有幾套（外面的標題會說「N 套」）
+const emit = defineEmits(['count'])
+
 const { filters } = useFilters()
 const outfits = ref([])
 const themes = ref([])
@@ -24,6 +27,7 @@ async function load() {
     outfits.value = outfitList
     themes.value = themeList
     status.value = 'ready'
+    emit('count', outfitList.length)
   } catch {
     if (ticket === latest) status.value = 'error'
   }
@@ -35,27 +39,29 @@ watch(filters, load, { immediate: true })
 
 <template>
   <section aria-label="穿搭" :aria-busy="status === 'loading'">
-    <p v-if="status === 'loading'" class="state">載入中…</p>
+    <p v-if="status === 'loading' && !outfits.length" class="state">載入中…</p>
 
     <div v-else-if="status === 'error'" class="state">
       <p>穿搭沒有載入成功。</p>
       <button type="button" class="btn" @click="load">再試一次</button>
     </div>
 
-    <div v-else-if="outfits.length === 0" class="state">
+    <div v-else-if="status === 'ready' && outfits.length === 0" class="state">
       <p>這組條件沒有符合的穿搭。</p>
       <RouterLink class="btn" :to="{ name: 'outfits' }">看全部穿搭</RouterLink>
     </div>
 
-    <div v-else class="grid">
+    <!-- 改條件時卡片重新排列有位移過程（功能規劃 9），不是整頁閃換 -->
+    <TransitionGroup v-else name="card" tag="div" class="grid" :class="{ busy: status === 'loading' }">
       <OutfitCard
-        v-for="outfit in outfits"
+        v-for="(outfit, i) in outfits"
         :key="outfit.id"
         :outfit="outfit"
         :theme-name="themeNames[outfit.themeCode] ?? ''"
         :preferred-size="filters.size"
+        :style="{ '--i': i }"
       />
-    </div>
+    </TransitionGroup>
   </section>
 </template>
 
@@ -72,8 +78,13 @@ watch(filters, load, { immediate: true })
 .grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: var(--s3);
+  gap: var(--s5) var(--s4);
   align-items: start;
+  transition: opacity var(--ease);
+}
+
+.grid.busy {
+  opacity: 0.6;
 }
 
 .grid > :nth-child(6n + 1),
@@ -91,6 +102,24 @@ watch(filters, load, { immediate: true })
   grid-column: span 3;
 }
 
+.card-move {
+  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.card-enter-active {
+  transition: opacity 0.5s ease calc(var(--i, 0) * 0.05s), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i, 0) * 0.05s);
+}
+
+.card-enter-from {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+/* 離開的卡片直接拿掉：留著會把格線撐亂 */
+.card-leave-active {
+  display: none;
+}
+
 /* 中等寬度：兩張一列 */
 @media (max-width: 64rem) {
   .grid > :nth-child(n) {
@@ -100,6 +129,10 @@ watch(filters, load, { immediate: true })
 
 /* 窄螢幕：一張一列 */
 @media (max-width: 36rem) {
+  .grid {
+    gap: var(--s4);
+  }
+
   .grid > :nth-child(n) {
     grid-column: span 12;
   }

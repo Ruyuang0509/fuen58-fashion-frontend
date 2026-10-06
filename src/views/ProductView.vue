@@ -257,7 +257,7 @@ function closeZoom(event) {
     <section v-if="outfits.length" class="section">
       <h2 class="section-title">這件出現在的穿搭</h2>
       <div class="looks">
-        <RouterLink v-for="outfit in outfits" :key="outfit.id" :to="{ name: 'theme', params: { code: outfit.themeCode } }" class="look-link" :title="`看「${themeName(outfit.themeCode)}」路線`">
+        <RouterLink v-for="outfit in outfits" :key="outfit.id" :to="{ name: 'outfit', params: { id: outfit.id } }" class="look-link" :title="`看這套：${outfit.title}`">
           <OutfitLook :outfit="outfit" :height="260" />
         </RouterLink>
       </div>

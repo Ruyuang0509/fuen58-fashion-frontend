@@ -67,8 +67,10 @@ void main() {
   d.x *= aspect;
   float dist = length(d);
   float open = 1.0 - uCloud * 0.75;
-  sky += vec3(1.0, 0.92, 0.78) * exp(-dist * dist * 22.0) * (0.25 + 0.55 * day) * open;
-  sky += vec3(1.0, 0.95, 0.86) * exp(-dist * 2.4) * 0.14 * day * open;
+  // 太陽愈高愈小、愈不刺：中午是一個小亮點加一圈柔光，低角度才是一大團暖光（主題頁下午三點的太陽曾經糊成一片白）
+  float high = smoothstep(0.35, 0.9, uSun);
+  sky += vec3(1.0, 0.92, 0.78) * exp(-dist * dist * (22.0 + 90.0 * high)) * (0.25 + 0.55 * day) * (1.0 - 0.4 * high) * open;
+  sky += vec3(1.0, 0.95, 0.86) * exp(-dist * 2.4) * 0.14 * day * (1.0 - 0.5 * high) * open;
 
   // 雲：兩層不同大小的雲，慢慢往右飄，再加上滑鼠推的風
   vec2 p = vec2(uv.x * aspect, uv.y);

@@ -42,13 +42,13 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
 
 <template>
   <article ref="root" class="card" :style="{ '--card-accent': accentOf(outfit.themeCode) }">
-    <!-- 穿搭的樣子：三件疊成人形（正式版換成照片，版面不變）；底是主題色加大量白 -->
-    <div class="photo" aria-hidden="true">
+    <!-- 穿搭的樣子：三件疊成人形（正式版換成照片，版面不變）；底是主題色加大量白；整塊連到這套的頁面 -->
+    <RouterLink :to="{ name: 'outfit', params: { id: outfit.id } }" class="photo" :aria-label="`看這套：${outfit.title}`">
       <OutfitLook :outfit="outfit" :height="220" :caption="false" />
-    </div>
+    </RouterLink>
 
     <div class="body">
-      <h3>{{ outfit.title }}</h3>
+      <h3><RouterLink :to="{ name: 'outfit', params: { id: outfit.id } }" class="title">{{ outfit.title }}</RouterLink></h3>
       <p class="meta">{{ themeName }} · {{ outfit.items.length }} 件 · NT$ {{ price.format(total) }}</p>
 
       <ul class="items">
@@ -79,12 +79,33 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
   place-items: center;
   aspect-ratio: 4 / 5;
   padding: var(--s2);
-  /* 主題色加大量白，只當底 */
+  /* 主題色加大量白，只當底；滑過去深一點 */
   background: color-mix(in srgb, var(--card-accent) 12%, white);
+  transition: background-color 0.4s ease;
+}
+
+.photo:hover,
+.photo:focus-visible {
+  background: color-mix(in srgb, var(--card-accent) 20%, white);
 }
 
 .body {
-  padding: var(--s2) var(--s2) var(--s3);
+  padding: var(--s3) var(--s3) var(--s3);
+}
+
+.title {
+  color: inherit;
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-size: 0 1px;
+  background-position: 0 100%;
+  transition: background-size 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.title:hover,
+.title:focus-visible {
+  background-size: 100% 1px;
 }
 
 .meta {

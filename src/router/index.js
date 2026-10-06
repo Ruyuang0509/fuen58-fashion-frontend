@@ -14,8 +14,10 @@ const routes = [
   // 探索區
   // 入口自己畫全幅的天空與頂欄，所以 bare；一句話篩選在入口是那句大字，不用共用的 SentenceBar
   { path: '/', name: 'home', component: () => import('@/views/HomeView.vue'), meta: { title: '入口', zone: 'explore', bare: true } },
-  { path: '/themes/:code', name: 'theme', component: () => import('@/views/ThemeView.vue'), meta: { title: '主題', zone: 'explore', sentence: true } },
-  { path: '/outfits', name: 'outfits', component: () => import('@/views/OutfitsView.vue'), meta: { title: '全部穿搭', zone: 'explore', sentence: true } },
+  // 第十一輪起，探索區的這幾頁都在同一片天空下（SkyPage 自己畫頂欄與一句話列），所以也是 bare
+  { path: '/themes/:code', name: 'theme', component: () => import('@/views/ThemeView.vue'), meta: { title: '路線', zone: 'explore', bare: true } },
+  { path: '/outfits', name: 'outfits', component: () => import('@/views/OutfitsView.vue'), meta: { title: '全部穿搭', zone: 'explore', bare: true } },
+  { path: '/outfits/:id', name: 'outfit', component: () => import('@/views/OutfitView.vue'), meta: { title: '穿搭', zone: 'explore', bare: true } },
   // 搜尋結果是單品格，一句話列篩的是穿搭，兩者不是同一組條件，所以這頁不放一句話列
   { path: '/search', name: 'search', component: () => import('@/views/SearchView.vue'), meta: { title: '搜尋結果', zone: 'explore' } },
   // 商品頁：上半部屬探索區；購買區塊守慣例（在頁面裡自己分）

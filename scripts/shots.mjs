@@ -45,13 +45,24 @@ await send('Runtime.enable')
 await send('Page.enable')
 await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: W < 600 })
 const ev = async (expression) => (await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true })).result?.value
+// SHOT_WAIT：每頁等幾毫秒再拍（字型多的頁面要久一點）。url 結尾 "#hover=<選擇器>" 會先把滑鼠移到那個元素上再拍。
+const WAIT = +(process.env.SHOT_WAIT ?? 2000)
 const report = {}
 for (const raw of urls) {
   const zoom = raw.endsWith('#zoom')
-  const url = zoom ? raw.slice(0, -5) : raw
+  const hoverMatch = raw.match(/#hover=(.+)$/)
+  const url = zoom ? raw.slice(0, -5) : hoverMatch ? raw.slice(0, hoverMatch.index) : raw
   await send('Page.navigate', { url })
-  await sleep(2000)
-  const name = url.replace(/^https?:\/\/[^/]+/, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'root'
+  await sleep(WAIT)
+  let name = url.replace(/^https?:\/\/[^/]+/, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'root'
+  if (hoverMatch) {
+    const centre = await ev(`(() => { const el = document.querySelector(${JSON.stringify(hoverMatch[1])}); if (!el) return null; const b = el.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 } })()`)
+    if (centre) {
+      await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: centre.x, y: centre.y })
+      await sleep(600)
+      name += '-hover'
+    }
+  }
   const r = await send('Page.captureScreenshot', { format: 'png' })
   writeFileSync(join(outDir, name + '.png'), Buffer.from(r.data, 'base64'))
   if (zoom) {

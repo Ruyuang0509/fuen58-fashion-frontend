@@ -66,6 +66,13 @@ export async function getOutfits(filters = {}) {
   })
 }
 
+/** 一套穿搭；找不到回 null */
+export async function getOutfit(id) {
+  await wait(200)
+  const outfit = outfits.find((entry) => entry.id === Number(id))
+  return outfit ? resolveOutfit(outfit) : null
+}
+
 /** 包含這件商品的穿搭 */
 export async function getOutfitsWithProduct(id) {
   await wait(200)
