@@ -305,6 +305,43 @@ check(`products: colour list opens with swatches (${W < 600 ? 'bottom sheet' : '
 await shot('products-picker-open')
 check('products: nothing spills with the list open', JSON.stringify(await spill()) === '[]', JSON.stringify(await spill()))
 
+// ── 頂欄圖示的預覽（使用者 2026-10-06 中途提出：icon 不只是連結）──
+// 到這裡的狀態：已登入 demo、購物車裡一件 M 的大衣、收藏 0 件單品 1 套穿搭
+const hover = async (sel) => {
+  const centre = await ev(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); if (!el) return null; const b = el.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 } })()`)
+  if (centre) await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: centre.x, y: centre.y })
+  await sleep(450)
+}
+const panelText = async () => (await text('.peek-panel')) ?? ''
+await go('/outfits', 2600)
+if (W >= 768) {
+  await hover('.cart-link')
+  check('peek: hovering the cart shows the mini cart with the coat and a subtotal', (await count('.peek-panel')) === 1 && (await panelText()).includes('落肩混紡大衣') && (await panelText()).includes('小計'), (await panelText()).slice(0, 90))
+  check('peek: mini cart offers 看購物車 and 去結帳', (await ev('[...document.querySelectorAll(".peek-panel a")].map((a) => a.textContent.trim()).join("|")')).includes('看購物車|去結帳'))
+  await shot('peek-cart')
+  await hover('.fav-link')
+  check('peek: hovering 收藏 says 0 件單品、1 套穿搭', (await panelText()).includes('0 件單品、1 套穿搭'), (await panelText()).slice(0, 90))
+  await hover('.links a[href="/outfits"]')
+  check('peek: hovering 全部穿搭 lists the 8 routes', (await count('.peek-panel a[href^="/themes/"]')) === 8, await count('.peek-panel a[href^="/themes/"]'))
+  await shot('peek-routes')
+  await hover('.links .member')
+  check('peek: member menu names the member and has 登出', (await panelText()).includes('林示範') && (await panelText()).includes('登出'), (await panelText()).slice(0, 90))
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 30, y: 420 })
+  await sleep(450)
+  check('peek: moving the mouse away closes the panel', (await count('.peek-panel')) === 0, await count('.peek-panel'))
+  await ev('document.querySelector(".cart-link").focus()')
+  await sleep(300)
+  check('peek: keyboard focus on the cart link opens it', (await count('.peek-panel')) === 1, await count('.peek-panel'))
+  await key('Escape', 'Escape')
+  await sleep(300)
+  check('peek: Esc closes it and focus stays on the link', (await count('.peek-panel')) === 0 && (await ev('document.activeElement?.classList.contains("cart-link")')) === true)
+  check('peek: nothing spills while a panel is open', JSON.stringify(await (async () => { await hover('.cart-link'); return spill() })()) === '[]')
+} else {
+  await ev('document.querySelector(".cart-link").focus()')
+  await sleep(300)
+  check('peek: no popover on the phone (tap goes straight to the page)', (await count('.peek-panel')) === 0, await count('.peek-panel'))
+}
+
 const summary = { origin, size: `${W}x${H}`, passed: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok), problems }
 console.log(JSON.stringify(summary, null, 1))
 ws.close()

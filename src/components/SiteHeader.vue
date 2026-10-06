@@ -6,7 +6,12 @@ import '@fontsource/noto-serif-tc/600.css'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getWeather } from '@/api'
+import HeaderPopover from '@/components/HeaderPopover.vue'
 import Icon from '@/components/Icon.vue'
+import CartPeek from '@/components/peeks/CartPeek.vue'
+import FavPeek from '@/components/peeks/FavPeek.vue'
+import MemberPeek from '@/components/peeks/MemberPeek.vue'
+import RoutesPeek from '@/components/peeks/RoutesPeek.vue'
 import { FEATURES, SITE_NAME } from '@/config'
 import { useCart } from '@/stores/cart'
 import { useFavorites } from '@/stores/favorites'
@@ -126,37 +131,59 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
         <input id="site-search" ref="searchInput" v-model="keyword" type="search" placeholder="單品、品牌、路線" :tabindex="searching ? 0 : -1" @keydown.esc="closeSearch" @blur="onBlur" />
       </form>
 
-      <RouterLink :to="{ name: 'outfits' }" class="nav-item">
-        <Icon name="hanger" />
-        <span class="label">全部穿搭</span>
-      </RouterLink>
+      <!-- 每個圖示都是連結，滑到或 Tab 到會多一個預覽的小面板（HeaderPopover；只在桌機）：
+           全部穿搭列八條路線、收藏看最近收的、購物車看裡面有什麼、會員是小選單 -->
+      <HeaderPopover label="路線" wide>
+        <template #trigger>
+          <RouterLink :to="{ name: 'outfits' }" class="nav-item">
+            <Icon name="hanger" />
+            <span class="label">全部穿搭</span>
+          </RouterLink>
+        </template>
+        <RoutesPeek />
+      </HeaderPopover>
       <RouterLink v-if="FEATURES.wall" to="/wall" class="nav-item">
         <Icon name="camera" />
         <span class="label">穿搭牆</span>
       </RouterLink>
       <!-- 收藏（第十五輪子輪 2）：訪客也能用，件數和購物車同一種標法 -->
-      <RouterLink :to="{ name: 'favorites' }" class="nav-item fav-link" :class="{ arrive: favBump.on.value }">
-        <span class="badge-anchor">
-          <Icon name="heart" />
-          <span v-if="favCount" class="count" :class="{ bump: favBump.on.value }">{{ favCount }}<span class="visually-hidden"> 件</span></span>
-        </span>
-        <span class="label">收藏</span>
-      </RouterLink>
-      <RouterLink to="/cart" class="nav-item cart-link" :class="{ arrive: bump }">
-        <span class="badge-anchor">
-          <Icon name="bag" />
-          <span v-if="count" class="count" :class="{ bump }">{{ count }}<span class="visually-hidden"> 件</span></span>
-        </span>
-        <span class="label">購物車</span>
-      </RouterLink>
-      <RouterLink v-if="loggedIn" :to="{ name: 'account' }" class="nav-item member">
-        <Icon name="user" />
-        <span class="label">{{ user.name || '會員' }}</span>
-      </RouterLink>
-      <RouterLink v-else :to="{ name: 'login' }" class="nav-item">
-        <Icon name="user" />
-        <span class="label">會員</span>
-      </RouterLink>
+      <HeaderPopover label="收藏預覽">
+        <template #trigger>
+          <RouterLink :to="{ name: 'favorites' }" class="nav-item fav-link" :class="{ arrive: favBump.on.value }">
+            <span class="badge-anchor">
+              <Icon name="heart" />
+              <span v-if="favCount" class="count" :class="{ bump: favBump.on.value }">{{ favCount }}<span class="visually-hidden"> 件</span></span>
+            </span>
+            <span class="label">收藏</span>
+          </RouterLink>
+        </template>
+        <FavPeek />
+      </HeaderPopover>
+      <HeaderPopover label="購物車預覽">
+        <template #trigger>
+          <RouterLink to="/cart" class="nav-item cart-link" :class="{ arrive: bump }">
+            <span class="badge-anchor">
+              <Icon name="bag" />
+              <span v-if="count" class="count" :class="{ bump }">{{ count }}<span class="visually-hidden"> 件</span></span>
+            </span>
+            <span class="label">購物車</span>
+          </RouterLink>
+        </template>
+        <CartPeek />
+      </HeaderPopover>
+      <HeaderPopover label="會員">
+        <template #trigger>
+          <RouterLink v-if="loggedIn" :to="{ name: 'account' }" class="nav-item member">
+            <Icon name="user" />
+            <span class="label">{{ user.name || '會員' }}</span>
+          </RouterLink>
+          <RouterLink v-else :to="{ name: 'login' }" class="nav-item member">
+            <Icon name="user" />
+            <span class="label">會員</span>
+          </RouterLink>
+        </template>
+        <MemberPeek />
+      </HeaderPopover>
     </nav>
   </header>
 </template>
