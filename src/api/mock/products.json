@@ -1,0 +1,2119 @@
+[
+  {
+    "productId": 101,
+    "kind": "coat",
+    "fabric": "wool",
+    "material": "羊毛 60%・聚酯纖維 40%；內裡聚酯纖維",
+    "description": "落肩、直身，長度到小腿中段。布面帶一點毛感，不挺不軟，風吹不透。",
+    "warmth": 5,
+    "features": [],
+    "colours": [
+      {
+        "code": "oat",
+        "name": "燕麥",
+        "hex": "#d9d4ca"
+      },
+      {
+        "code": "charcoal",
+        "name": "炭灰",
+        "hex": "#4a4a4c"
+      }
+    ],
+    "stock": {
+      "oat-S": 0,
+      "oat-M": 13,
+      "oat-L": 7,
+      "charcoal-S": 7,
+      "charcoal-M": 15,
+      "charcoal-L": 0
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          48,
+          58,
+          100,
+          60.0
+        ],
+        "M": [
+          50,
+          61,
+          103,
+          61.5
+        ],
+        "L": [
+          52,
+          64,
+          106,
+          63.0
+        ]
+      }
+    },
+    "fit": {
+      "height": 170,
+      "weight": 56,
+      "size": "M",
+      "note": "肩線落在肩點外約 3 公分，衣長到小腿中段，裡面可以再穿一件針織。"
+    },
+    "tags": [
+      "大衣",
+      "落肩",
+      "長版",
+      "通勤"
+    ]
+  },
+  {
+    "productId": 102,
+    "kind": "top",
+    "fabric": "cotton",
+    "material": "棉 85%・尼龍 15%",
+    "description": "細針的圓領上衣，領口不鬆。單穿是打底，外面套大衣不會起皺。",
+    "warmth": 2,
+    "features": [],
+    "colours": [
+      {
+        "code": "ivory",
+        "name": "米白",
+        "hex": "#f1ede6"
+      },
+      {
+        "code": "ink",
+        "name": "墨黑",
+        "hex": "#26262a"
+      },
+      {
+        "code": "moss",
+        "name": "苔綠",
+        "hex": "#5d6b57"
+      }
+    ],
+    "stock": {
+      "ivory-S": 14,
+      "ivory-M": 2,
+      "ivory-L": 7,
+      "ivory-XL": 4,
+      "ink-S": 7,
+      "ink-M": 11,
+      "ink-L": 10,
+      "ink-XL": 9,
+      "moss-S": 8,
+      "moss-M": 16,
+      "moss-L": 18,
+      "moss-XL": 8
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          42,
+          50,
+          66,
+          58.0
+        ],
+        "M": [
+          44,
+          53,
+          68,
+          59.5
+        ],
+        "L": [
+          46,
+          56,
+          70,
+          61.0
+        ],
+        "XL": [
+          48,
+          59,
+          72,
+          62.5
+        ]
+      }
+    },
+    "fit": {
+      "height": 170,
+      "weight": 56,
+      "size": "M",
+      "note": "合身不緊，衣長到腰骨下一點。"
+    },
+    "tags": [
+      "上衣",
+      "針織",
+      "圓領",
+      "打底"
+    ]
+  },
+  {
+    "productId": 103,
+    "kind": "trousers",
+    "fabric": "wool",
+    "material": "聚酯纖維 65%・嫘縈 30%・彈性纖維 5%",
+    "description": "直筒西裝褲，腰頭有兩個褶。布料有垂墜，坐一天不太起皺。",
+    "warmth": 3,
+    "features": [],
+    "colours": [
+      {
+        "code": "ink",
+        "name": "墨黑",
+        "hex": "#2e2c29"
+      },
+      {
+        "code": "grey",
+        "name": "鼠灰",
+        "hex": "#7a7a78"
+      }
+    ],
+    "stock": {
+      "ink-S": 11,
+      "ink-M": 16,
+      "ink-L": 13,
+      "grey-S": 10,
+      "grey-M": 8,
+      "grey-L": 17
+    },
+    "measure": {
+      "columns": [
+        "腰圍",
+        "臀圍",
+        "褲長"
+      ],
+      "rows": {
+        "S": [
+          70,
+          94,
+          96
+        ],
+        "M": [
+          74,
+          98,
+          98
+        ],
+        "L": [
+          78,
+          102,
+          100
+        ]
+      }
+    },
+    "fit": {
+      "height": 170,
+      "weight": 56,
+      "size": "M",
+      "note": "腰圍剛好，褲長踩鞋面上一公分。"
+    },
+    "tags": [
+      "褲",
+      "西裝褲",
+      "直筒",
+      "通勤"
+    ]
+  },
+  {
+    "productId": 104,
+    "kind": "top",
+    "fabric": "cotton",
+    "material": "棉 100%",
+    "description": "寬版的棉襯衫，肩線往下落。扣到最上面一顆也不會卡脖子。",
+    "warmth": 2,
+    "features": [],
+    "colours": [
+      {
+        "code": "ivory",
+        "name": "米白",
+        "hex": "#f1ede6"
+      },
+      {
+        "code": "sky",
+        "name": "淺藍",
+        "hex": "#c9d6e3"
+      }
+    ],
+    "stock": {
+      "ivory-M": 13,
+      "ivory-L": 5,
+      "ivory-XL": 4,
+      "sky-M": 11,
+      "sky-L": 7,
+      "sky-XL": 11
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "M": [
+          48,
+          59,
+          74,
+          59.5
+        ],
+        "L": [
+          50,
+          62,
+          76,
+          61.0
+        ],
+        "XL": [
+          52,
+          65,
+          78,
+          62.5
+        ]
+      }
+    },
+    "fit": {
+      "height": 170,
+      "weight": 56,
+      "size": "L",
+      "note": "穿 L 是刻意寬一號，袖子反折兩圈剛好。"
+    },
+    "tags": [
+      "襯衫",
+      "寬版",
+      "棉",
+      "假日"
+    ]
+  },
+  {
+    "productId": 105,
+    "kind": "trousers",
+    "fabric": "cotton",
+    "material": "棉 97%・彈性纖維 3%",
+    "description": "九分的打褶褲，褲口收窄一點。腰是鬆緊加抽繩，可以不繫皮帶。",
+    "warmth": 2,
+    "features": [],
+    "colours": [
+      {
+        "code": "ink",
+        "name": "墨黑",
+        "hex": "#2e2c29"
+      },
+      {
+        "code": "sand",
+        "name": "沙",
+        "hex": "#c8b89a"
+      }
+    ],
+    "stock": {
+      "ink-S": 16,
+      "ink-M": 5,
+      "ink-L": 11,
+      "sand-S": 12,
+      "sand-M": 14,
+      "sand-L": 10
+    },
+    "measure": {
+      "columns": [
+        "腰圍",
+        "臀圍",
+        "褲長"
+      ],
+      "rows": {
+        "S": [
+          70,
+          94,
+          90
+        ],
+        "M": [
+          74,
+          98,
+          92
+        ],
+        "L": [
+          78,
+          102,
+          94
+        ]
+      }
+    },
+    "fit": {
+      "height": 170,
+      "weight": 56,
+      "size": "M",
+      "note": "腰鬆緊剛好不勒，褲長露出腳踝。"
+    },
+    "tags": [
+      "褲",
+      "九分",
+      "打褶",
+      "抽繩"
+    ]
+  },
+  {
+    "productId": 201,
+    "kind": "jacket",
+    "fabric": "nylon",
+    "material": "尼龍 100%；內裡聚酯纖維網布",
+    "description": "教練外套，領子是翻領、袖口鬆緊。布面有一點光，下雨淋到不會馬上滲。",
+    "warmth": 3,
+    "features": [],
+    "colours": [
+      {
+        "code": "navy",
+        "name": "深藍",
+        "hex": "#2f3a4a"
+      },
+      {
+        "code": "olive",
+        "name": "橄欖",
+        "hex": "#5a5e45"
+      },
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#1f1f22"
+      }
+    ],
+    "stock": {
+      "navy-M": 14,
+      "navy-L": 1,
+      "navy-XL": 9,
+      "olive-M": 4,
+      "olive-L": 5,
+      "olive-XL": 16,
+      "black-M": 14,
+      "black-L": 16,
+      "black-XL": 6
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "M": [
+          49,
+          59,
+          65,
+          61.5
+        ],
+        "L": [
+          51,
+          62,
+          68,
+          63.0
+        ],
+        "XL": [
+          53,
+          65,
+          71,
+          64.5
+        ]
+      }
+    },
+    "fit": {
+      "height": 176,
+      "weight": 68,
+      "size": "L",
+      "note": "肩寬剛好，衣長蓋到褲頭下。裡面可以穿帽 T。"
+    },
+    "tags": [
+      "外套",
+      "教練外套",
+      "尼龍",
+      "街頭"
+    ]
+  },
+  {
+    "productId": 202,
+    "kind": "top",
+    "fabric": "cotton",
+    "material": "棉 100%（厚磅 280g）",
+    "description": "厚磅的短袖，領口是雙層羅紋。前胸印花是水性墨，洗久會淡一點。",
+    "warmth": 2,
+    "features": [],
+    "colours": [
+      {
+        "code": "bone",
+        "name": "骨白",
+        "hex": "#e9e4da"
+      },
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#222225"
+      }
+    ],
+    "stock": {
+      "bone-S": 8,
+      "bone-M": 4,
+      "bone-L": 6,
+      "bone-XL": 17,
+      "black-S": 8,
+      "black-M": 8,
+      "black-L": 6,
+      "black-XL": 13
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          46,
+          55,
+          71,
+          24.0
+        ],
+        "M": [
+          48,
+          58,
+          73,
+          25.5
+        ],
+        "L": [
+          50,
+          61,
+          75,
+          27.0
+        ],
+        "XL": [
+          52,
+          64,
+          77,
+          28.5
+        ]
+      }
+    },
+    "fit": {
+      "height": 176,
+      "weight": 68,
+      "size": "L",
+      "note": "寬鬆版，衣長蓋過褲頭一掌。"
+    },
+    "tags": [
+      "上衣",
+      "短袖",
+      "厚磅",
+      "印花"
+    ]
+  },
+  {
+    "productId": 203,
+    "kind": "trousers",
+    "fabric": "denim",
+    "material": "棉 100%（11 oz 丹寧）",
+    "description": "寬管工作褲，大腿到褲口一樣寬。側邊有工具袋，褲口可以反折。",
+    "warmth": 3,
+    "features": [],
+    "colours": [
+      {
+        "code": "slate",
+        "name": "石板藍",
+        "hex": "#4a5566"
+      },
+      {
+        "code": "ecru",
+        "name": "本白",
+        "hex": "#dcd5c6"
+      }
+    ],
+    "stock": {
+      "slate-M": 13,
+      "slate-L": 0,
+      "ecru-M": 15,
+      "ecru-L": 7
+    },
+    "measure": {
+      "columns": [
+        "腰圍",
+        "臀圍",
+        "褲長"
+      ],
+      "rows": {
+        "M": [
+          74,
+          104,
+          102
+        ],
+        "L": [
+          78,
+          108,
+          104
+        ]
+      }
+    },
+    "fit": {
+      "height": 176,
+      "weight": 68,
+      "size": "L",
+      "note": "腰圍剛好，褲長反折一圈到腳踝。"
+    },
+    "tags": [
+      "褲",
+      "工作褲",
+      "寬管",
+      "丹寧"
+    ]
+  },
+  {
+    "productId": 204,
+    "kind": "beanie",
+    "fabric": "wool",
+    "material": "羊毛 50%・壓克力 50%",
+    "description": "羅紋毛帽，可以反折戴也可以整個拉下來。",
+    "warmth": 4,
+    "features": [],
+    "colours": [
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#26262a"
+      },
+      {
+        "code": "rust",
+        "name": "鐵鏽",
+        "hex": "#8a4a2e"
+      }
+    ],
+    "stock": {
+      "black-F": 16,
+      "rust-F": 14
+    },
+    "measure": {
+      "columns": [
+        "頭圍"
+      ],
+      "rows": {
+        "F": [
+          "56–60"
+        ]
+      }
+    },
+    "fit": {
+      "height": 176,
+      "weight": 68,
+      "size": "F",
+      "note": "反折一次戴，蓋到眉上。"
+    },
+    "tags": [
+      "配件",
+      "毛帽",
+      "針織"
+    ]
+  },
+  {
+    "productId": 205,
+    "kind": "jacket",
+    "fabric": "nylon",
+    "material": "尼龍 100%；內裡聚酯纖維鋪棉",
+    "description": "短版的飛行外套，下襬與袖口是羅紋。鋪一層薄棉，十度上下穿剛好。",
+    "warmth": 4,
+    "features": [],
+    "colours": [
+      {
+        "code": "navy",
+        "name": "深藍",
+        "hex": "#2f3a4a"
+      },
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#1f1f22"
+      }
+    ],
+    "stock": {
+      "navy-S": 18,
+      "navy-M": 5,
+      "navy-L": 6,
+      "black-S": 7,
+      "black-M": 11,
+      "black-L": 6
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          47,
+          56,
+          56,
+          60.0
+        ],
+        "M": [
+          49,
+          59,
+          59,
+          61.5
+        ],
+        "L": [
+          51,
+          62,
+          62,
+          63.0
+        ]
+      }
+    },
+    "fit": {
+      "height": 165,
+      "weight": 52,
+      "size": "S",
+      "note": "衣長到腰，袖長剛好蓋手腕。"
+    },
+    "tags": [
+      "外套",
+      "飛行外套",
+      "短版",
+      "鋪棉"
+    ]
+  },
+  {
+    "productId": 206,
+    "kind": "trousers",
+    "fabric": "satin",
+    "material": "聚酯纖維 100%",
+    "description": "百褶短裙，褶子定型過，洗完不用再燙。內有安全褲。",
+    "warmth": 2,
+    "features": [],
+    "colours": [
+      {
+        "code": "slate",
+        "name": "石板藍",
+        "hex": "#4a5566"
+      },
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#222225"
+      }
+    ],
+    "stock": {
+      "slate-S": 6,
+      "slate-M": 6,
+      "black-S": 15,
+      "black-M": 18
+    },
+    "measure": {
+      "columns": [
+        "腰圍",
+        "臀圍",
+        "褲長"
+      ],
+      "rows": {
+        "S": [
+          70,
+          94,
+          96
+        ],
+        "M": [
+          74,
+          98,
+          98
+        ]
+      }
+    },
+    "fit": {
+      "height": 165,
+      "weight": 52,
+      "size": "S",
+      "note": "裙長到膝上約 12 公分。"
+    },
+    "tags": [
+      "裙",
+      "百褶",
+      "短裙"
+    ]
+  },
+  {
+    "productId": 301,
+    "kind": "coat",
+    "fabric": "wool",
+    "material": "棉 100%（燈芯絨）",
+    "description": "獵裝外套，四個大口袋。燈芯絨的條紋細，穿久膝蓋處會亮，是正常的。",
+    "warmth": 4,
+    "features": [],
+    "colours": [
+      {
+        "code": "tobacco",
+        "name": "菸草",
+        "hex": "#7a4a2a"
+      },
+      {
+        "code": "forest",
+        "name": "墨綠",
+        "hex": "#3d4d3a"
+      }
+    ],
+    "stock": {
+      "tobacco-S": 7,
+      "tobacco-M": 4,
+      "tobacco-L": 8,
+      "forest-S": 17,
+      "forest-M": 8,
+      "forest-L": 14
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          48,
+          58,
+          100,
+          60.0
+        ],
+        "M": [
+          50,
+          61,
+          103,
+          61.5
+        ],
+        "L": [
+          52,
+          64,
+          106,
+          63.0
+        ]
+      }
+    },
+    "fit": {
+      "height": 172,
+      "weight": 60,
+      "size": "M",
+      "note": "肩寬剛好，衣長到大腿上端。"
+    },
+    "tags": [
+      "外套",
+      "獵裝",
+      "燈芯絨",
+      "復古"
+    ]
+  },
+  {
+    "productId": 302,
+    "kind": "blouse",
+    "fabric": "cotton",
+    "material": "嫘縈 70%・棉 30%",
+    "description": "古巴領的短袖襯衫，領子攤開穿。布料偏薄，有垂墜。",
+    "warmth": 1,
+    "features": [],
+    "colours": [
+      {
+        "code": "wheat",
+        "name": "麥",
+        "hex": "#e8d7b0"
+      },
+      {
+        "code": "cream",
+        "name": "奶油",
+        "hex": "#f2ead8"
+      }
+    ],
+    "stock": {
+      "wheat-M": 0,
+      "wheat-L": 15,
+      "wheat-XL": 5,
+      "cream-M": 11,
+      "cream-L": 12,
+      "cream-XL": 17
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "M": [
+          47,
+          59,
+          70,
+          25.5
+        ],
+        "L": [
+          49,
+          62,
+          72,
+          27.0
+        ],
+        "XL": [
+          51,
+          65,
+          74,
+          28.5
+        ]
+      }
+    },
+    "fit": {
+      "height": 172,
+      "weight": 60,
+      "size": "M",
+      "note": "寬鬆版，衣長蓋過褲頭。"
+    },
+    "tags": [
+      "襯衫",
+      "古巴領",
+      "短袖",
+      "復古"
+    ]
+  },
+  {
+    "productId": 303,
+    "kind": "skirt",
+    "fabric": "denim",
+    "material": "棉 100%（12 oz 丹寧）",
+    "description": "高腰的直筒牛仔褲，腰頭較寬。顏色是淺洗，膝蓋處有一點刷白。",
+    "warmth": 3,
+    "features": [],
+    "colours": [
+      {
+        "code": "camel",
+        "name": "駝",
+        "hex": "#9a6a3c"
+      },
+      {
+        "code": "indigo",
+        "name": "靛",
+        "hex": "#3b4a6b"
+      }
+    ],
+    "stock": {
+      "camel-S": 14,
+      "camel-M": 13,
+      "camel-L": 8,
+      "indigo-S": 13,
+      "indigo-M": 14,
+      "indigo-L": 9
+    },
+    "measure": {
+      "columns": [
+        "腰圍",
+        "臀圍",
+        "裙長"
+      ],
+      "rows": {
+        "S": [
+          62,
+          90,
+          42.0
+        ],
+        "M": [
+          66,
+          94,
+          43.5
+        ],
+        "L": [
+          70,
+          98,
+          45.0
+        ]
+      }
+    },
+    "fit": {
+      "height": 172,
+      "weight": 60,
+      "size": "M",
+      "note": "腰在肚臍上，褲長到腳踝上一公分。"
+    },
+    "tags": [
+      "褲",
+      "牛仔褲",
+      "高腰",
+      "直筒"
+    ]
+  },
+  {
+    "productId": 401,
+    "kind": "vest",
+    "fabric": "nylon",
+    "material": "尼龍 100%（防潑水塗層）",
+    "description": "防潑水的連帽外套，小雨不用撐傘。腋下有透氣拉鍊，帽子可以收進領子。",
+    "warmth": 3,
+    "features": [
+      "防潑水"
+    ],
+    "colours": [
+      {
+        "code": "mustard",
+        "name": "芥黃",
+        "hex": "#e8b53a"
+      },
+      {
+        "code": "stone",
+        "name": "岩灰",
+        "hex": "#8b8a82"
+      }
+    ],
+    "stock": {
+      "mustard-S": 13,
+      "mustard-M": 3,
+      "mustard-L": 10,
+      "mustard-XL": 6,
+      "stone-S": 8,
+      "stone-M": 8,
+      "stone-L": 7,
+      "stone-XL": 11
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          47,
+          57,
+          72,
+          61.0
+        ],
+        "M": [
+          49,
+          60,
+          75,
+          62.5
+        ],
+        "L": [
+          51,
+          63,
+          78,
+          64.0
+        ],
+        "XL": [
+          53,
+          66,
+          81,
+          65.5
+        ]
+      }
+    },
+    "fit": {
+      "height": 176,
+      "weight": 68,
+      "size": "L",
+      "note": "衣長到臀部上緣，裡面穿一件長袖剛好。"
+    },
+    "tags": [
+      "外套",
+      "防潑水",
+      "連帽",
+      "戶外"
+    ]
+  },
+  {
+    "productId": 402,
+    "kind": "top",
+    "fabric": "cotton",
+    "material": "聚酯纖維 88%・彈性纖維 12%",
+    "description": "快乾的長袖，排汗後十幾分鐘就乾。袖口有拇指孔。",
+    "warmth": 2,
+    "features": [
+      "快乾"
+    ],
+    "colours": [
+      {
+        "code": "pine",
+        "name": "松綠",
+        "hex": "#3f5a46"
+      },
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#222225"
+      }
+    ],
+    "stock": {
+      "pine-S": 18,
+      "pine-M": 7,
+      "pine-L": 13,
+      "pine-XL": 7,
+      "black-S": 11,
+      "black-M": 13,
+      "black-L": 13,
+      "black-XL": 5
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          42,
+          50,
+          66,
+          58.0
+        ],
+        "M": [
+          44,
+          53,
+          68,
+          59.5
+        ],
+        "L": [
+          46,
+          56,
+          70,
+          61.0
+        ],
+        "XL": [
+          48,
+          59,
+          72,
+          62.5
+        ]
+      }
+    },
+    "fit": {
+      "height": 176,
+      "weight": 68,
+      "size": "L",
+      "note": "合身，衣長到腰骨下。"
+    },
+    "tags": [
+      "上衣",
+      "快乾",
+      "長袖",
+      "戶外"
+    ]
+  },
+  {
+    "productId": 403,
+    "kind": "trousers",
+    "fabric": "nylon",
+    "material": "尼龍 92%・彈性纖維 8%",
+    "description": "褲口束口的機能褲，膝蓋有立體剪裁。腰頭鬆緊加腰帶。",
+    "warmth": 3,
+    "features": [
+      "快乾"
+    ],
+    "colours": [
+      {
+        "code": "khaki",
+        "name": "卡其",
+        "hex": "#5b5a4e"
+      },
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#222225"
+      }
+    ],
+    "stock": {
+      "khaki-M": 6,
+      "khaki-L": 18,
+      "khaki-XL": 18,
+      "black-M": 5,
+      "black-L": 11,
+      "black-XL": 15
+    },
+    "measure": {
+      "columns": [
+        "腰圍",
+        "臀圍",
+        "褲長"
+      ],
+      "rows": {
+        "M": [
+          74,
+          98,
+          96
+        ],
+        "L": [
+          78,
+          102,
+          98
+        ],
+        "XL": [
+          82,
+          106,
+          100
+        ]
+      }
+    },
+    "fit": {
+      "height": 176,
+      "weight": 68,
+      "size": "L",
+      "note": "腰圍剛好，褲口束在腳踝上。"
+    },
+    "tags": [
+      "褲",
+      "束口褲",
+      "機能",
+      "戶外"
+    ]
+  },
+  {
+    "productId": 404,
+    "kind": "socks",
+    "fabric": "wool",
+    "material": "美麗諾羊毛 60%・尼龍 38%・彈性纖維 2%",
+    "description": "中筒的健行襪，腳跟與腳尖加厚。",
+    "warmth": 3,
+    "features": [],
+    "colours": [
+      {
+        "code": "grey",
+        "name": "灰",
+        "hex": "#8a8a86"
+      },
+      {
+        "code": "navy",
+        "name": "深藍",
+        "hex": "#2f3a4a"
+      }
+    ],
+    "stock": {
+      "grey-F": 8,
+      "navy-F": 9
+    },
+    "measure": {
+      "columns": [
+        "腳長",
+        "筒高"
+      ],
+      "rows": {
+        "F": [
+          "23–27",
+          "22"
+        ]
+      }
+    },
+    "fit": {
+      "height": 176,
+      "weight": 68,
+      "size": "F",
+      "note": "筒高到小腿中段。"
+    },
+    "tags": [
+      "鞋襪",
+      "襪",
+      "健行",
+      "戶外"
+    ]
+  },
+  {
+    "productId": 501,
+    "kind": "coat",
+    "fabric": "wool",
+    "material": "羊毛 70%・聚酯纖維 30%；內裡聚酯纖維",
+    "description": "單排一扣的西裝外套，肩線沒有墊肩。配褲子是一套，也能單穿配牛仔褲。",
+    "warmth": 4,
+    "features": [],
+    "colours": [
+      {
+        "code": "camel",
+        "name": "駝",
+        "hex": "#c6a06a"
+      },
+      {
+        "code": "navy",
+        "name": "海軍藍",
+        "hex": "#2b3550"
+      }
+    ],
+    "stock": {
+      "camel-S": 15,
+      "camel-M": 11,
+      "camel-L": 11,
+      "navy-S": 8,
+      "navy-M": 15,
+      "navy-L": 11
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          48,
+          58,
+          108,
+          60.0
+        ],
+        "M": [
+          50,
+          61,
+          111,
+          61.5
+        ],
+        "L": [
+          52,
+          64,
+          114,
+          63.0
+        ]
+      }
+    },
+    "fit": {
+      "height": 170,
+      "weight": 56,
+      "size": "M",
+      "note": "肩寬剛好，衣長蓋過臀部一半。"
+    },
+    "tags": [
+      "外套",
+      "西裝外套",
+      "單排扣",
+      "正式"
+    ]
+  },
+  {
+    "productId": 502,
+    "kind": "blouse",
+    "fabric": "cotton",
+    "material": "棉 100%（牛津布）",
+    "description": "牛津襯衫，領子是鈕扣領。布料偏厚，不用燙也看不出皺。",
+    "warmth": 2,
+    "features": [],
+    "colours": [
+      {
+        "code": "white",
+        "name": "白",
+        "hex": "#f3efe8"
+      },
+      {
+        "code": "blue",
+        "name": "淺藍",
+        "hex": "#c7d4e2"
+      }
+    ],
+    "stock": {
+      "white-S": 6,
+      "white-M": 16,
+      "white-L": 15,
+      "white-XL": 18,
+      "blue-S": 5,
+      "blue-M": 6,
+      "blue-L": 4,
+      "blue-XL": 12
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          43,
+          52,
+          68,
+          58.0
+        ],
+        "M": [
+          45,
+          55,
+          70,
+          59.5
+        ],
+        "L": [
+          47,
+          58,
+          72,
+          61.0
+        ],
+        "XL": [
+          49,
+          61,
+          74,
+          62.5
+        ]
+      }
+    },
+    "fit": {
+      "height": 170,
+      "weight": 56,
+      "size": "M",
+      "note": "合身，袖長到手腕骨。"
+    },
+    "tags": [
+      "襯衫",
+      "牛津",
+      "鈕扣領",
+      "正式"
+    ]
+  },
+  {
+    "productId": 503,
+    "kind": "trousers",
+    "fabric": "wool",
+    "material": "羊毛 70%・聚酯纖維 30%",
+    "description": "錐形的西裝褲，從大腿往褲口收。與 501 同布料。",
+    "warmth": 3,
+    "features": [],
+    "colours": [
+      {
+        "code": "navy",
+        "name": "海軍藍",
+        "hex": "#2b3550"
+      },
+      {
+        "code": "charcoal",
+        "name": "炭灰",
+        "hex": "#4a4a4c"
+      }
+    ],
+    "stock": {
+      "navy-S": 7,
+      "navy-M": 4,
+      "navy-L": 8,
+      "charcoal-S": 4,
+      "charcoal-M": 4,
+      "charcoal-L": 7
+    },
+    "measure": {
+      "columns": [
+        "腰圍",
+        "臀圍",
+        "褲長"
+      ],
+      "rows": {
+        "S": [
+          70,
+          94,
+          96
+        ],
+        "M": [
+          74,
+          98,
+          98
+        ],
+        "L": [
+          78,
+          102,
+          100
+        ]
+      }
+    },
+    "fit": {
+      "height": 170,
+      "weight": 56,
+      "size": "M",
+      "note": "腰圍剛好，褲長踩鞋面上一公分。"
+    },
+    "tags": [
+      "褲",
+      "西裝褲",
+      "錐形",
+      "正式"
+    ]
+  },
+  {
+    "productId": 504,
+    "kind": "blouse",
+    "fabric": "satin",
+    "material": "聚酯纖維 100%",
+    "description": "襯衫式的洋裝，腰間一條綁帶。長度到小腿，走路不卡。",
+    "warmth": 2,
+    "features": [],
+    "colours": [
+      {
+        "code": "white",
+        "name": "白",
+        "hex": "#f3efe8"
+      },
+      {
+        "code": "sage",
+        "name": "灰綠",
+        "hex": "#b9c2ae"
+      }
+    ],
+    "stock": {
+      "white-S": 13,
+      "white-M": 5,
+      "white-L": 5,
+      "sage-S": 4,
+      "sage-M": 11,
+      "sage-L": 4
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          43,
+          52,
+          78,
+          58.0
+        ],
+        "M": [
+          45,
+          55,
+          80,
+          59.5
+        ],
+        "L": [
+          47,
+          58,
+          82,
+          61.0
+        ]
+      }
+    },
+    "fit": {
+      "height": 165,
+      "weight": 52,
+      "size": "S",
+      "note": "腰帶綁在肚臍上，裙長到小腿中段。"
+    },
+    "tags": [
+      "洋裝",
+      "襯衫洋裝",
+      "綁帶",
+      "正式"
+    ]
+  },
+  {
+    "productId": 505,
+    "kind": "belt",
+    "fabric": "leather",
+    "material": "牛皮；黃銅扣頭",
+    "description": "1.8 公分的細皮帶，五個孔。扣頭是霧面黃銅。",
+    "warmth": 1,
+    "features": [],
+    "colours": [
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#26262a"
+      },
+      {
+        "code": "tan",
+        "name": "茶",
+        "hex": "#8a5a34"
+      }
+    ],
+    "stock": {
+      "black-F": 12,
+      "tan-F": 18
+    },
+    "measure": {
+      "columns": [
+        "全長",
+        "寬"
+      ],
+      "rows": {
+        "F": [
+          "95",
+          "1.8"
+        ]
+      }
+    },
+    "fit": {
+      "height": 165,
+      "weight": 52,
+      "size": "F",
+      "note": "扣在第三個孔，腰圍 66 公分。"
+    },
+    "tags": [
+      "配件",
+      "皮帶",
+      "細皮帶"
+    ]
+  },
+  {
+    "productId": 506,
+    "kind": "jacket",
+    "fabric": "leather",
+    "material": "牛皮（水洗處理）；內裡聚酯纖維",
+    "description": "水洗處理的皮夾克，皮面有自然的皺紋。前襟斜拉鍊，兩側有拉鍊口袋。",
+    "warmth": 4,
+    "features": [],
+    "colours": [
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#2b272c"
+      }
+    ],
+    "stock": {
+      "black-S": 0,
+      "black-M": 15,
+      "black-L": 17
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          47,
+          56,
+          62,
+          60.0
+        ],
+        "M": [
+          49,
+          59,
+          65,
+          61.5
+        ],
+        "L": [
+          51,
+          62,
+          68,
+          63.0
+        ]
+      }
+    },
+    "fit": {
+      "height": 176,
+      "weight": 68,
+      "size": "L",
+      "note": "合身，衣長到腰。皮會隨穿著變軟。"
+    },
+    "tags": [
+      "外套",
+      "皮夾克",
+      "水洗",
+      "龐克"
+    ]
+  },
+  {
+    "productId": 507,
+    "kind": "top",
+    "fabric": "cotton",
+    "material": "棉 100%",
+    "description": "領口與下襬有破壞處理的短 T，每件的位置不太一樣。",
+    "warmth": 1,
+    "features": [],
+    "colours": [
+      {
+        "code": "wine",
+        "name": "暗紅",
+        "hex": "#5a1f24"
+      },
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#222225"
+      }
+    ],
+    "stock": {
+      "wine-S": 8,
+      "wine-M": 14,
+      "wine-L": 11,
+      "wine-XL": 17,
+      "black-S": 15,
+      "black-M": 13,
+      "black-L": 9,
+      "black-XL": 9
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          45,
+          54,
+          70,
+          22.0
+        ],
+        "M": [
+          47,
+          57,
+          72,
+          23.5
+        ],
+        "L": [
+          49,
+          60,
+          74,
+          25.0
+        ],
+        "XL": [
+          51,
+          63,
+          76,
+          26.5
+        ]
+      }
+    },
+    "fit": {
+      "height": 176,
+      "weight": 68,
+      "size": "L",
+      "note": "寬鬆版，衣長到褲頭下。"
+    },
+    "tags": [
+      "上衣",
+      "短T",
+      "破壞",
+      "龐克"
+    ]
+  },
+  {
+    "productId": 508,
+    "kind": "trousers",
+    "fabric": "denim",
+    "material": "棉 98%・彈性纖維 2%",
+    "description": "黑色的直筒褲，布料帶一點彈性。褲口沒有縫邊，是剪的。",
+    "warmth": 3,
+    "features": [],
+    "colours": [
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#1f1c22"
+      }
+    ],
+    "stock": {
+      "black-S": 12,
+      "black-M": 4,
+      "black-L": 17
+    },
+    "measure": {
+      "columns": [
+        "腰圍",
+        "臀圍",
+        "褲長"
+      ],
+      "rows": {
+        "S": [
+          70,
+          94,
+          96
+        ],
+        "M": [
+          74,
+          98,
+          98
+        ],
+        "L": [
+          78,
+          102,
+          100
+        ]
+      }
+    },
+    "fit": {
+      "height": 176,
+      "weight": 68,
+      "size": "L",
+      "note": "腰圍剛好，褲長到腳踝。"
+    },
+    "tags": [
+      "褲",
+      "直筒",
+      "黑色",
+      "龐克"
+    ]
+  },
+  {
+    "productId": 509,
+    "kind": "dress",
+    "fabric": "satin",
+    "material": "聚酯纖維 100%；內裡棉",
+    "description": "酒紅的吊帶連身裙，裙身有三層荷葉。肩帶可調。裡面要穿襯衫。",
+    "warmth": 3,
+    "features": [],
+    "colours": [
+      {
+        "code": "burgundy",
+        "name": "酒紅",
+        "hex": "#7a2f45"
+      },
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#26262a"
+      }
+    ],
+    "stock": {
+      "burgundy-S": 0,
+      "burgundy-M": 18,
+      "black-S": 9,
+      "black-M": 5
+    },
+    "measure": {
+      "columns": [
+        "胸寬",
+        "腰圍",
+        "衣長"
+      ],
+      "rows": {
+        "S": [
+          44,
+          66,
+          92
+        ],
+        "M": [
+          47,
+          70,
+          95
+        ]
+      }
+    },
+    "fit": {
+      "height": 160,
+      "weight": 48,
+      "size": "S",
+      "note": "裙長到膝下，裡面穿 510 剛好。"
+    },
+    "tags": [
+      "洋裝",
+      "吊帶",
+      "連身裙",
+      "蘿莉塔"
+    ]
+  },
+  {
+    "productId": 510,
+    "kind": "blouse",
+    "fabric": "cotton",
+    "material": "棉 100%；領口蕾絲為尼龍",
+    "description": "蕾絲領的襯衫，袖口也有一圈蕾絲。單穿或穿在吊帶裙裡面。",
+    "warmth": 2,
+    "features": [],
+    "colours": [
+      {
+        "code": "ivory",
+        "name": "象牙白",
+        "hex": "#f6efe6"
+      }
+    ],
+    "stock": {
+      "ivory-S": 16,
+      "ivory-M": 6,
+      "ivory-L": 6
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          43,
+          52,
+          68,
+          58.0
+        ],
+        "M": [
+          45,
+          55,
+          70,
+          59.5
+        ],
+        "L": [
+          47,
+          58,
+          72,
+          61.0
+        ]
+      }
+    },
+    "fit": {
+      "height": 160,
+      "weight": 48,
+      "size": "S",
+      "note": "合身，袖長到手腕。"
+    },
+    "tags": [
+      "襯衫",
+      "蕾絲",
+      "蘿莉塔"
+    ]
+  },
+  {
+    "productId": 511,
+    "kind": "skirt",
+    "fabric": "satin",
+    "material": "聚酯纖維 100%（硬紗）",
+    "description": "撐裙型的襯裙，三層硬紗。穿在裙子裡面讓裙子站起來。",
+    "warmth": 1,
+    "features": [],
+    "colours": [
+      {
+        "code": "burgundy",
+        "name": "酒紅",
+        "hex": "#7a2f45"
+      },
+      {
+        "code": "white",
+        "name": "白",
+        "hex": "#f4f0ea"
+      }
+    ],
+    "stock": {
+      "burgundy-S": 7,
+      "burgundy-M": 14,
+      "white-S": 7,
+      "white-M": 14
+    },
+    "measure": {
+      "columns": [
+        "腰圍",
+        "臀圍",
+        "裙長"
+      ],
+      "rows": {
+        "S": [
+          64,
+          90,
+          36.0
+        ],
+        "M": [
+          68,
+          94,
+          37.5
+        ]
+      }
+    },
+    "fit": {
+      "height": 160,
+      "weight": 48,
+      "size": "S",
+      "note": "裙長到膝上，比外裙短 3 公分。"
+    },
+    "tags": [
+      "裙",
+      "襯裙",
+      "蓬裙",
+      "蘿莉塔"
+    ]
+  },
+  {
+    "productId": 512,
+    "kind": "blouse",
+    "fabric": "cotton",
+    "material": "棉 65%・聚酯纖維 35%",
+    "description": "泡泡袖的襯衫，領口一個蝴蝶結，可以拆。",
+    "warmth": 2,
+    "features": [],
+    "colours": [
+      {
+        "code": "white",
+        "name": "白",
+        "hex": "#f6f0ea"
+      },
+      {
+        "code": "lavender",
+        "name": "薰衣草",
+        "hex": "#d9cfe3"
+      }
+    ],
+    "stock": {
+      "white-S": 2,
+      "white-M": 17,
+      "white-L": 9,
+      "lavender-S": 10,
+      "lavender-M": 5,
+      "lavender-L": 15
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          43,
+          52,
+          68,
+          58.0
+        ],
+        "M": [
+          45,
+          55,
+          70,
+          59.5
+        ],
+        "L": [
+          47,
+          58,
+          72,
+          61.0
+        ]
+      }
+    },
+    "fit": {
+      "height": 160,
+      "weight": 48,
+      "size": "S",
+      "note": "合身，衣長到腰。"
+    },
+    "tags": [
+      "襯衫",
+      "泡泡袖",
+      "蝴蝶結",
+      "量產型"
+    ]
+  },
+  {
+    "productId": 513,
+    "kind": "skirt",
+    "fabric": "satin",
+    "material": "聚酯纖維 100%",
+    "description": "粉色的百褶短裙，腰頭後面是鬆緊。內有安全褲。",
+    "warmth": 2,
+    "features": [],
+    "colours": [
+      {
+        "code": "pink",
+        "name": "櫻粉",
+        "hex": "#e9c9d3"
+      },
+      {
+        "code": "white",
+        "name": "白",
+        "hex": "#f4f0ea"
+      },
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#222225"
+      }
+    ],
+    "stock": {
+      "pink-S": 18,
+      "pink-M": 0,
+      "white-S": 16,
+      "white-M": 11,
+      "black-S": 6,
+      "black-M": 7
+    },
+    "measure": {
+      "columns": [
+        "腰圍",
+        "臀圍",
+        "裙長"
+      ],
+      "rows": {
+        "S": [
+          64,
+          90,
+          40.0
+        ],
+        "M": [
+          68,
+          94,
+          41.5
+        ]
+      }
+    },
+    "fit": {
+      "height": 160,
+      "weight": 48,
+      "size": "S",
+      "note": "裙長到膝上約 10 公分。"
+    },
+    "tags": [
+      "裙",
+      "百褶",
+      "短裙",
+      "量產型"
+    ]
+  },
+  {
+    "productId": 514,
+    "kind": "blouse",
+    "fabric": "cotton",
+    "material": "壓克力 60%・尼龍 30%・羊毛 10%",
+    "description": "短版的針織外套，前面三顆珍珠扣。可以當上衣扣起來穿。",
+    "warmth": 3,
+    "features": [],
+    "colours": [
+      {
+        "code": "pink",
+        "name": "淺粉",
+        "hex": "#f6d2dc"
+      },
+      {
+        "code": "cream",
+        "name": "奶油",
+        "hex": "#f2ead8"
+      }
+    ],
+    "stock": {
+      "pink-S": 16,
+      "pink-M": 15,
+      "pink-L": 13,
+      "cream-S": 7,
+      "cream-M": 16,
+      "cream-L": 4
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "S": [
+          43,
+          52,
+          54,
+          58.0
+        ],
+        "M": [
+          45,
+          55,
+          56,
+          59.5
+        ],
+        "L": [
+          47,
+          58,
+          58,
+          61.0
+        ]
+      }
+    },
+    "fit": {
+      "height": 160,
+      "weight": 48,
+      "size": "S",
+      "note": "衣長到腰上，袖長到手腕。"
+    },
+    "tags": [
+      "外套",
+      "針織外套",
+      "短版",
+      "量產型"
+    ]
+  }
+]

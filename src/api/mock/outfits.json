@@ -1,0 +1,553 @@
+[
+  {
+    "id": 1,
+    "title": "通勤的灰階",
+    "themeCode": "minimal",
+    "occasions": [
+      "work"
+    ],
+    "items": [
+      {
+        "productId": 101,
+        "name": "落肩混紡大衣",
+        "brand": "霧岸",
+        "category": "outer",
+        "price": 3280,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "coat",
+        "colour": "#d9d4ca"
+      },
+      {
+        "productId": 102,
+        "name": "圓領細針織上衣",
+        "brand": "半日",
+        "category": "top",
+        "price": 1180,
+        "sizes": [
+          "S",
+          "M",
+          "L",
+          "XL"
+        ],
+        "kind": "top",
+        "colour": "#f1ede6"
+      },
+      {
+        "productId": 103,
+        "name": "直筒西裝褲",
+        "brand": "霧岸",
+        "category": "bottom",
+        "price": 1680,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "trousers",
+        "colour": "#2e2c29"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "假日的白襯衫",
+    "themeCode": "minimal",
+    "occasions": [
+      "weekend",
+      "date"
+    ],
+    "items": [
+      {
+        "productId": 104,
+        "name": "寬版棉質襯衫",
+        "brand": "半日",
+        "category": "top",
+        "price": 1380,
+        "sizes": [
+          "M",
+          "L",
+          "XL"
+        ],
+        "kind": "top",
+        "colour": "#f1ede6"
+      },
+      {
+        "productId": 105,
+        "name": "九分打褶褲",
+        "brand": "半日",
+        "category": "bottom",
+        "price": 1580,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "trousers",
+        "colour": "#2e2c29"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "滑板場旁邊",
+    "themeCode": "street",
+    "occasions": [
+      "weekend"
+    ],
+    "items": [
+      {
+        "productId": 201,
+        "name": "教練外套",
+        "brand": "夜班車",
+        "category": "outer",
+        "price": 2480,
+        "sizes": [
+          "M",
+          "L",
+          "XL"
+        ],
+        "kind": "jacket",
+        "colour": "#2f3a4a"
+      },
+      {
+        "productId": 202,
+        "name": "厚磅印花短袖",
+        "brand": "夜班車",
+        "category": "top",
+        "price": 880,
+        "sizes": [
+          "S",
+          "M",
+          "L",
+          "XL"
+        ],
+        "kind": "top",
+        "colour": "#e9e4da"
+      },
+      {
+        "productId": 203,
+        "name": "寬管工作褲",
+        "brand": "拾穗製衣",
+        "category": "bottom",
+        "price": 1780,
+        "sizes": [
+          "M",
+          "L"
+        ],
+        "kind": "trousers",
+        "colour": "#4a5566"
+      },
+      {
+        "productId": 204,
+        "name": "毛帽",
+        "brand": "夜班車",
+        "category": "acc",
+        "price": 480,
+        "sizes": [
+          "F"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "晚上的約",
+    "themeCode": "street",
+    "occasions": [
+      "date"
+    ],
+    "items": [
+      {
+        "productId": 205,
+        "name": "短版飛行外套",
+        "brand": "夜班車",
+        "category": "outer",
+        "price": 2880,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "jacket",
+        "colour": "#2f3a4a"
+      },
+      {
+        "productId": 206,
+        "name": "百褶短裙",
+        "brand": "拾穗製衣",
+        "category": "bottom",
+        "price": 1280,
+        "sizes": [
+          "S",
+          "M"
+        ],
+        "kind": "trousers",
+        "colour": "#4a5566"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "二輪戲院",
+    "themeCode": "vintage",
+    "occasions": [
+      "date",
+      "weekend"
+    ],
+    "items": [
+      {
+        "productId": 301,
+        "name": "燈芯絨獵裝外套",
+        "brand": "舊課本",
+        "category": "outer",
+        "price": 3080,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "coat",
+        "colour": "#7a4a2a"
+      },
+      {
+        "productId": 302,
+        "name": "古巴領短袖襯衫",
+        "brand": "舊課本",
+        "category": "top",
+        "price": 1280,
+        "sizes": [
+          "M",
+          "L",
+          "XL"
+        ],
+        "kind": "blouse",
+        "colour": "#e8d7b0"
+      },
+      {
+        "productId": 303,
+        "name": "高腰直筒牛仔褲",
+        "brand": "拾穗製衣",
+        "category": "bottom",
+        "price": 1880,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "skirt",
+        "colour": "#9a6a3c"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "title": "雨天的山腳",
+    "themeCode": "outdoor",
+    "occasions": [
+      "outdoor",
+      "weekend"
+    ],
+    "items": [
+      {
+        "productId": 401,
+        "name": "防潑水連帽外套",
+        "brand": "野徑",
+        "category": "outer",
+        "price": 3680,
+        "sizes": [
+          "S",
+          "M",
+          "L",
+          "XL"
+        ],
+        "kind": "vest",
+        "colour": "#e8b53a"
+      },
+      {
+        "productId": 402,
+        "name": "快乾長袖",
+        "brand": "野徑",
+        "category": "top",
+        "price": 980,
+        "sizes": [
+          "S",
+          "M",
+          "L",
+          "XL"
+        ],
+        "kind": "top",
+        "colour": "#3f5a46"
+      },
+      {
+        "productId": 403,
+        "name": "機能束口褲",
+        "brand": "野徑",
+        "category": "bottom",
+        "price": 1680,
+        "sizes": [
+          "M",
+          "L",
+          "XL"
+        ],
+        "kind": "trousers",
+        "colour": "#5b5a4e"
+      },
+      {
+        "productId": 404,
+        "name": "健行襪",
+        "brand": "野徑",
+        "category": "shoes",
+        "price": 280,
+        "sizes": [
+          "F"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "title": "第一次簡報",
+    "themeCode": "formal",
+    "occasions": [
+      "work"
+    ],
+    "items": [
+      {
+        "productId": 501,
+        "name": "單排扣西裝外套",
+        "brand": "霧岸",
+        "category": "outer",
+        "price": 3980,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "coat",
+        "colour": "#c6a06a"
+      },
+      {
+        "productId": 502,
+        "name": "牛津襯衫",
+        "brand": "舊課本",
+        "category": "top",
+        "price": 1480,
+        "sizes": [
+          "S",
+          "M",
+          "L",
+          "XL"
+        ],
+        "kind": "blouse",
+        "colour": "#f3efe8"
+      },
+      {
+        "productId": 503,
+        "name": "錐形西裝褲",
+        "brand": "霧岸",
+        "category": "bottom",
+        "price": 1880,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "trousers",
+        "colour": "#2b3550"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "title": "婚禮的賓客",
+    "themeCode": "formal",
+    "occasions": [
+      "date"
+    ],
+    "items": [
+      {
+        "productId": 504,
+        "name": "綁帶襯衫洋裝",
+        "brand": "半日",
+        "category": "top",
+        "price": 2480,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "blouse",
+        "colour": "#f3efe8"
+      },
+      {
+        "productId": 505,
+        "name": "細皮帶",
+        "brand": "舊課本",
+        "category": "acc",
+        "price": 680,
+        "sizes": [
+          "F"
+        ]
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "title": "雨夜的 live house",
+    "themeCode": "punk",
+    "occasions": [
+      "weekend"
+    ],
+    "items": [
+      {
+        "productId": 506,
+        "name": "水洗皮夾克",
+        "brand": "夜班車",
+        "category": "outer",
+        "price": 4280,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "jacket",
+        "colour": "#2b272c"
+      },
+      {
+        "productId": 507,
+        "name": "破壞感短T",
+        "brand": "夜班車",
+        "category": "top",
+        "price": 980,
+        "sizes": [
+          "S",
+          "M",
+          "L",
+          "XL"
+        ],
+        "kind": "top",
+        "colour": "#5a1f24"
+      },
+      {
+        "productId": 508,
+        "name": "黑色直筒褲",
+        "brand": "霧岸",
+        "category": "bottom",
+        "price": 1880,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "trousers",
+        "colour": "#1f1c22"
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "title": "下午茶會",
+    "themeCode": "lolita",
+    "occasions": [
+      "date"
+    ],
+    "items": [
+      {
+        "productId": 509,
+        "name": "酒紅吊帶連身裙",
+        "brand": "舊課本",
+        "category": "outer",
+        "price": 3680,
+        "sizes": [
+          "S",
+          "M"
+        ],
+        "kind": "dress",
+        "colour": "#7a2f45"
+      },
+      {
+        "productId": 510,
+        "name": "蕾絲領襯衫",
+        "brand": "舊課本",
+        "category": "top",
+        "price": 1580,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "blouse",
+        "colour": "#f6efe6"
+      },
+      {
+        "productId": 511,
+        "name": "蓬裙襯裙",
+        "brand": "半日",
+        "category": "bottom",
+        "price": 1280,
+        "sizes": [
+          "S",
+          "M"
+        ],
+        "kind": "skirt",
+        "colour": "#7a2f45"
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "title": "週末的商店街",
+    "themeCode": "ryousan",
+    "occasions": [
+      "weekend",
+      "date"
+    ],
+    "items": [
+      {
+        "productId": 512,
+        "name": "蝴蝶結泡泡袖襯衫",
+        "brand": "半日",
+        "category": "top",
+        "price": 1380,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "blouse",
+        "colour": "#f6f0ea"
+      },
+      {
+        "productId": 513,
+        "name": "粉色百褶短裙",
+        "brand": "半日",
+        "category": "bottom",
+        "price": 1480,
+        "sizes": [
+          "S",
+          "M"
+        ],
+        "kind": "skirt",
+        "colour": "#e9c9d3"
+      },
+      {
+        "productId": 514,
+        "name": "短版針織外套",
+        "brand": "拾穗製衣",
+        "category": "outer",
+        "price": 1980,
+        "sizes": [
+          "S",
+          "M",
+          "L"
+        ],
+        "kind": "blouse",
+        "colour": "#f6d2dc"
+      }
+    ]
+  }
+]

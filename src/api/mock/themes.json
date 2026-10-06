@@ -1,0 +1,50 @@
+[
+  {
+    "code": "minimal",
+    "name": "簡約",
+    "tagline": "少一點，剛剛好。",
+    "sort": 1
+  },
+  {
+    "code": "street",
+    "name": "街頭",
+    "tagline": "寬鬆、層次、不怕顯眼。",
+    "sort": 2
+  },
+  {
+    "code": "vintage",
+    "name": "復古",
+    "tagline": "舊的剪裁，新的穿法。",
+    "sort": 3
+  },
+  {
+    "code": "outdoor",
+    "name": "戶外",
+    "tagline": "下雨也照常出門。",
+    "sort": 4
+  },
+  {
+    "code": "formal",
+    "name": "正式",
+    "tagline": "該挺的時候挺起來。",
+    "sort": 5
+  },
+  {
+    "code": "punk",
+    "name": "龐克",
+    "tagline": "吵一點也沒關係。",
+    "sort": 6
+  },
+  {
+    "code": "lolita",
+    "name": "蘿莉塔",
+    "tagline": "把每天都當成茶會。",
+    "sort": 7
+  },
+  {
+    "code": "ryousan",
+    "name": "量產型",
+    "tagline": "可愛要可愛得剛剛好。",
+    "sort": 8
+  }
+]
