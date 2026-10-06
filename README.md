@@ -1,6 +1,15 @@
 # fuen58-fashion-frontend
 
-FUEN58 專題（服飾電商）的前台。Vue 3、Vite、Vue Router、JavaScript（Composition API）。
+FUEN58 專題「今天穿什麼」的前台：天氣接到穿搭的服飾電商（課程作品，品牌皆虛構）。Vue 3、Vite、Vue Router、GSAP、JavaScript（Composition API）。
+
+**即時版（推到 main 自動部署）**：<https://ruyuang0509.github.io/fuen58-fashion-frontend/>
+
+## 給組員
+
+- 直接開上面的網址就能逛；會員與結帳的示範帳號是 `demo@example.com`／`demo1234`（假資料，存在你自己瀏覽器的 localStorage）。
+- 目前**全部是假資料**（`src/api/mock/`），欄位與端點的提案在 [docs/api-契約草案.md](docs/api-契約草案.md)——後端請以這份對，有要改的直接改它再告訴我。
+- 每一輪做了什麼、為什麼這樣做，在 `docs/01`～`docs/06`。
+- 要在本機跑：裝 Node 22 以上，然後照下面兩個指令。
 
 ```bash
 npm install
