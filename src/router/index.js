@@ -55,7 +55,8 @@ const routes = [
 ]
 
 export const router = createRouter({
-  history: createWebHistory(),
+  // BASE_URL 跟著 vite.config.js 的 base 走：GitHub Pages 上網址多一層 repo 名
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, from, savedPosition) {
     // 上一頁、下一頁：回到離開時的捲動位置
