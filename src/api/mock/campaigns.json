@@ -1,0 +1,50 @@
+[
+  {
+    "code": "rain-week",
+    "title": "下雨也照常出門",
+    "tagline": "防潑水、快乾、口袋夠多——雨季一週的穿搭。",
+    "startsAt": "2026-10-01",
+    "endsAt": "2026-10-31",
+    "themeCode": "outdoor",
+    "brandCodes": ["yejing"],
+    "outfitIds": [6, 18, 12],
+    "productIds": [401, 402, 403, 404, 601, 603],
+    "placements": ["stage", "footer"]
+  },
+  {
+    "code": "wuan-autumn",
+    "title": "霧岸・秋季新品",
+    "tagline": "灰與駝之間，多了兩件大衣。",
+    "startsAt": "2026-09-20",
+    "endsAt": "2026-11-15",
+    "themeCode": "minimal",
+    "brandCodes": ["wuan"],
+    "outfitIds": [1, 7],
+    "productIds": [501, 101, 503, 103],
+    "placements": ["stage", "footer"]
+  },
+  {
+    "code": "vintage-week",
+    "title": "舊課本 × 拾穗製衣：復古週",
+    "tagline": "古巴領配高腰牛仔褲，兩個牌子一起把舊年代穿回來。",
+    "startsAt": "2026-10-03",
+    "endsAt": "2026-10-20",
+    "themeCode": "vintage",
+    "brandCodes": ["jiukeben", "shisui"],
+    "outfitIds": [5, 13],
+    "productIds": [301, 302, 303, 502, 505],
+    "placements": ["stage", "footer"]
+  },
+  {
+    "code": "summer-linen",
+    "title": "夏天的亞麻",
+    "tagline": "已經過去的夏天：寬版棉麻、九分褲、不穿襪。",
+    "startsAt": "2026-07-01",
+    "endsAt": "2026-08-31",
+    "themeCode": "minimal",
+    "brandCodes": ["banri"],
+    "outfitIds": [2],
+    "productIds": [104, 105, 102],
+    "placements": ["stage", "footer"]
+  }
+]

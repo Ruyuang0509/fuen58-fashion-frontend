@@ -1,6 +1,7 @@
 <script setup>
 // 搜尋結果：關鍵字、排序、只看有貨都在網址（?q=&sort=&stock=1）；比對名稱、品牌、標籤、所屬主題。
 // 排序與篩選不做側邊欄，接在標題那句話裡（和一句話列同一個做法）。沒有結果時不留空白，給同路線的單品。
+// 沒有關鍵字就是全部單品（第十五輪：首頁的「新上架」「熱銷」看全部、頁尾的「找單品」都連到這裡）；第三子輪會改成 /products 加品牌、顏色、價格的條件。
 import '@fontsource/space-mono/400.css'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -39,17 +40,14 @@ function setQuery(key, value) {
 
 async function load() {
   const ticket = ++latest
-  if (!keyword.value) {
-    results.value = []
-    status.value = 'ready'
-    return
-  }
   status.value = 'loading'
   try {
-    const found = await searchProducts(keyword.value, { sort: sort.value, inStock: inStock.value })
+    const found = keyword.value
+      ? await searchProducts(keyword.value, { sort: sort.value, inStock: inStock.value })
+      : await getProducts({ sort: sort.value, inStock: inStock.value })
     if (ticket !== latest) return
     results.value = found
-    if (!found.length) {
+    if (!found.length && keyword.value) {
       // 推薦的路線：最近進過的主題；沒有就第一個
       const themes = await getThemes()
       const theme = themes.find((entry) => entry.code === rememberedTheme()) ?? themes[0]
@@ -69,9 +67,10 @@ watch(query, load, { immediate: true })
 
 <template>
   <header class="head">
-    <h1>搜尋</h1>
-    <p v-if="keyword" class="lead">
-      <span class="clause">「{{ keyword }}」<template v-if="status === 'ready'">，{{ results.length }} 件單品</template>，</span>
+    <h1>{{ keyword ? '搜尋' : '單品' }}</h1>
+    <p class="lead">
+      <span v-if="keyword" class="clause">「{{ keyword }}」<template v-if="status === 'ready'">，{{ results.length }} 件單品</template>，</span>
+      <span v-else class="clause"><template v-if="status === 'ready'">{{ results.length }} 件</template>全部單品，</span>
       <span class="clause">
         照
         <label>
@@ -93,7 +92,6 @@ watch(query, load, { immediate: true })
         。
       </span>
     </p>
-    <p v-else class="lead">在上面的搜尋框輸入單品、品牌或路線的名字。</p>
   </header>
 
   <p v-if="status === 'loading'" class="state" aria-busy="true">搜尋中…</p>

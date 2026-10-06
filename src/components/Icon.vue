@@ -19,6 +19,8 @@ const PATHS = {
   swap: ['M4 7h13l-3-3', 'M20 17H7l3 3'],
   close: ['M6 6l12 12M18 6 6 18'],
   plus: ['M12 5v14M5 12h14'],
+  arrow: ['M4 12h15', 'M13 6l6 6-6 6'],
+  up: ['M12 20V4', 'M6 10l6-6 6 6'],
 }
 </script>
 

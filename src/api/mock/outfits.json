@@ -275,5 +275,164 @@
         "colour": "khaki"
       }
     ]
+  },
+  {
+    "id": 13,
+    "title": "舊書店的下午",
+    "themeCode": "vintage",
+    "occasions": [
+      "weekend",
+      "date"
+    ],
+    "audience": "men",
+    "items": [
+      {
+        "productId": 301,
+        "colour": "forest"
+      },
+      {
+        "productId": 302,
+        "colour": "cream"
+      },
+      {
+        "productId": 303,
+        "colour": "indigo"
+      },
+      {
+        "productId": 505,
+        "colour": "tan"
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "title": "後台的走廊",
+    "themeCode": "punk",
+    "occasions": [
+      "weekend",
+      "date"
+    ],
+    "audience": "women",
+    "items": [
+      {
+        "productId": 506,
+        "colour": "black"
+      },
+      {
+        "productId": 507,
+        "colour": "black"
+      },
+      {
+        "productId": 206,
+        "colour": "black"
+      },
+      {
+        "productId": 204,
+        "colour": "black"
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "title": "星期天的花園",
+    "themeCode": "lolita",
+    "occasions": [
+      "date",
+      "weekend"
+    ],
+    "audience": "women",
+    "items": [
+      {
+        "productId": 514,
+        "colour": "cream"
+      },
+      {
+        "productId": 510,
+        "colour": "ivory"
+      },
+      {
+        "productId": 511,
+        "colour": "white"
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "title": "放學後的咖啡店",
+    "themeCode": "ryousan",
+    "occasions": [
+      "date",
+      "weekend"
+    ],
+    "audience": "women",
+    "items": [
+      {
+        "productId": 514,
+        "colour": "pink"
+      },
+      {
+        "productId": 512,
+        "colour": "lavender"
+      },
+      {
+        "productId": 513,
+        "colour": "white"
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "title": "末班車",
+    "themeCode": "street",
+    "occasions": [
+      "weekend"
+    ],
+    "audience": "unisex",
+    "items": [
+      {
+        "productId": 205,
+        "colour": "black"
+      },
+      {
+        "productId": 202,
+        "colour": "black"
+      },
+      {
+        "productId": 203,
+        "colour": "ecru"
+      },
+      {
+        "productId": 204,
+        "colour": "rust"
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "title": "週末的步道",
+    "themeCode": "outdoor",
+    "occasions": [
+      "outdoor",
+      "weekend"
+    ],
+    "audience": "women",
+    "items": [
+      {
+        "productId": 401,
+        "colour": "stone"
+      },
+      {
+        "productId": 402,
+        "colour": "black"
+      },
+      {
+        "productId": 403,
+        "colour": "black"
+      },
+      {
+        "productId": 404,
+        "colour": "navy"
+      }
+    ]
   }
 ]

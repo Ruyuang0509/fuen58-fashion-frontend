@@ -74,7 +74,8 @@ const check = (name, ok, detail) => results.push({ name, ok: !!ok, detail })
 const text = (sel) => ev(`document.querySelector(${JSON.stringify(sel)})?.textContent.trim().replace(/\\s+/g, ' ') ?? null`)
 const count = (sel) => ev(`document.querySelectorAll(${JSON.stringify(sel)}).length`)
 const click = (sel, nth = 0) => ev(`(() => { const el = document.querySelectorAll(${JSON.stringify(sel)})[${nth}]; if (!el) return 'missing'; el.click(); return 'clicked' })()`)
-const overflow = () => ev('document.documentElement.scrollWidth - window.innerWidth')
+// 和 clientWidth 比，不是 innerWidth：手機模擬下版面視口會跟著溢出的內容長大，scrollWidth − innerWidth 永遠是 0（第十五輪實測）
+const overflow = () => ev('document.documentElement.scrollWidth - document.documentElement.clientWidth')
 const cartCount = () => ev('document.querySelector(".cart-link .count")?.firstChild?.textContent ?? "0"')
 
 const phone = W < 600
@@ -212,7 +213,8 @@ await shot('search')
 check('search: 6 shirts', (await count('.grid .card')) === 6, await count('.grid .card'))
 check('search: header input shows keyword', (await ev('document.querySelector("#site-search").value')) === '襯衫')
 await go('/search?q=' + encodeURIComponent('龐克'), 1500)
-check('search: theme name matches 3', (await count('.grid .card')) === 3, await count('.grid .card'))
+// 第十五輪多了穿搭 14「後台的走廊」，百褶短裙與毛帽也算進龐克路線：3 → 5
+check('search: theme name matches 5', (await count('.grid .card')) === 5, await count('.grid .card'))
 await go('/search?q=zzz', 1800)
 await shot('search-empty')
 check('search: empty state with suggestions', (await count('.empty .grid .card')) >= 1 && (await text('.empty > p'))?.includes('找不到'), await count('.empty .grid .card'))

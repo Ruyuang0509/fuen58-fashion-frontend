@@ -1,11 +1,14 @@
 <script setup>
-// 探索區的殼：首頁、路線頁、全部穿搭共用這一個 SkyPage，天空裡的內容由子路由換（HomeHero、ThemeHero、OutfitsHero）。
-// 底下的店（一句話篩選列＋穿搭）也在這裡，三頁共用；只有標題跟著頁面變。
+// 探索區的殼：首頁、路線頁、全部穿搭、活動頁共用這一個 SkyPage，天空裡的內容由子路由換
+// （HomeHero、ThemeHero、OutfitsHero、CampaignHero）。底下的店（一句話篩選列＋穿搭）也在這裡，四頁共用；
+// 標題跟著頁面變，活動頁只列那檔活動的穿搭與單品，首頁最後多兩排單品（新上架、熱銷）。
 // 這樣從首頁點進路線、或在店裡換風格，天空不重建、頂欄不重畫——以前會像網頁刷新（第十四輪使用者回報）。
-import { computed, onMounted, provide, ref } from 'vue'
+import { computed, onMounted, provide, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { getThemes, getWeather } from '@/api'
+import { getCampaign, getCampaigns, getProducts, getThemes, getWeather } from '@/api'
+import HomeShelves from '@/components/HomeShelves.vue'
 import OutfitStage from '@/components/OutfitStage.vue'
+import ProductCard from '@/components/ProductCard.vue'
 import SentenceBar from '@/components/SentenceBar.vue'
 import SkyPage from '@/components/SkyPage.vue'
 import { useExploreSky } from '@/stores/explore'
@@ -16,24 +19,67 @@ const page = ref(null)
 const weather = ref(null)
 const themes = ref([])
 const count = ref(null)
+const activeCampaigns = ref([])
+const campaign = ref(null)
+const campaignProducts = ref([])
 
 // 子頁要量天空（首頁的 probe）或要今天的天氣，從這裡拿
 provide('skyPage', page)
 provide('today', weather)
 
 onMounted(async () => {
-  const [weatherResult, themeResult] = await Promise.allSettled([getWeather(), getThemes()])
+  const [weatherResult, themeResult, campaignResult] = await Promise.allSettled([getWeather(), getThemes(), getCampaigns({ active: true, placement: 'stage' })])
   if (weatherResult.status === 'fulfilled') weather.value = weatherResult.value
   if (themeResult.status === 'fulfilled') themes.value = themeResult.value
+  if (campaignResult.status === 'fulfilled') activeCampaigns.value = campaignResult.value
 })
+
+// 活動頁：殼自己也要那檔活動（標題、只列哪幾套、哪幾件單品）。連續換頁時只採用最後一次的結果
+let latest = 0
+watch(
+  () => (route.name === 'campaign' ? String(route.params.code) : null),
+  async (code) => {
+    const ticket = ++latest
+    if (!code) {
+      campaign.value = null
+      campaignProducts.value = []
+      return
+    }
+    try {
+      const found = await getCampaign(code)
+      if (ticket !== latest) return
+      campaign.value = found
+      const items = found ? await getProducts({ ids: found.productIds }) : []
+      if (ticket !== latest) return
+      campaignProducts.value = items
+    } catch {
+      if (ticket !== latest) return
+      campaign.value = null
+      campaignProducts.value = []
+    }
+  },
+  { immediate: true },
+)
 
 const title = computed(() => {
   if (route.name === 'theme') {
     const name = themes.value.find((theme) => theme.code === route.params.code)?.name
     return name ? `${name}路線的穿搭` : '這條路線的穿搭'
   }
+  if (route.name === 'campaign') return campaign.value ? `${campaign.value.title}的穿搭` : '這檔活動的穿搭'
   return route.name === 'outfits' ? '全部的穿搭' : '今天全部的穿搭'
 })
+
+// 舞台裡插哪些活動：首頁與全部穿搭插全部進行中的，路線頁只插同路線的，活動頁不插
+const tiles = computed(() => {
+  if (route.name === 'campaign') return []
+  if (route.name === 'theme') return activeCampaigns.value.filter((item) => item.themeCode === route.params.code)
+  return activeCampaigns.value
+})
+// 活動頁的店只列這檔活動的穿搭；其他頁不限
+const stageIds = computed(() => (route.name === 'campaign' ? (campaign.value?.outfitIds ?? []) : null))
+const waiting = computed(() => route.name === 'campaign' && !campaign.value)
+
 // 全部穿搭的天空矮，一句話列早一點收合
 const offsetExtra = computed(() => (route.name === 'outfits' ? 200 : 320))
 </script>
@@ -59,7 +105,16 @@ const offsetExtra = computed(() => (route.name === 'outfits' ? 200 : 320))
         <SentenceBar :offset="heroHeight + offsetExtra" />
         <main class="stage">
           <h2 class="shop-title">{{ title }}<span v-if="count !== null" class="count">　{{ count }} 套</span></h2>
-          <OutfitStage @count="count = $event" />
+          <OutfitStage :campaigns="tiles" :ids="stageIds" :waiting="waiting" @count="count = $event" />
+
+          <section v-if="route.name === 'campaign' && campaignProducts.length" class="campaign-items" aria-label="這檔活動的單品">
+            <h2 class="shop-title">這檔活動的單品<span class="count">　{{ campaignProducts.length }} 件</span></h2>
+            <div class="items-grid">
+              <ProductCard v-for="item in campaignProducts" :key="item.productId" :product="item" />
+            </div>
+          </section>
+
+          <HomeShelves v-if="route.name === 'home'" />
         </main>
       </div>
     </template>
@@ -85,5 +140,15 @@ const offsetExtra = computed(() => (route.name === 'outfits' ? 200 : 320))
 .count {
   font-family: 'Space Mono', monospace;
   font-size: 0.85em;
+}
+
+.campaign-items {
+  margin-top: var(--s5);
+}
+
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--s3);
 }
 </style>

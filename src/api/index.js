@@ -8,10 +8,12 @@
 //   outfits.json   穿搭：只用 productId 加顏色代碼引用商品；這裡的 resolveOutfit() 就是後端的 join
 //   brands.json    品牌（虛構）
 //   themes.json    風格主題
+//   campaigns.json 活動（第十五輪）：期間、所屬路線、幾套穿搭、幾件單品、放在哪些位置
 import themes from './mock/themes.json'
 import outfits from './mock/outfits.json'
 import products from './mock/products.json'
 import brands from './mock/brands.json'
+import campaigns from './mock/campaigns.json'
 
 // 模擬網路延遲，讓「載入中」的畫面在開發時看得到
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -54,13 +56,15 @@ function forAudience(outfit, audience) {
 }
 
 /**
- * 取得穿搭組合。五個條件都是選填，空字串代表不限。
- * @param {{ style?: string, audience?: string, occasion?: string, category?: string, size?: string }} filters
+ * 取得穿搭組合。條件都是選填，空字串代表不限。
+ * @param {{ style?: string, audience?: string, occasion?: string, category?: string, size?: string, ids?: number[] }} filters
+ *   ids  只要這幾套（照給的順序；活動頁用）
  */
 export async function getOutfits(filters = {}) {
   await wait(250)
-  const { style, audience, occasion, category, size } = filters
-  return outfits.map(resolveOutfit).filter((outfit) => {
+  const { style, audience, occasion, category, size, ids } = filters
+  const base = ids ? ids.map((id) => outfits.find((outfit) => outfit.id === Number(id))).filter(Boolean) : outfits
+  return base.map(resolveOutfit).filter((outfit) => {
     if (style && outfit.themeCode !== style) return false
     if (audience && !forAudience(outfit, audience)) return false
     if (occasion && !outfit.occasions.includes(occasion)) return false
@@ -170,4 +174,39 @@ export async function getBrands() {
 export async function getBrand(code) {
   await wait(150)
   return brandByCode.get(String(code)) ?? null
+}
+
+// ── 活動（第十五輪）──
+// 一檔活動：期間、所屬路線（天空與顏色跟它）、幾套穿搭、幾件單品、放在哪些位置（stage 舞台插卡｜footer 頁尾）。
+// 進行中與否在這裡算（臺北時間，endsAt 含當天），畫面不自己比日期。功能規劃沒有這一項，10/12 要全組確認。
+
+const todayInTaipei = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Taipei' }).format(new Date())
+
+function decorateCampaign(campaign) {
+  const today = todayInTaipei()
+  return {
+    ...campaign,
+    active: campaign.startsAt <= today && today <= campaign.endsAt,
+    outfits: campaign.outfitIds.map((id) => outfits.find((outfit) => outfit.id === id)).filter(Boolean).map(resolveOutfit),
+  }
+}
+
+/**
+ * 活動清單，快結束的排前面。
+ * @param {{ active?: boolean, theme?: string, placement?: 'stage' | 'footer' }} query
+ */
+export async function getCampaigns({ active = false, theme, placement } = {}) {
+  await wait(150)
+  let list = campaigns.map(decorateCampaign)
+  if (active) list = list.filter((campaign) => campaign.active)
+  if (theme) list = list.filter((campaign) => campaign.themeCode === theme)
+  if (placement) list = list.filter((campaign) => campaign.placements.includes(placement))
+  return list.sort((a, b) => a.endsAt.localeCompare(b.endsAt))
+}
+
+/** 一檔活動；過期的也回（active 是 false），找不到回 null */
+export async function getCampaign(code) {
+  await wait(150)
+  const found = campaigns.find((campaign) => campaign.code === String(code))
+  return found ? decorateCampaign(found) : null
 }

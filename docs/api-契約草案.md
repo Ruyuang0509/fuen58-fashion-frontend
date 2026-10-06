@@ -92,13 +92,13 @@
 
 ## 5. 穿搭
 
-- `GET /api/outfits` 查詢字串：`theme`、`occasion`、`category`、`size`
+- `GET /api/outfits` 查詢字串：`theme`、`for`（給誰穿）、`occasion`、`category`、`size`、`ids`（逗號分隔，只要這幾套；活動頁用）
 - `GET /api/outfits/:id`
 - `GET /api/products/:id/outfits`（包含這件商品的穿搭）
 
 ```json
 {
-  "id": 1, "title": "通勤的灰階", "themeCode": "minimal", "occasions": ["work"],
+  "id": 1, "title": "通勤的灰階", "themeCode": "minimal", "occasions": ["work"], "audience": "unisex",
   "items": [
     { "productId": 101, "colour": "oat" },
     { "productId": 102, "colour": "ivory" },
@@ -110,6 +110,8 @@
 資料表：`outfits`（id、title、theme_code、created…）、`outfit_items`（outfit_id、product_id、colour_code、sort）、`outfit_occasions`（outfit_id、occasion）。
 `colour` 是那套穿搭選的顏色代碼。**前台會把 `items` 展開成商品欄位**（`src/api/index.js` 的 `resolveOutfit()`），後端也可以直接回展開後的。
 `occasions`：`work | date | weekend | outdoor`。**這是功能規劃沒有的欄位**，一句話列的「場合」那格靠它；使用者 2026-10-06 裁決先留，請後端在穿搭表加這個標籤。
+`audience`：`women | men | unisex | kids`（穿搭表一欄）。查詢 `for=women` 要回 women 加 unisex，`for=men` 回 men 加 unisex，`unisex` 與 `kids` 只回自己（第十四輪，使用者要求加「男、女、中性、小孩」）。
+第十五輪起穿搭有 18 套（每條路線至少兩套）；第三子輪會把 `occasion`、`category`、`size` 改成多值逗號分隔（任一符合）。
 
 ## 6. 會員與登入（第十輪前台先用假資料實作；路徑是建議）
 
@@ -168,9 +170,35 @@
 - 付款逾時 15 分鐘自動取消並回補庫存是後端排程的事，前台只顯示狀態。
 - 訂單編號格式 `WD-YYYYMMDD-NNNN` 是前台假資料用的，後端可以換。
 
-## 9. 還沒定的
+## 9. 活動（第十五輪；**功能規劃沒有這一項，10/12 要全組確認**）
+
+- `GET /api/campaigns?active=1` → 陣列（進行中的；沒帶 `active` 就全部）。前台另外會用 `placement=stage|footer` 篩放哪裡，後端可以不做、前台自己篩。
+- `GET /api/campaigns/:code` → 單筆；過期的也回（前台顯示「已經結束」），沒有回 404。
+
+```json
+{
+  "code": "rain-week",
+  "title": "下雨也照常出門",
+  "tagline": "防潑水、快乾、口袋夠多——雨季一週的穿搭。",
+  "startsAt": "2026-10-01", "endsAt": "2026-10-31",
+  "themeCode": "outdoor",
+  "brandCodes": ["yejing"],
+  "outfitIds": [6, 18, 12],
+  "productIds": [401, 402, 403, 404, 601, 603],
+  "placements": ["stage", "footer"]
+}
+```
+
+- 進行中 = `startsAt ≤ 今天 ≤ endsAt`（臺北時間，`endsAt` 含當天）。後端算也行、回 `active: true|false` 最好。
+- 資料表：`campaigns`（code、title、tagline、starts_at、ends_at、theme_code、created…）、`campaign_brands`、`campaign_outfits`（campaign_id、outfit_id、sort）、`campaign_products`（campaign_id、product_id、sort）、`campaign_placements`（或一個字串欄）。
+- 前台放在：穿搭格子裡的插卡（首頁與全部穿搭最多兩檔、路線頁只放同路線的）、活動頁 `/campaigns/:code`、頁尾「現在的活動」。**購物車、結帳、會員頁不放活動**。
+- 假資料四檔，其中 `summer-linen` 已結束，用來驗證過期的處理。
+
+## 10. 還沒定的
 
 1. 品況（二手）欄位——等 10/12 定案。
 2. 穿搭牆（穿搭照、標註、按讚、審核）——等照片來源定案；前台導覽列先藏。
-3. 偏好與身形（註冊後引導、尺寸推薦）——特色項目，資料表可先留 `member_preferences`（theme_code、weight）與 `member_body`（height、weight、bust、waist、hips）。
-4. 收藏——`POST/DELETE /api/me/favorites/:productId`。
+3. 偏好與身形（註冊後引導、尺寸推薦）——特色項目，資料表可先留 `member_preferences`（theme_code、weight）與 `member_body`（height、weight、bust、waist、hips）。第四子輪前台會先做偏好（`GET/PUT /api/me/preferences`），到時補完整形狀。
+4. 收藏——第二子輪會做：`GET /api/me/favorites`、`PUT|DELETE /api/me/favorites/products/:id`、`PUT|DELETE /api/me/favorites/outfits/:id`、`POST /api/me/favorites/merge`（登入時把訪客在本機收的併進來）。
+5. 瀏覽紀錄——前台本機存，不進後端；若要同步再開 `GET/PUT /api/me/history`（**組員清單裡是「加」**）。
+6. 商品清單的多值條件——第三子輪：`brand`、`colour`（色系代碼）、`size` 逗號分隔、任一符合。

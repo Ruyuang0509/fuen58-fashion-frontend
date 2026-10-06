@@ -23,6 +23,7 @@ const { fly } = useFlyToCart()
 const product = ref(null)
 const outfits = ref([])
 const related = ref([])
+const sameBrand = ref([]) // 同品牌的新品（第十五輪）：看完這件還能往哪走
 const themes = ref([])
 const status = ref('loading') // loading | ready | missing | error
 
@@ -75,14 +76,16 @@ async function load(id) {
     product.value = item
     if (item.sizes.length === 1) size.value = item.sizes[0]
     status.value = 'ready'
-    // 下面兩段是陪襯，晚一點到也沒關係
-    const [inOutfits, others] = await Promise.all([
+    // 下面三段是陪襯，晚一點到也沒關係
+    const [inOutfits, others, fromBrand] = await Promise.all([
       getOutfitsWithProduct(id),
       getProducts({ theme: item.themeCodes[0], exclude: [item.productId] }),
+      getProducts({ brand: item.brandCode, exclude: [item.productId], sort: 'new' }),
     ])
     if (ticket !== latest) return
     outfits.value = inOutfits
     related.value = others.slice(0, 6)
+    sameBrand.value = fromBrand.slice(0, 4)
   } catch {
     if (ticket === latest) status.value = 'error'
   }
@@ -270,6 +273,13 @@ function closeZoom(event) {
       </div>
     </section>
 
+    <section v-if="sameBrand.length" class="section same-brand">
+      <h2 class="section-title"><RouterLink :to="{ name: 'brand', params: { id: product.brandCode } }">{{ product.brand }}</RouterLink>的新品</h2>
+      <div class="grid">
+        <ProductCard v-for="item in sameBrand" :key="item.productId" :product="item" />
+      </div>
+    </section>
+
     <!-- 放大看：原生 dialog，Esc 會關，點暗處也會關 -->
     <dialog ref="zoom" class="zoom" @click="closeZoom">
       <div class="zoom-body">
@@ -309,6 +319,16 @@ function closeZoom(event) {
 .gallery {
   display: grid;
   gap: var(--s2);
+}
+
+/* 款式圖的 PNG 是 384px 寬：手機上要跟著欄寬縮，不然圖加上按鈕的留白會把頁面撐出 71px（第十五輪在 390 寬實測） */
+.gallery > * {
+  min-width: 0;
+}
+
+.zoom-btn :deep(img) {
+  max-width: 100%;
+  height: auto;
 }
 
 .main {
@@ -695,6 +715,11 @@ legend,
   font-weight: 400;
   letter-spacing: 0.12em;
   color: var(--ink-soft);
+}
+
+.section-title a {
+  color: var(--ink);
+  text-underline-offset: 0.3em;
 }
 
 .looks {

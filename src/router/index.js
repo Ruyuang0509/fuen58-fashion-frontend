@@ -21,6 +21,8 @@ const routes = [
       { path: '', name: 'home', component: () => import('@/views/explore/HomeHero.vue'), meta: { title: '入口' } },
       { path: 'themes/:code', name: 'theme', component: () => import('@/views/explore/ThemeHero.vue'), meta: { title: '路線' } },
       { path: 'outfits', name: 'outfits', component: () => import('@/views/explore/OutfitsHero.vue'), meta: { title: '全部穿搭' } },
+      // 活動頁（第十五輪）：一檔活動就是一條限時的路線，所以也在殼裡；店只列這檔活動的穿搭與單品
+      { path: 'campaigns/:code', name: 'campaign', component: () => import('@/views/explore/CampaignHero.vue'), meta: { title: '活動' } },
     ],
   },
   { path: '/outfits/:id', name: 'outfit', component: () => import('@/views/OutfitView.vue'), meta: { title: '穿搭', zone: 'explore', bare: true } },

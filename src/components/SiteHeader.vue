@@ -363,11 +363,11 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
   border-bottom-color: currentColor;
 }
 
-/* 窄螢幕：只剩圖示，字藏起來（讀屏還讀得到）；搜尋開啟時佔滿一列 */
+/* 窄螢幕：只剩圖示，字藏起來（讀屏還讀得到）；搜尋開啟時整條蓋在頂欄上 */
 @media (max-width: 48rem) {
   .site-header {
-    /* 兩列的頂欄太高，黏在上面會吃掉手機四分之一個畫面 */
-    position: static;
+    /* 不黏在上面：兩列的頂欄會吃掉手機四分之一個畫面。relative 是給搜尋列定位用 */
+    position: relative;
     flex-wrap: wrap;
     padding: var(--s2) var(--s3);
   }
@@ -393,15 +393,23 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
     display: none;
   }
 
+  /* 搜尋開啟時：整條搜尋列蓋在頂欄那一列上（站名暫時被蓋住），輸入框吃掉剩下的寬度。
+     以前是 order: 3 加 width: 100%，但 .links 不換行，輸入框在 390 寬會把頂欄撐出 31px（第十五輪實測） */
   .searching .search {
-    order: 3;
-    width: 100%;
-    margin-top: var(--s1);
+    position: absolute;
+    inset: 0 var(--s3);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--s1);
+    background: var(--bg);
+    color: var(--ink);
   }
 
   .searching .search input {
     flex: 1;
     width: auto;
+    min-width: 0;
   }
 }
 </style>

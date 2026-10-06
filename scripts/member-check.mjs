@@ -67,7 +67,8 @@ const click = (sel, nth = 0) => ev(`(() => { const el = document.querySelectorAl
 // 像使用者打字：設值後送 input 與 change 事件（Vue 的 v-model 聽 input）
 const type = (sel, value) => ev(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); if (!el) return 'missing'; el.value = ${JSON.stringify(value)}; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return 'typed' })()`)
 const pathname = () => ev('location.pathname')
-const overflow = () => ev('document.documentElement.scrollWidth - window.innerWidth')
+// 和 clientWidth 比，不是 innerWidth：手機模擬下版面視口會跟著溢出的內容長大，scrollWidth − innerWidth 永遠是 0（第十五輪實測）
+const overflow = () => ev('document.documentElement.scrollWidth - document.documentElement.clientWidth')
 const cartCount = () => ev('document.querySelector(".cart-link .count")?.firstChild?.textContent ?? "0"')
 
 // ── 1. 守門：沒登入進會員頁 → 登入頁，帶著原本的網址 ──

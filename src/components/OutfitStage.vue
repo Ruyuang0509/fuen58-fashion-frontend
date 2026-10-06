@@ -1,8 +1,18 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { getOutfits, getThemes } from '@/api'
+import CampaignTile from '@/components/CampaignTile.vue'
 import OutfitCard from '@/components/OutfitCard.vue'
 import { useFilters } from '@/composables/useFilters'
+
+const props = defineProps({
+  // 舞台裡要插的活動（第十五輪）：最多兩張，插在第 3 張與第 9 張穿搭之後
+  campaigns: { type: Array, default: () => [] },
+  // 只列這幾套（活動頁）；null 代表不限
+  ids: { type: Array, default: null },
+  // 外面還在等資料（活動頁還沒拿到活動）：先顯示載入中，不要閃一下「沒有符合的穿搭」
+  waiting: { type: Boolean, default: false },
+})
 
 // count：目前有幾套（外面的標題會說「N 套」）
 const emit = defineEmits(['count'])
@@ -19,10 +29,12 @@ const themeNames = computed(() => Object.fromEntries(themes.value.map((theme) =>
 let latest = 0
 
 async function load() {
+  if (props.waiting) return
   const ticket = ++latest
   status.value = 'loading'
   try {
-    const [outfitList, themeList] = await Promise.all([getOutfits(filters.value), getThemes()])
+    const query = props.ids ? { ...filters.value, ids: props.ids } : filters.value
+    const [outfitList, themeList] = await Promise.all([getOutfits(query), getThemes()])
     if (ticket !== latest) return
     outfits.value = outfitList
     themes.value = themeList
@@ -33,13 +45,37 @@ async function load() {
   }
 }
 
-// 網址上的條件一變就重新要資料；immediate 讓元件一出現就先要一次
-watch(filters, load, { immediate: true })
+// 網址上的條件、要列哪幾套一變就重新要資料；immediate 讓元件一出現就先要一次
+watch([filters, () => props.ids, () => props.waiting], load, { immediate: true })
+
+// 穿搭卡與活動插卡排成一列格子：第 n 張插卡放在第 AFTER[n] 張穿搭之後（穿搭不夠就放在最後）。
+// 格子的寬度循環照常套在插卡身上，它看起來就像雜誌裡的夾頁，不是另開一條橫幅。
+// 4 與 10 不是隨便挑的：寬度循環是 4-5-3／3-5-4，第 5 格與第 11 格都是最寬的那格（span 5），插卡落在那裡才放得下字和人形
+const AFTER = [4, 10]
+const cells = computed(() => {
+  const cards = outfits.value
+  if (!cards.length) return []
+  const tiles = props.campaigns.slice(0, AFTER.length)
+  const out = []
+  let next = 0
+  cards.forEach((outfit, i) => {
+    out.push({ key: `outfit-${outfit.id}`, outfit })
+    while (next < tiles.length && i + 1 === Math.min(AFTER[next], cards.length)) {
+      out.push({ key: `campaign-${tiles[next].code}`, campaign: tiles[next] })
+      next += 1
+    }
+  })
+  return out
+})
+
+const propsFor = (cell) => (cell.outfit
+  ? { outfit: cell.outfit, themeName: themeNames.value[cell.outfit.themeCode] ?? '', preferredSize: filters.value.size }
+  : { campaign: cell.campaign })
 </script>
 
 <template>
-  <section aria-label="穿搭" :aria-busy="status === 'loading'">
-    <p v-if="status === 'loading' && !outfits.length" class="state">載入中…</p>
+  <section aria-label="穿搭" :aria-busy="status === 'loading' || waiting">
+    <p v-if="(status === 'loading' || waiting) && !outfits.length" class="state">載入中…</p>
 
     <div v-else-if="status === 'error'" class="state">
       <p>穿搭沒有載入成功。</p>
@@ -53,12 +89,11 @@ watch(filters, load, { immediate: true })
 
     <!-- 改條件時卡片重新排列有位移過程（功能規劃 9），不是整頁閃換 -->
     <TransitionGroup v-else name="card" tag="div" class="grid" :class="{ busy: status === 'loading' }">
-      <OutfitCard
-        v-for="(outfit, i) in outfits"
-        :key="outfit.id"
-        :outfit="outfit"
-        :theme-name="themeNames[outfit.themeCode] ?? ''"
-        :preferred-size="filters.size"
+      <component
+        :is="cell.outfit ? OutfitCard : CampaignTile"
+        v-for="(cell, i) in cells"
+        :key="cell.key"
+        v-bind="propsFor(cell)"
         :style="{ '--i': i }"
       />
     </TransitionGroup>
@@ -85,6 +120,17 @@ watch(filters, load, { immediate: true })
 
 .grid.busy {
   opacity: 0.6;
+}
+
+/* grid item 預設的最小寬度是內容的最小寬度：插卡標題（全站 h3 是 keep-all）會把 12 條 1fr 軌道一起撐寬，
+   手機上整列卡片變成 563px、跑出 390 的視窗（實測）。放每個格子縮到軌道的寬度，字在格子裡自己換行 */
+.grid > * {
+  min-width: 0;
+}
+
+/* 插卡撐滿那一列的高度（卡片各自高矮不一、對齊頂端）：夾頁應該是一整頁，不是一塊浮在半空的小方塊 */
+.grid > .campaign-tile {
+  align-self: stretch;
 }
 
 .grid > :nth-child(6n + 1),
@@ -120,17 +166,21 @@ watch(filters, load, { immediate: true })
   display: none;
 }
 
-/* 中等寬度：兩張一列 */
+/* 中等寬度：兩張一列。欄距縮小：12 欄有 11 條欄距，3.2rem 的欄距加起來 563px，600px 寬的畫面放不下 */
 @media (max-width: 64rem) {
+  .grid {
+    column-gap: var(--s3);
+  }
+
   .grid > :nth-child(n) {
     grid-column: span 6;
   }
 }
 
-/* 窄螢幕：一張一列 */
+/* 窄螢幕：一張一列。欄距歸零——不然 11 條欄距就比 390px 的視窗寬，軌道塌成 0、每張卡都變 563px（第十五輪實測） */
 @media (max-width: 36rem) {
   .grid {
-    gap: var(--s4);
+    gap: var(--s4) 0;
   }
 
   .grid > :nth-child(n) {

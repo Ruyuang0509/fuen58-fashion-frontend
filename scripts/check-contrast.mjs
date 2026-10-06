@@ -24,6 +24,8 @@ export const contrast = (a, b) => {
 }
 // 對應 CSS 的 color-mix(in srgb, color P%, white)
 const tintOnWhite = (color, percent) => hex(rgb(color).map((c) => (c * percent + 255 * (100 - percent)) / 100))
+// 對應 CSS 的 color-mix(in srgb, color P%, base)
+const mixOn = (color, base, percent) => hex(rgb(color).map((c, i) => (c * percent + rgb(base)[i] * (100 - percent)) / 100))
 
 // 先確認量尺本身是對的：一組已知答案、一組已知不合格。量尺壞了就不往下量。
 const blackOnWhite = contrast('#000000', '#ffffff')
@@ -50,6 +52,8 @@ for (const [name, accent] of Object.entries(accents)) {
   pairs.push([`${name}：按鈕文字／強調色`, token('on-accent'), accent, TEXT])
   pairs.push([`${name}：強調色的底線與外框／頁面底`, accent, token('bg'), UI])
   pairs.push([`${name}：佔位圖上的次要文字`, token('ink-soft'), tintOnWhite(accent, 12), TEXT])
+  // 頁尾（第十五輪）：底色是頁面底染 6% 路線色，上面是次要文字
+  pairs.push([`${name}：頁尾次要文字／頁尾底`, token('ink-soft'), mixOn(accent, token('bg'), 6), TEXT])
 }
 
 let failed = 0
