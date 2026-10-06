@@ -22,18 +22,19 @@ const { count } = useCart()
 const { count: favCount } = useFavorites()
 const { user, loggedIn } = useSession()
 
-// 搜尋框：在搜尋結果頁常開；其他頁點圖示才開
+// 搜尋框：在帶關鍵字的單品列表頁常開；其他頁點圖示才開
+const onResults = () => route.name === 'products' && !!route.query.q
 const keyword = ref(String(route.query.q ?? ''))
-const searching = ref(route.name === 'search')
+const searching = ref(onResults())
 const searchInput = ref(null)
 watch(
   () => route.query.q,
   (q) => (keyword.value = String(q ?? '')),
 )
 watch(
-  () => route.name,
-  (name) => {
-    if (name === 'search') searching.value = true
+  () => [route.name, route.query.q],
+  () => {
+    if (onResults()) searching.value = true
   },
 )
 
@@ -46,7 +47,7 @@ async function toggleSearch() {
 }
 
 function closeSearch() {
-  if (route.name !== 'search') searching.value = false
+  if (!onResults()) searching.value = false
 }
 
 function onBlur() {
@@ -56,7 +57,7 @@ function onBlur() {
 
 function search() {
   const q = keyword.value.trim()
-  if (q) router.push({ name: 'search', query: { q } })
+  if (q) router.push({ name: 'products', query: { q } })
 }
 
 // 商品圖飛到提袋的那一刻（useFlyToCart 送的 cart:arrive）、小愛心飛到收藏的那一刻（fav:arrive），

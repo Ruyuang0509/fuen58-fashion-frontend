@@ -1,9 +1,13 @@
 // Headless Chrome over raw CDP: acceptance checks for the expansion rounds (docs/09). Section 1 = sub-round 1
 // (footer, home shelves, campaigns, six more outfits). usage: node scripts/expand-check.mjs <origin> <outDir> [width] [height]
 import { spawn } from 'node:child_process'
-import { mkdirSync, writeFileSync, mkdtempSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { familyOf } from '../src/products/colourFamily.js'
+
+// 子輪 3 的色系檢查要對著資料算期望值（用同一個 familyOf：量的是「篩選有沒有接上」，分類對不對另外用眼睛看 docs/12 的對照表）
+const PRODUCTS = JSON.parse(readFileSync(new URL('../src/api/mock/products.json', import.meta.url), 'utf8'))
 
 const [origin, outDir, w = '1252', h = '699'] = process.argv.slice(2)
 const W = +w
@@ -105,7 +109,7 @@ await sleep(300)
 check('home: nothing spills past the viewport at the tile', JSON.stringify(await spill()) === '[]', JSON.stringify(await spill()))
 check('home: shelves 8 new + 8 popular', (await count('.shelves .shelf:nth-of-type(1) .card')) === 8 && (await count('.shelves .ranked .card')) === 8, `${await count('.shelves .shelf:nth-of-type(1) .card')} / ${await count('.shelves .ranked .card')}`)
 check('home: first rank number is 1', (await text('.shelves .ranked .rank')) === '1', await text('.shelves .ranked .rank'))
-check('home: shelf 看全部 links to /search?sort=new', (await ev('document.querySelector(".shelves .shelf-head a")?.getAttribute("href")')) === '/search?sort=new', await ev('document.querySelector(".shelves .shelf-head a")?.getAttribute("href")'))
+check('home: shelf 看全部 links to /products?sort=new', (await ev('document.querySelector(".shelves .shelf-head a")?.getAttribute("href")')) === '/products?sort=new', await ev('document.querySelector(".shelves .shelf-head a")?.getAttribute("href")'))
 await bottom()
 await shot('home-bottom')
 check('footer: ≥ 5 column titles', (await count('.site-footer .col h2')) >= 5, await count('.site-footer .col h2'))
@@ -115,7 +119,8 @@ check('footer: 3 active campaigns listed (expired one hidden)', (await count('.s
 check('footer: GitHub link is external and opens a new tab', (await ev('[...document.querySelectorAll(".site-footer a.ext")].some((a) => a.href.startsWith("https://github.com/") && a.target === "_blank" && a.rel.includes("noopener"))')) === true)
 check('footer: no fake social links', (await ev('[...document.querySelectorAll(".site-footer a")].some((a) => /instagram|facebook|twitter|x\\.com|threads/i.test(a.href))')) === false)
 check('footer: statements kept', (await ev('document.querySelector(".site-footer .notes")?.textContent.includes("品牌皆為虛構")')) === true)
-check('footer: guest sees 登入／註冊', (await ev('[...document.querySelectorAll(".site-footer .col a")].map((a) => a.textContent.trim()).filter((t) => t === "登入" || t === "註冊").length')) === 2)
+// 2026-10-06 使用者：「沒人會在 footer 放這個」——登入／註冊不在頁尾
+check('footer: no 會員 column, no 登入／註冊 links', (await ev('[...document.querySelectorAll(".site-footer .col h2")].every((h) => h.textContent.trim() !== "會員") && ![...document.querySelectorAll(".site-footer a")].some((a) => ["登入", "註冊"].includes(a.textContent.trim()))')) === true)
 // 平滑捲動從頁尾回頂端要一點時間（無頭 Chrome 裡比 1 秒長）：最多等 3 秒，到頂就算
 check('footer: 回到最上面 works', (await ev('(async () => { document.querySelector(".site-footer .top").click(); for (let i = 0; i < 30; i++) { await new Promise((r) => setTimeout(r, 100)); if (window.scrollY < 40) return window.scrollY } return window.scrollY })()')) < 40, await ev('window.scrollY'))
 check('home: overflow 0', (await overflow()) <= 0, await overflow())
@@ -154,7 +159,8 @@ check('product: same-brand row ≤ 4 and excludes itself', (await ev('(() => { c
 await go('/search?sort=popular', 2200)
 check('search: no keyword lists all 35', (await count('.grid .card')) === 35, await count('.grid .card'))
 check('search: heading 單品', (await text('.head h1')) === '單品', await text('.head h1'))
-check('search: lead says 35 件全部單品', ((await text('.lead')) ?? '').includes('35 件全部單品'), await text('.lead'))
+check('search: lead ends with 共 35 件', ((await text('.lead')) ?? '').includes('共 35 件'), await text('.lead'))
+check('search: old /search url redirected to /products', (await ev('location.pathname')) === '/products', await ev('location.pathname + location.search'))
 await go('/search?q=' + encodeURIComponent('襯衫'), 2000)
 check('search: keyword still works (6 shirts)', (await count('.grid .card')) === 6, await count('.grid .card'))
 await go('/outfits', 2600)
@@ -230,6 +236,74 @@ await click('.clear')
 await sleep(300)
 check('history page: cleared → empty state', ((await text('.state')) ?? '').includes('還沒有紀錄'), await text('.state'))
 check('header: the five items fit in the viewport', (await ev('(() => { const n = document.querySelector(".site-header .links").getBoundingClientRect(); return n.right <= document.documentElement.clientWidth + 1 })()')) === true)
+
+// ── 子輪 3：多選篩選、單品列表 ──
+const VK = { Enter: 13, Escape: 27, ' ': 32, ArrowDown: 40, ArrowUp: 38, Tab: 9 }
+const key = async (k, code) => {
+  for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, key: k, code, windowsVirtualKeyCode: VK[k] ?? 0 })
+}
+const pickText = (slot) => text(`[data-flip-id=clause-${slot}] .pick`)
+const expanded = (slot) => ev(`document.querySelector("[data-flip-id=clause-${slot}] .pick")?.getAttribute("aria-expanded")`)
+
+await go('/outfits?occasion=work,date', 2600)
+check('multi: ?occasion=work,date → 12 outfits', (await count('.grid .card')) === 12, await count('.grid .card'))
+check('multi: phrase reads 上班或約會', ((await pickText('occasion')) ?? '').includes('上班或約會'), await pickText('occasion'))
+await go('/outfits?size=S,M&category=outer', 2600)
+check('multi: ?size=S,M&category=outer → 15 outfits', (await count('.grid .card')) === 15, await count('.grid .card'))
+check('multi: phrase reads S 或 M', ((await pickText('size')) ?? '').includes('S 或 M'), await pickText('size'))
+await go('/outfits?occasion=foo,work&size=M,M', 2600)
+// pickText 連讀屏用的「尺寸：」也一起讀出來，所以比對冒號後面那段
+check('multi: unknown and duplicate values dropped → 2 outfits, phrase 去上班／M', (await count('.grid .card')) === 2 && (await pickText('occasion'))?.includes('去上班') && (await pickText('size'))?.replace(/^.*：/, '').trim() === 'M', `${await count('.grid .card')} / ${await pickText('occasion')} / ${await pickText('size')}`)
+// 鍵盤：方向鍵開、方向鍵移、空白鍵勾、Esc 關、焦點回按鈕
+await go('/outfits', 2600)
+await ev('document.querySelector("[data-flip-id=clause-occasion] .pick").focus()')
+await key('ArrowDown', 'ArrowDown')
+await sleep(250)
+check('picker: ArrowDown on the button opens the listbox', (await count('[role=listbox]')) === 1 && (await expanded('occasion')) === 'true', `${await count('[role=listbox]')} / ${await expanded('occasion')}`)
+check('picker: listbox is focused and multiselectable', (await ev('document.activeElement?.getAttribute("role")')) === 'listbox' && (await ev('document.activeElement?.getAttribute("aria-multiselectable")')) === 'true')
+await key('ArrowDown', 'ArrowDown')
+await key(' ', 'Space')
+await sleep(600)
+check('picker: ArrowDown + Space ticks 去上班 → ?occasion=work, stays open', (await ev('location.search')) === '?occasion=work' && (await count('[role=listbox]')) === 1, `${await ev('location.search')} / ${await count('[role=listbox]')}`)
+await key('ArrowDown', 'ArrowDown')
+await key(' ', 'Space')
+await sleep(600)
+check('picker: second tick → ?occasion=work,date and phrase 上班或約會', (await ev('location.search')) === '?occasion=work,date' && ((await pickText('occasion')) ?? '').includes('上班或約會'), `${await ev('location.search')} / ${await pickText('occasion')}`)
+check('picker: option 去上班 is aria-selected', (await ev('[...document.querySelectorAll("[role=option]")].filter((o) => o.getAttribute("aria-selected") === "true").map((o) => o.textContent.trim()).join("|")')) === '去上班|去約會', await ev('[...document.querySelectorAll("[role=option]")].filter((o) => o.getAttribute("aria-selected") === "true").map((o) => o.textContent.trim()).join("|")'))
+await key('Escape', 'Escape')
+await sleep(250)
+check('picker: Esc closes and returns focus to the button', (await count('[role=listbox]')) === 0 && (await ev('document.activeElement?.classList.contains("pick")')) === true, await ev('document.activeElement?.outerHTML.slice(0, 60)'))
+check('picker: 12 outfits listed after the keyboard round', (await count('.grid .card')) === 12, await count('.grid .card'))
+await shot('sentence-multi')
+// 單品列表
+await go('/products?brand=wuan,banri', 2400)
+check('products: ?brand=wuan,banri → 13', (await count('.grid .card')) === 13, await count('.grid .card'))
+check('products: brand phrase 霧岸或半日的', ((await text('[data-slot=brand]')) ?? '').includes('霧岸或半日的'), await text('[data-slot=brand]'))
+await go('/products?colour=pink', 2400)
+check('products: ?colour=pink → 2 (櫻粉、淺粉)', (await count('.grid .card')) === 2, await count('.grid .card'))
+const blackExpected = PRODUCTS.filter((p) => p.colours.some((c) => familyOf(c.hex) === 'black')).length
+await go('/products?colour=black,grey', 2400)
+const greyBlackExpected = PRODUCTS.filter((p) => p.colours.some((c) => ['black', 'grey'].includes(familyOf(c.hex)))).length
+check(`products: ?colour=black,grey → ${greyBlackExpected} (from data), phrase 黑或灰色`, (await count('.grid .card')) === greyBlackExpected && ((await text('[data-slot=colour]')) ?? '').includes('黑或灰色'), `${await count('.grid .card')} / ${await text('[data-slot=colour]')}`)
+check('instrument: black alone is a strict subset of black+grey', blackExpected > 0 && blackExpected < greyBlackExpected, `${blackExpected} / ${greyBlackExpected}`)
+await go('/products?price=lt2000', 2400)
+check('products: ?price=lt2000 → 26, every price below 2,000', (await count('.grid .card')) === 26 && (await ev('[...document.querySelectorAll(".grid .card .num")].every((n) => Number(n.textContent.replace(/[^\\d]/g, "")) < 2000)')) === true, await count('.grid .card'))
+await go('/products?size=110', 2400)
+check('products: ?size=110 → 3 kids items', (await count('.grid .card')) === 3, await count('.grid .card'))
+await go('/products?q=' + encodeURIComponent('襯衫') + '&sort=price-desc&stock=1', 2400)
+check('products: keyword + sort + stock → 2,480 first, 6 shirts', (await text('.grid .card .num')) === 'NT$ 2,480' && (await count('.grid .card')) === 6, `${await text('.grid .card .num')} / ${await count('.grid .card')}`)
+check('products: header search input shows the keyword', (await ev('document.querySelector("#site-search").value')) === '襯衫')
+await go('/products?brand=nope', 2400)
+check('products: zero results → 清除條件 + suggestions', ((await text('.empty > p')) ?? '').includes('沒有符合') && (await ev('[...document.querySelectorAll(".empty .btn")].some((a) => a.textContent.trim() === "清除條件")')) === true && (await count('.empty .grid .card')) >= 1, await text('.empty > p'))
+await go('/products?colour=beige&category=outer', 2400)
+await shot('products-filtered')
+check('products: overflow 0', (await overflow()) <= 0, await overflow())
+// 打開一格：桌機是浮在下面的清單，手機是底部面板
+await ev('document.querySelector("[data-slot=colour] .pick").click()')
+await sleep(300)
+check(`products: colour list opens with swatches (${W < 600 ? 'bottom sheet' : 'popover'})`, (await count('[role=listbox] .swatch')) === 11 && (await ev('getComputedStyle(document.querySelector(".pop")).position')) === (W < 600 ? 'fixed' : 'absolute'), await ev('getComputedStyle(document.querySelector(".pop")).position'))
+await shot('products-picker-open')
+check('products: nothing spills with the list open', JSON.stringify(await spill()) === '[]', JSON.stringify(await spill()))
 
 const summary = { origin, size: `${W}x${H}`, passed: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok), problems }
 console.log(JSON.stringify(summary, null, 1))

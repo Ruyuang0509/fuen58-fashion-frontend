@@ -28,7 +28,7 @@ onMounted(async () => {
     <div class="shelf">
       <header class="shelf-head">
         <h2>新上架</h2>
-        <RouterLink :to="{ name: 'search', query: { sort: 'new' } }">看全部</RouterLink>
+        <RouterLink :to="{ name: 'products', query: { sort: 'new' } }">看全部</RouterLink>
       </header>
       <div class="row">
         <ProductCard v-for="product in fresh" :key="product.productId" :product="product" />
@@ -38,7 +38,7 @@ onMounted(async () => {
     <div class="shelf">
       <header class="shelf-head">
         <h2>熱銷</h2>
-        <RouterLink :to="{ name: 'search', query: { sort: 'popular' } }">看全部</RouterLink>
+        <RouterLink :to="{ name: 'products', query: { sort: 'popular' } }">看全部</RouterLink>
       </header>
       <ol class="row ranked">
         <li v-for="(product, i) in popular" :key="product.productId">

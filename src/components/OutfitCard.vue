@@ -10,8 +10,8 @@ import { accentOf } from '@/theme/themes'
 const props = defineProps({
   outfit: { type: Object, required: true },
   themeName: { type: String, default: '' },
-  // 一句話列選的尺寸；空字串代表沒選
-  preferredSize: { type: String, default: '' },
+  // 一句話列選的尺寸（可以多選，第十五輪子輪 3 起是陣列；空的代表沒選）
+  preferredSize: { type: [String, Array], default: '' },
 })
 
 const { add } = useCart()
@@ -28,8 +28,9 @@ let feedbackTimer = null
 
 function sizeFor(item) {
   if (item.sizes.length === 1) return item.sizes[0]
-  if (props.preferredSize && item.sizes.includes(props.preferredSize)) return props.preferredSize
-  return null
+  // 選了好幾個尺寸時，挑這件有的第一個
+  const wanted = [].concat(props.preferredSize).filter(Boolean)
+  return wanted.find((size) => item.sizes.includes(size)) ?? null
 }
 
 function addAll() {

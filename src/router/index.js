@@ -26,8 +26,11 @@ const routes = [
     ],
   },
   { path: '/outfits/:id', name: 'outfit', component: () => import('@/views/OutfitView.vue'), meta: { title: '穿搭', zone: 'explore', bare: true } },
-  // 搜尋結果是單品格，一句話列篩的是穿搭，兩者不是同一組條件，所以這頁不放一句話列
-  { path: '/search', name: 'search', component: () => import('@/views/SearchView.vue'), meta: { title: '搜尋結果', zone: 'explore' } },
+  // 單品列表（第十五輪子輪 3）：關鍵字、類別、品牌、色系、價格、尺寸、有貨、排序全在網址；有關鍵字就是搜尋結果。
+  // 它篩的是單品，一句話列篩的是穿搭，兩者不是同一組條件，所以這頁有自己的一句話，不放一句話列
+  { path: '/products', name: 'products', component: () => import('@/views/ProductsView.vue'), meta: { title: '單品', zone: 'explore' } },
+  // 舊網址：第九輪起的搜尋頁，連結可能還在別人手上
+  { path: '/search', redirect: (to) => ({ path: '/products', query: to.query }) },
   // 商品頁：上半部屬探索區；購買區塊守慣例（在頁面裡自己分）
   { path: '/products/:id', name: 'product', component: () => import('@/views/ProductView.vue'), meta: { title: '商品頁', zone: 'explore' } },
   { path: '/brands/:id', name: 'brand', component: () => import('@/views/BrandView.vue'), meta: { title: '品牌頁', zone: 'explore' } },

@@ -1,18 +1,16 @@
 <script setup>
-// 頁尾（第十五輪）：從兩行聲明變成整站的地圖。欄位是我們自己的內容——路線、品牌、找單品、會員、現在的活動、關於；
+// 頁尾（第十五輪）：從兩行聲明變成整站的地圖。欄位是我們自己的內容——路線、品牌、找單品、現在的活動、關於；
 // 不放假的社群圖示：品牌全虛構、專題沒有真的社群帳號，唯一真的外連是 GitHub 專案。站內連結全走 RouterLink（Pages 的子路徑才對）。
 // 底色跟著目前的路線色微染（6%），每一頁的頁尾顏色都不太一樣，但都淡到不搶。
 import '@fontsource/noto-serif-tc/600.css'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { getBrands, getCampaigns, getThemes } from '@/api'
 import Icon from '@/components/Icon.vue'
 import { REPO_URL, SITE_NAME } from '@/config'
-import { useSession } from '@/stores/session'
 
 const themes = ref([])
 const brands = ref([])
 const campaigns = ref([])
-const { loggedIn } = useSession()
 
 onMounted(async () => {
   // 三份資料各自獨立：哪一份拿不到，那一欄就空著（活動欄沒有內容時整欄不顯示）
@@ -22,27 +20,15 @@ onMounted(async () => {
   if (campaignResult.status === 'fulfilled') campaigns.value = campaignResult.value
 })
 
+// 沒有「會員」欄：登入、註冊、收藏都在頂欄，看過的在會員中心——2026-10-06 使用者：「沒人會在 footer 放這個」
 const findLinks = [
-  { to: { name: 'search', query: { sort: 'new' } }, label: '新上架' },
-  { to: { name: 'search', query: { sort: 'popular' } }, label: '熱銷' },
-  { to: { name: 'search', query: { stock: '1' } }, label: '只看有貨' },
+  { to: { name: 'products' }, label: '全部單品' },
+  { to: { name: 'products', query: { sort: 'new' } }, label: '新上架' },
+  { to: { name: 'products', query: { sort: 'popular' } }, label: '熱銷' },
+  { to: { name: 'products', query: { stock: '1' } }, label: '只看有貨' },
   { to: { name: 'outfits' }, label: '全部穿搭' },
   { to: { name: 'outfits', query: { for: 'kids' } }, label: '給小孩的穿搭' },
 ]
-
-const memberLinks = computed(() => [
-  ...(loggedIn.value
-    ? [
-        { to: { name: 'account' }, label: '會員中心' },
-        { to: { name: 'account-orders' }, label: '訂單紀錄' },
-      ]
-    : [
-        { to: { name: 'login' }, label: '登入' },
-        { to: { name: 'register' }, label: '註冊' },
-      ]),
-  { to: { name: 'favorites' }, label: '收藏' },
-  { to: { name: 'history' }, label: '看過的' },
-])
 
 const CONTRACT_URL = `${REPO_URL}/blob/main/docs/api-契約草案.md`
 
@@ -83,15 +69,6 @@ function toTop() {
           <h2>找單品</h2>
           <ul>
             <li v-for="link in findLinks" :key="link.label">
-              <RouterLink :to="link.to">{{ link.label }}</RouterLink>
-            </li>
-          </ul>
-        </section>
-
-        <section class="col">
-          <h2>會員</h2>
-          <ul>
-            <li v-for="link in memberLinks" :key="link.label">
               <RouterLink :to="link.to">{{ link.label }}</RouterLink>
             </li>
           </ul>

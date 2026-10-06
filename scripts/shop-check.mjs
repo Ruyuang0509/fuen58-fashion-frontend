@@ -222,7 +222,8 @@ check('search: empty state with suggestions', (await count('.empty .grid .card')
 check('search: overflow 0', (await overflow()) <= 0, await overflow())
 await go('/search?q=' + encodeURIComponent('襯衫') + '&sort=price-desc', 1800)
 check('search: price-desc puts NT$ 2,480 first', (await text('.grid .card .num')) === 'NT$ 2,480', await text('.grid .card .num'))
-check('search: sort select shows 價格高到低', (await ev('document.querySelector(".lead select").selectedOptions[0].textContent.trim()')) === '價格高到低')
+// 第十五輪子輪 3：排序那一格是自己做的 ClausePicker，不是 <select>
+check('search: sort picker shows 價格高到低', (await ev('[...document.querySelectorAll(".lead .pick")].some((b) => b.textContent.includes("價格高到低"))')) === true, await ev('[...document.querySelectorAll(".lead .pick")].map((b) => b.textContent.trim()).join("|")'))
 await go('/search?q=' + encodeURIComponent('襯衫') + '&stock=1', 1800)
 check('search: in-stock filter keeps 6 (all shirts have some stock)', (await count('.grid .card')) === 6, await count('.grid .card'))
 

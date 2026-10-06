@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { getThemes, getWeather } from '@/api'
+import ClausePicker from '@/components/ClausePicker.vue'
 import { useFilters } from '@/composables/useFilters'
 import { AUDIENCES, CATEGORIES, OCCASIONS, SIZES } from '@/filters/options'
 import { Flip, reducedMotion } from '@/motion/gsap'
@@ -35,12 +36,16 @@ function reopen() {
 }
 
 // 改條件時整句重排有過程（第十二輪，GSAP Flip）：選了比較長或比較短的詞，後面的字滑到新位置，不是跳過去。
-// 位置要在使用者「打開選單之前」記（focus／pointerdown）：原生 <select> 一選好就自己變寬，等到 change 事件再記已經晚了。
+// 第十五輪子輪 3 的格子是自己做的（ClausePicker），所以在「送出新值之前」記位置就好；多選時每勾一個都記一次、動一次。
 const line = ref(null)
 let before = null
 function capture() {
   if (reducedMotion() || !line.value) return
   before = Flip.getState(line.value.querySelectorAll('.clause'))
+}
+function change(key, value) {
+  capture()
+  setFilter(key, value)
 }
 watch(filters, async () => {
   if (!before) return
@@ -66,7 +71,8 @@ const styleOptions = computed(() => [
   ...themes.value.map((theme) => ({ value: theme.code, label: theme.name, short: theme.name })),
 ])
 
-const shortOf = (options, value) => options.find((option) => option.value === value)?.short ?? ''
+// 收合成一行時的短稱；多選的用「／」連
+const shortOf = (options, value) => [].concat(value).map((entry) => options.find((option) => option.value === entry)?.short ?? '').filter(Boolean).join('／')
 
 const summary = computed(() => {
   const parts = [
@@ -89,50 +95,26 @@ const summary = computed(() => {
     </button>
 
     <p v-else ref="line" class="line">
-      <!-- 每個 clause 是一個不換行的小段，標點跟著前面的字走，不會掉到下一列的開頭；data-flip-id 給重排的動畫對位置 -->
+      <!-- 每個 clause 是一個不換行的小段，標點跟著前面的字走，不會掉到下一列的開頭；data-flip-id 給重排的動畫對位置。
+           場合、類別、尺寸可以多選（句子讀成「上班或約會」）；給誰穿、風格單選 -->
       <span v-if="weather" class="clause" data-flip-id="clause-weather">今天 {{ weather.temperature }}°C，</span>
       <span class="clause" data-flip-id="clause-audience">
-        <label>
-          <span class="visually-hidden">給誰穿</span>
-          <select @focus="capture" @pointerdown="capture" :value="filters.audience" @change="setFilter('audience', $event.target.value)">
-            <option v-for="option in AUDIENCES" :key="option.value" :value="option.value">{{ option.label }}</option>
-          </select> </label
-        >，
+        <ClausePicker label="給誰穿" :options="AUDIENCES" :model-value="filters.audience" @update:model-value="change('audience', $event)" />，
       </span>
       <span class="clause" data-flip-id="clause-occasion">
-        <label>
-          <span class="visually-hidden">場合</span>
-          <select @focus="capture" @pointerdown="capture" :value="filters.occasion" @change="setFilter('occasion', $event.target.value)">
-            <option v-for="option in OCCASIONS" :key="option.value" :value="option.value">{{ option.label }}</option>
-          </select> </label
-        >，
+        <ClausePicker label="場合" :options="OCCASIONS" :model-value="filters.occasion" multi @update:model-value="change('occasion', $event)" />，
       </span>
       <span class="clause" data-flip-id="clause-style">
         想穿
-        <label>
-          <span class="visually-hidden">風格</span>
-          <select @focus="capture" @pointerdown="capture" :value="filters.style" @change="setFilter('style', $event.target.value)">
-            <option v-for="option in styleOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-          </select> </label
-        >，
+        <ClausePicker label="風格" :options="styleOptions" :model-value="filters.style" @update:model-value="change('style', $event)" />，
       </span>
       <span class="clause" data-flip-id="clause-category">
         找
-        <label>
-          <span class="visually-hidden">類別</span>
-          <select @focus="capture" @pointerdown="capture" :value="filters.category" @change="setFilter('category', $event.target.value)">
-            <option v-for="option in CATEGORIES" :key="option.value" :value="option.value">{{ option.label }}</option>
-          </select> </label
-        >，
+        <ClausePicker label="類別" :options="CATEGORIES" :model-value="filters.category" multi @update:model-value="change('category', $event)" />，
       </span>
       <span class="clause" data-flip-id="clause-size">
         尺寸
-        <label>
-          <span class="visually-hidden">尺寸</span>
-          <select @focus="capture" @pointerdown="capture" :value="filters.size" @change="setFilter('size', $event.target.value)">
-            <option v-for="option in SIZES" :key="option.value" :value="option.value">{{ option.label }}</option>
-          </select> </label
-        >。
+        <ClausePicker label="尺寸" :options="SIZES" :model-value="filters.size" multi @update:model-value="change('size', $event)" />。
       </span>
     </p>
   </section>
@@ -159,19 +141,6 @@ const summary = computed(() => {
 .clause {
   display: inline-block;
   white-space: nowrap;
-}
-
-/* 每一格是真的下拉選單：鍵盤、讀屏、手機的原生選單都能用 */
-select {
-  /* 寬度跟著目前選到的字走，不是跟著最長的選項；不支援的瀏覽器會維持原本的寬度 */
-  field-sizing: content;
-  padding: 0 var(--s1);
-  border: 0;
-  border-bottom: 2px solid var(--accent);
-  border-radius: 0;
-  background: transparent;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 .summary {

@@ -90,6 +90,12 @@
 回 `{ items: [商品], page, pageSize, total }`，`items` 的每筆可以只給列表欄位（4.1 的前 12 個欄位加 `colours`）。
 篩選條件全部寫在前台網址裡（3.2「篩選寫入網址」），所以後端要接受全部用查詢字串傳。
 
+第十五輪子輪 3 起的多值與色系（前台 `/products` 已在用）：
+- `brand`、`size`、`colour` 可以多值，逗號分隔、**任一符合**：`brand=wuan,banri`、`size=S,M`。
+- `colour` 傳的是**色系代碼**不是商品的色名：`black | white | grey | beige | brown | yellow | green | blue | purple | pink | red`。前台現在用 hex 算 HSL 分類（`src/products/colourFamily.js`，門檻在裡面）；正式版建議商品顏色表加一欄 `family`，由後台在建顏色時填（或用同一套規則算一次存起來），查詢就直接比對欄位。
+- 價格前台給三檔預設，送出去仍是 `priceMin`／`priceMax`（含）：兩千以下 → `priceMax=1999`；兩千到四千 → `priceMin=2000&priceMax=4000`；四千以上 → `priceMin=4001`。
+- 不認得的值（`size=XXL`）前台會先丟掉；後端收到也請忽略而不是回錯。
+
 ## 5. 穿搭
 
 - `GET /api/outfits` 查詢字串：`theme`、`for`（給誰穿）、`occasion`、`category`、`size`、`ids`（逗號分隔，只要這幾套；活動頁用）
