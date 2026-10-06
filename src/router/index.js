@@ -50,6 +50,9 @@ const routes = [
   { path: '/wall/new', name: 'wall-new', component: todo, meta: { title: '上傳穿搭照', zone: 'transaction', level: '特', note: '上傳、標註、公開同意與送出。' } },
   { path: '/consign', name: 'consign', component: todo, meta: { title: '寄賣申請', zone: 'transaction', level: '加', note: '二手做法定案後才決定做不做。' } },
 
+  // 試做：three.js 的一片布（不連進導覽，網址直接打）。停損條件在 vault 筆記第 13 節；判定後這條路由會拿掉或轉正
+  { path: '/lab/cloth', name: 'lab-cloth', component: () => import('@/views/lab/ClothLabView.vue'), meta: { title: '試做：一片布', zone: 'explore', bare: true } },
+
   // 其他網址一律到這裡。要放在最後。
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/NotFoundView.vue'), meta: { title: '找不到頁面', zone: 'transaction' } },
 ]

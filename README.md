@@ -32,6 +32,7 @@ npm run dev
 4. [docs/04-基底補完逐檔解說.md](docs/04-基底補完逐檔解說.md)：資料模型翻正、品牌頁、會員與結帳 8 頁、部署後備
 5. [docs/05-天空貫穿探索區逐檔解說.md](docs/05-天空貫穿探索區逐檔解說.md)：SkyPage 骨架、穿搭頁、新頂欄、會動的衣服
 6. [docs/06-GSAP編排逐檔解說.md](docs/06-GSAP編排逐檔解說.md)：GSAP 的分工規矩、捲動連動、衣服飛到穿搭頁、一句話列重排
+7. [docs/07-three試做-一片布.md](docs/07-three試做-一片布.md)：three.js 的試做（`/lab/cloth`）與停損條件，待判定
 
 給後端組員的：[docs/api-契約草案.md](docs/api-契約草案.md)（端點、欄位、錯誤格式；11/2 看 DB 前要對）。
 
