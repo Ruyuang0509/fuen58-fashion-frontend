@@ -10,14 +10,9 @@
     "check:contrast": "node scripts/check-contrast.mjs"
   },
   "dependencies": {
-    "@fontsource/cormorant-garamond": "^5.3.0",
-    "@fontsource/fraunces": "^5.3.0",
-    "@fontsource/huninn": "^5.3.0",
     "@fontsource/noto-sans-tc": "^5.3.0",
     "@fontsource/noto-serif-tc": "^5.3.0",
-    "@fontsource/space-grotesk": "^5.3.0",
     "@fontsource/space-mono": "^5.3.0",
-    "p5": "^2.3.4",
     "vue": "^3.5.43",
     "vue-router": "^5.3.1"
   },

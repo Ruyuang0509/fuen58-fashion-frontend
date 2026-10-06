@@ -1,0 +1,3 @@
+# 全部文字檔以 LF 存放、LF 取出（不論 Windows 的 core.autocrlf 怎麼設）
+* text=auto eol=lf
+*.png binary

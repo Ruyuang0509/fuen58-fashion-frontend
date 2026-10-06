@@ -1,5 +1,5 @@
 // 服飾平面款式圖的路徑資料。每一種畫在 120×160 的格子裡，正面、左右對稱。
-// 這份資料有兩個使用者：GarmentFlat.vue 把它畫成 SVG；主頁的 p5 作品把它畫在畫布上。
+// 使用者是 src/garments/render.js：把這些路徑「打光」畫成商品圖，再由 GarmentImage.vue 拿去用。
 //   body     外輪廓（封閉路徑）
 //   seams    實線細節：領片、門襟、口袋、腰頭
 //   stitches 車縫線，畫成虛線
@@ -119,7 +119,7 @@ export const FLATS = {
     dots: [],
     hang: 14,
   },
-  // 毛帽（樣張頁還在用）
+  // 毛帽
   beanie: {
     body: 'M28 92Q28 38 60 38Q92 38 92 92V112H28Z',
     seams: ['M28 92H92'],

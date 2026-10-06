@@ -45,17 +45,6 @@ const routes = [
   { path: '/wall/new', name: 'wall-new', component: todo, meta: { title: '上傳穿搭照', zone: 'transaction', level: '特', note: '上傳、標註、公開同意與送出。' } },
   { path: '/consign', name: 'consign', component: todo, meta: { title: '寄賣申請', zone: 'transaction', level: '加', note: '二手做法定案後才決定做不做。' } },
 
-  // 設計方向樣張：開發時挑視覺方向用的，不是產品頁。bare 表示不套頂欄與頁尾。
-  // 2026-10-06 使用者裁決：前七輪的原型全部棄置。路徑先註解掉（檔案還在 src/views/design/，刪除要使用者說一聲）
-  //   { path: '/design/directions', name: 'design-directions', component: () => import('@/views/design/DirectionsView.vue'), meta: { title: '設計方向樣張', bare: true } },
-  // 
-  //   // 主頁原型「浮動單品」：DOM 做的，不走下面那個 p5 原型頁；固定路徑要放在 :variant? 前面
-  //   // 第二階段：風格家族頁（整個介面的輪廓換成那個風格）
-  //   { path: '/design/family/:code', name: 'design-family', component: () => import('@/views/design/FamilyView.vue'), meta: { title: '風格家族', bare: true } },
-  //   { path: '/design/home/float', name: 'design-float', component: () => import('@/views/design/FloatHomeView.vue'), meta: { title: '主頁原型：浮動單品', bare: true } },
-  //   // 主頁互動作品的原型：/design/home/street（商店街）、/design/home/isles（群島）、/design/home/districts（分區）、/design/home/cloth（布）、/design/home/wind（風）
-  //   { path: '/design/home/:variant?', name: 'design-home', component: () => import('@/views/design/HomePrototypeView.vue'), meta: { title: '主頁原型', bare: true } },
-
   // 其他網址一律到這裡。要放在最後。
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/NotFoundView.vue'), meta: { title: '找不到頁面', zone: 'transaction' } },
 ]
