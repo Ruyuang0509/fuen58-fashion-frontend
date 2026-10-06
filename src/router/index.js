@@ -53,7 +53,10 @@ const routes = [
   { path: '/account/orders/:id', name: 'account-order', component: () => import('@/views/OrderView.vue'), meta: { title: '訂單明細', zone: 'transaction', auth: true } },
   { path: '/account/body', name: 'account-body', component: todo, meta: { title: '身形資料', zone: 'transaction', level: '特', note: '供尺寸推薦與試穿使用。' } },
   { path: '/account/style', name: 'account-style', component: todo, meta: { title: '我的偏好', zone: 'transaction', level: '特', note: '以風格組成比例呈現；可重選。' } },
-  { path: '/account/favorites', name: 'account-favorites', component: todo, meta: { title: '收藏', zone: 'transaction', level: '特', note: '收藏的商品，可直接加入購物車。' } },
+  // 收藏與看過的（第十五輪子輪 2）：不需要登入——訪客存在本機，登入後併進帳號；會員中心的分頁列也連到這兩頁
+  { path: '/favorites', name: 'favorites', component: () => import('@/views/FavoritesView.vue'), meta: { title: '收藏', zone: 'transaction' } },
+  { path: '/history', name: 'history', component: () => import('@/views/HistoryView.vue'), meta: { title: '你看過的', zone: 'transaction' } },
+  { path: '/account/favorites', redirect: '/favorites' },
   { path: '/account/outfits', name: 'account-outfits', component: todo, meta: { title: '我的穿搭照', zone: 'transaction', level: '特', note: '自己發的照片與審核狀態。' } },
   { path: '/wall/new', name: 'wall-new', component: todo, meta: { title: '上傳穿搭照', zone: 'transaction', level: '特', note: '上傳、標註、公開同意與送出。' } },
   { path: '/consign', name: 'consign', component: todo, meta: { title: '寄賣申請', zone: 'transaction', level: '加', note: '二手做法定案後才決定做不做。' } },

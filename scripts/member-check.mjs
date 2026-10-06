@@ -92,7 +92,8 @@ check('login: success returns to /account', (await pathname()) === '/account', a
 
 // ── 2. 個人資料 ──
 await shot('account')
-check('account: nav has 3 links', (await count('.account-nav a')) === 3, await count('.account-nav a'))
+// 第十五輪子輪 2：分頁列多了收藏、看過的
+check('account: nav has 5 links', (await count('.account-nav a')) === 5, await count('.account-nav a'))
 check('account: name prefilled', (await ev('document.querySelector("#profile-name")?.value')) === '林示範', await ev('document.querySelector("#profile-name")?.value'))
 await type('#profile-name', '林示範二')
 await click('form.profile button[type=submit]')

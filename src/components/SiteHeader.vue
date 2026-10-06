@@ -9,6 +9,7 @@ import { getWeather } from '@/api'
 import Icon from '@/components/Icon.vue'
 import { FEATURES, SITE_NAME } from '@/config'
 import { useCart } from '@/stores/cart'
+import { useFavorites } from '@/stores/favorites'
 import { useSession } from '@/stores/session'
 
 defineProps({
@@ -18,6 +19,7 @@ defineProps({
 const route = useRoute()
 const router = useRouter()
 const { count } = useCart()
+const { count: favCount } = useFavorites()
 const { user, loggedIn } = useSession()
 
 // 搜尋框：在搜尋結果頁常開；其他頁點圖示才開
@@ -57,20 +59,31 @@ function search() {
   if (q) router.push({ name: 'search', query: { q } })
 }
 
-// 商品圖飛到提袋的那一刻（useFlyToCart 送的 cart:arrive），件數與提袋一起跳一下。
-// 數字本身在按下的瞬間就更新了，這裡只是回饋。
-const bump = ref(false)
-let bumpTimer = 0
-function onArrive() {
-  bump.value = false
-  requestAnimationFrame(() => (bump.value = true))
-  clearTimeout(bumpTimer)
-  bumpTimer = setTimeout(() => (bump.value = false), 600)
+// 商品圖飛到提袋的那一刻（useFlyToCart 送的 cart:arrive）、小愛心飛到收藏的那一刻（fav:arrive），
+// 件數與圖示一起跳一下。數字本身在按下的瞬間就更新了，這裡只是回饋。
+function bumper() {
+  const on = ref(false)
+  let timer = 0
+  const hit = () => {
+    on.value = false
+    requestAnimationFrame(() => (on.value = true))
+    clearTimeout(timer)
+    timer = setTimeout(() => (on.value = false), 600)
+  }
+  return { on, hit, stop: () => clearTimeout(timer) }
 }
-onMounted(() => window.addEventListener('cart:arrive', onArrive))
+const cartBump = bumper()
+const favBump = bumper()
+const bump = cartBump.on
+onMounted(() => {
+  window.addEventListener('cart:arrive', cartBump.hit)
+  window.addEventListener('fav:arrive', favBump.hit)
+})
 onBeforeUnmount(() => {
-  window.removeEventListener('cart:arrive', onArrive)
-  clearTimeout(bumpTimer)
+  window.removeEventListener('cart:arrive', cartBump.hit)
+  window.removeEventListener('fav:arrive', favBump.hit)
+  cartBump.stop()
+  favBump.stop()
 })
 
 // 站名旁的小天氣：晴、多雲、雨，夜裡是月亮
@@ -119,6 +132,14 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
       <RouterLink v-if="FEATURES.wall" to="/wall" class="nav-item">
         <Icon name="camera" />
         <span class="label">穿搭牆</span>
+      </RouterLink>
+      <!-- 收藏（第十五輪子輪 2）：訪客也能用，件數和購物車同一種標法 -->
+      <RouterLink :to="{ name: 'favorites' }" class="nav-item fav-link" :class="{ arrive: favBump.on.value }">
+        <span class="badge-anchor">
+          <Icon name="heart" />
+          <span v-if="favCount" class="count" :class="{ bump: favBump.on.value }">{{ favCount }}<span class="visually-hidden"> 件</span></span>
+        </span>
+        <span class="label">收藏</span>
       </RouterLink>
       <RouterLink to="/cart" class="nav-item cart-link" :class="{ arrive: bump }">
         <span class="badge-anchor">
@@ -305,9 +326,15 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
   animation: bump 0.45s ease;
 }
 
-/* 東西飛到的那一刻，提袋也接一下 */
-.cart-link.arrive .badge-anchor .icon {
+/* 東西飛到的那一刻，提袋（或愛心）也接一下 */
+.cart-link.arrive .badge-anchor .icon,
+.fav-link.arrive .badge-anchor .icon {
   animation: catch 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* 在收藏頁、或有收藏時，頂欄的心是填滿的 */
+.fav-link.router-link-active .icon :deep(path) {
+  fill: currentColor;
 }
 
 @keyframes bump {
@@ -385,11 +412,18 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
     white-space: nowrap;
   }
 
+  /* 五個圖示（第十五輪多了收藏）要和站名擠在同一列：圖示之間再緊一點，天氣的小圖示在最窄的螢幕先收起來 */
   .nav-item {
-    padding: 0.5rem 0.6rem;
+    padding: 0.5rem 0.45rem;
   }
 
   .today-text {
+    display: none;
+  }
+}
+
+@media (max-width: 36rem) {
+  .today {
     display: none;
   }
 

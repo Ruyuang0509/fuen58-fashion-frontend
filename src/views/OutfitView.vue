@@ -8,9 +8,11 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getOutfit, getOutfits, getProducts, getThemes, getWeather } from '@/api'
 import { flyLookIn, rememberLook, takeLook } from '@/motion/lookFlip'
+import FavButton from '@/components/FavButton.vue'
 import GarmentImage from '@/components/GarmentImage.vue'
 import Icon from '@/components/Icon.vue'
 import OutfitLook from '@/components/OutfitLook.vue'
+import RecentlyViewed from '@/components/RecentlyViewed.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SkyPage from '@/components/SkyPage.vue'
@@ -18,11 +20,13 @@ import { useFlyToCart } from '@/composables/useFlyToCart'
 import { CATEGORY_NAMES, formatPrice } from '@/products/labels'
 import { fitReason } from '@/products/weatherFit'
 import { useCart } from '@/stores/cart'
+import { useHistory } from '@/stores/history'
 import { accentOf } from '@/theme/themes'
 
 const route = useRoute()
 const { add } = useCart()
 const { fly } = useFlyToCart()
+const { record } = useHistory()
 
 const outfit = ref(null)
 const products = ref(new Map()) // productId → 商品細節（厚薄、庫存、布料）
@@ -85,6 +89,7 @@ async function load(id) {
     if (ticket !== latest) return
     products.value = new Map(list.map((product) => [product.productId, product]))
     status.value = 'ready'
+    record('outfits', found.id) // 瀏覽紀錄：看到了才算
     const same = await getOutfits({ style: found.themeCode })
     if (ticket !== latest) return
     others.value = same.filter((entry) => entry.id !== found.id).slice(0, 4)
@@ -209,6 +214,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
           <div class="actions">
             <p class="sum">整套 <span class="num">{{ formatPrice(total) }}</span></p>
             <button type="button" class="btn primary" @click="addAll">整套加入購物車</button>
+            <FavButton kind="outfits" :id="outfit.id" label="收藏這套" :name="outfit.title" />
             <span class="feedback" role="status">{{ feedback }}</span>
           </div>
         </div>
@@ -222,6 +228,13 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
               <OutfitLook :outfit="entry" :height="240" />
             </RouterLink>
           </div>
+        </div>
+      </section>
+
+      <!-- 最近看過的穿搭（本機的瀏覽紀錄；沒有就不出現） -->
+      <section class="others">
+        <div class="pieces-inner">
+          <RecentlyViewed kind="outfits" :exclude="outfit.id" />
         </div>
       </section>
     </template>

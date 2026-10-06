@@ -83,7 +83,8 @@ const phone = W < 600
 // ── 1. 商品頁 101（落肩混紡大衣：兩色、三尺寸、燕麥 S 無庫存） ──
 await go('/products/101', 2200)
 await shot('product-101')
-check('header: links are 全部穿搭／購物車／會員', JSON.stringify(await ev('[...document.querySelectorAll(".links a")].map((a) => a.textContent.trim())')) === JSON.stringify(['全部穿搭', '購物車', '會員']), await ev('[...document.querySelectorAll(".links a")].map((a) => a.textContent.trim()).join("|")'))
+// 第十五輪子輪 2 多了「收藏」
+check('header: links are 全部穿搭／收藏／購物車／會員', JSON.stringify(await ev('[...document.querySelectorAll(".links a")].map((a) => a.textContent.trim())')) === JSON.stringify(['全部穿搭', '收藏', '購物車', '會員']), await ev('[...document.querySelectorAll(".links a")].map((a) => a.textContent.trim()).join("|")'))
 check('product: name', (await text('h1.name')) === '落肩混紡大衣', await text('h1.name'))
 check('product: main image is a rendered PNG', (await ev('document.querySelector(".main img")?.src.startsWith("data:image/png")')) === true)
 check('product: 2 colour thumbs', (await count('.thumbs button')) === 2, await count('.thumbs button'))

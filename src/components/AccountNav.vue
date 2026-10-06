@@ -1,6 +1,9 @@
 <script setup>
+// 會員中心的分頁列（第十五輪子輪 2 改成帶圖示：項目從三個變五個，手機上橫向可捲）。
+// 收藏與看過的不需要登入也能用，它們有自己的網址，這裡只是從會員中心也到得了。
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import Icon from '@/components/Icon.vue'
 import { useSession } from '@/stores/session'
 
 const route = useRoute()
@@ -8,9 +11,11 @@ const router = useRouter()
 const { user, logout } = useSession()
 
 const links = [
-  { name: 'account', label: '個人資料' },
-  { name: 'account-addresses', label: '地址簿' },
-  { name: 'account-orders', label: '訂單紀錄' },
+  { name: 'account', label: '個人資料', icon: 'user' },
+  { name: 'account-addresses', label: '地址簿', icon: 'pin' },
+  { name: 'account-orders', label: '訂單紀錄', icon: 'bag' },
+  { name: 'favorites', label: '收藏', icon: 'heart' },
+  { name: 'history', label: '看過的', icon: 'clock' },
 ]
 
 const section = computed(() => (
@@ -39,8 +44,10 @@ function signOut() {
         <RouterLink
           :to="{ name: link.name }"
           :class="{ current: section === link.name }"
+          :aria-current="section === link.name ? 'page' : undefined"
         >
-          {{ link.label }}
+          <Icon :name="link.icon" />
+          <span>{{ link.label }}</span>
         </RouterLink>
       </li>
     </ul>
@@ -85,23 +92,50 @@ function signOut() {
   cursor: pointer;
 }
 
+/* 一列分頁：手機上不換行、橫向可捲 */
 ul {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--s3);
+  gap: var(--s2);
   margin: 0;
   padding: 0;
   list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+li {
+  flex: none;
 }
 
 a {
-  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: var(--fs-0);
+  letter-spacing: 0.06em;
   text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--ease), border-color var(--ease), background-color var(--ease);
 }
 
-/* 目前所在的分頁：用底線標示，不只靠顏色 */
+a .icon {
+  font-size: 1.1rem;
+}
+
+a:hover,
+a:focus-visible {
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+/* 目前所在的分頁：有底、有框，不只靠顏色 */
 a.current {
-  text-decoration: underline;
-  text-underline-offset: 0.4em;
+  color: var(--ink);
+  border-color: var(--ink);
+  background: var(--surface);
 }
 </style>

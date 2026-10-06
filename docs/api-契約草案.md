@@ -194,11 +194,25 @@
 - 前台放在：穿搭格子裡的插卡（首頁與全部穿搭最多兩檔、路線頁只放同路線的）、活動頁 `/campaigns/:code`、頁尾「現在的活動」。**購物車、結帳、會員頁不放活動**。
 - 假資料四檔，其中 `summer-linen` 已結束，用來驗證過期的處理。
 
-## 10. 還沒定的
+## 10. 收藏（需登入；第十五輪子輪 2，功能規劃「特」）
+
+單品與整套穿搭都能收。訪客收在瀏覽器本機；登入或註冊成功時前台把本機那包送到 `merge`，之後只用帳號的。
+
+| 端點 | 內容 |
+|---|---|
+| `GET /api/me/favorites` | 整包：`{ products: [{ productId, colour, addedAt }], outfits: [{ outfitId, addedAt }] }`，新的在前 |
+| `PUT /api/me/favorites/products/:id` `{ colour? }` | 收藏單品（`colour` 是收藏時看的顏色代碼，可不給）；已收藏就當成功 |
+| `DELETE /api/me/favorites/products/:id` | 取消 |
+| `PUT /api/me/favorites/outfits/:id`、`DELETE …/outfits/:id` | 穿搭 |
+| `POST /api/me/favorites/merge` | body 就是上面那包的形狀（訪客本機的）；**聯集**、同一件兩邊都有時保留較早的 `addedAt`；回併完的整包 |
+
+資料表：`member_favorite_products`（member_id、product_id、colour_code、added_at，主鍵 member_id + product_id）、`member_favorite_outfits`（member_id、outfit_id、added_at）。
+瀏覽紀錄**不進後端**（前台本機存、各 24 筆）；若要跨裝置同步再開 `GET/PUT /api/me/history`（組員清單裡是「加」）。
+
+## 11. 還沒定的
 
 1. 品況（二手）欄位——等 10/12 定案。
 2. 穿搭牆（穿搭照、標註、按讚、審核）——等照片來源定案；前台導覽列先藏。
 3. 偏好與身形（註冊後引導、尺寸推薦）——特色項目，資料表可先留 `member_preferences`（theme_code、weight）與 `member_body`（height、weight、bust、waist、hips）。第四子輪前台會先做偏好（`GET/PUT /api/me/preferences`），到時補完整形狀。
-4. 收藏——第二子輪會做：`GET /api/me/favorites`、`PUT|DELETE /api/me/favorites/products/:id`、`PUT|DELETE /api/me/favorites/outfits/:id`、`POST /api/me/favorites/merge`（登入時把訪客在本機收的併進來）。
-5. 瀏覽紀錄——前台本機存，不進後端；若要同步再開 `GET/PUT /api/me/history`（**組員清單裡是「加」**）。
-6. 商品清單的多值條件——第三子輪：`brand`、`colour`（色系代碼）、`size` 逗號分隔、任一符合。
+4. 商品清單的多值條件——第三子輪：`brand`、`colour`（色系代碼）、`size` 逗號分隔、任一符合。
+5. **登入憑證放哪**（2026-10-06 使用者：交給後端決定）：(a) 現在寫的 Bearer token，前台存 localStorage／sessionStorage，寫法簡單、跨網域也行，但 XSS 拿得到；(b) 後端發 `httpOnly; Secure; SameSite=Lax` 的 cookie，前台不碰 token、XSS 拿不到，但要處理 CSRF（同站 cookie 加自訂 header 或 token）與跨網域的部署設定。前台兩種都能接；選了 (b) 就把 §6 的 `Authorization` 改成 cookie、所有需登入的請求帶 `credentials: 'include'`。

@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, ref } from 'vue'
+import FavButton from '@/components/FavButton.vue'
 import OutfitLook from '@/components/OutfitLook.vue'
 import { useFlyToCart } from '@/composables/useFlyToCart'
 import { rememberLook } from '@/motion/lookFlip'
@@ -64,6 +65,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
 
       <div class="actions">
         <button type="button" class="btn" @click="addAll">整套加入購物車</button>
+        <FavButton kind="outfits" :id="outfit.id" label="收藏這套" :name="outfit.title" />
         <!-- role="status"：讀屏會把這段文字唸出來，不用搶走焦點 -->
         <span class="feedback" role="status">{{ feedback }}</span>
       </div>

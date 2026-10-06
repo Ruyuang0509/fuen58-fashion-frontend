@@ -30,15 +30,19 @@ const findLinks = [
   { to: { name: 'outfits', query: { for: 'kids' } }, label: '給小孩的穿搭' },
 ]
 
-const memberLinks = computed(() => (loggedIn.value
-  ? [
-      { to: { name: 'account' }, label: '會員中心' },
-      { to: { name: 'account-orders' }, label: '訂單紀錄' },
-    ]
-  : [
-      { to: { name: 'login' }, label: '登入' },
-      { to: { name: 'register' }, label: '註冊' },
-    ]))
+const memberLinks = computed(() => [
+  ...(loggedIn.value
+    ? [
+        { to: { name: 'account' }, label: '會員中心' },
+        { to: { name: 'account-orders' }, label: '訂單紀錄' },
+      ]
+    : [
+        { to: { name: 'login' }, label: '登入' },
+        { to: { name: 'register' }, label: '註冊' },
+      ]),
+  { to: { name: 'favorites' }, label: '收藏' },
+  { to: { name: 'history' }, label: '看過的' },
+])
 
 const CONTRACT_URL = `${REPO_URL}/blob/main/docs/api-契約草案.md`
 

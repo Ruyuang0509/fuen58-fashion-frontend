@@ -56,7 +56,8 @@ function newToken() {
 }
 
 function publicUser(member) {
-  const { password, ...user } = member
+  // 收藏另外用 getFavorites 拿，不跟著會員資料走（登入狀態存的是會員資料的快照，收藏會一直變）
+  const { password, favorites, ...user } = member
   return copy(user)
 }
 
@@ -600,6 +601,85 @@ export async function confirmReceipt(token, id) {
 
   write(db)
   return publicOrder(order)
+}
+
+// ── 收藏（第十五輪子輪 2；契約 §10）──
+// 會員的收藏：{ products: [{ productId, colour, addedAt }], outfits: [{ outfitId, addedAt }] }，新的在前。
+// 真正後端是兩張表 member_favorite_products、member_favorite_outfits；這裡掛在會員物件上。
+const FAVORITE_KEYS = { products: 'productId', outfits: 'outfitId' }
+
+function memberFavorites(member) {
+  if (!member.favorites) member.favorites = { products: [], outfits: [] }
+  return member.favorites
+}
+
+function favoriteKind(kind) {
+  const key = FAVORITE_KEYS[kind]
+  if (!key) throw new ApiError('VALIDATION', '不認得的收藏類型')
+  return key
+}
+
+export async function getFavorites(token) {
+  await wait(150)
+  const db = read()
+  const member = memberFromToken(db, token)
+  return copy(memberFavorites(member))
+}
+
+export async function addFavorite(token, kind, id, extra = {}) {
+  await wait(150)
+  const db = read()
+  const member = memberFromToken(db, token)
+  const key = favoriteKind(kind)
+  const list = memberFavorites(member)[kind]
+  const target = Number(id)
+  if (!list.some((entry) => entry[key] === target)) {
+    const entry = { [key]: target, addedAt: new Date().toISOString() }
+    if (kind === 'products' && typeof extra.colour === 'string' && extra.colour) entry.colour = extra.colour
+    list.unshift(entry)
+  }
+  write(db)
+  return copy(memberFavorites(member))
+}
+
+export async function removeFavorite(token, kind, id) {
+  await wait(150)
+  const db = read()
+  const member = memberFromToken(db, token)
+  const key = favoriteKind(kind)
+  const favorites = memberFavorites(member)
+  const target = Number(id)
+  favorites[kind] = favorites[kind].filter((entry) => entry[key] !== target)
+  write(db)
+  return copy(favorites)
+}
+
+/** 登入時把訪客在本機收的併進來：聯集；同一件兩邊都有時保留較早的 addedAt。回傳併完的整包 */
+export async function mergeFavorites(token, incoming) {
+  await wait(150)
+  const db = read()
+  const member = memberFromToken(db, token)
+  const favorites = memberFavorites(member)
+  for (const kind of Object.keys(FAVORITE_KEYS)) {
+    const key = FAVORITE_KEYS[kind]
+    const list = favorites[kind]
+    for (const raw of Array.isArray(incoming?.[kind]) ? incoming[kind] : []) {
+      const target = Number(raw?.[key])
+      if (!Number.isFinite(target)) continue
+      const addedAt = typeof raw.addedAt === 'string' ? raw.addedAt : new Date().toISOString()
+      const existing = list.find((entry) => entry[key] === target)
+      if (existing) {
+        if (addedAt < existing.addedAt) existing.addedAt = addedAt
+        continue
+      }
+      const entry = { [key]: target, addedAt }
+      if (kind === 'products' && typeof raw.colour === 'string' && raw.colour) entry.colour = raw.colour
+      list.push(entry)
+    }
+    list.sort((a, b) => b.addedAt.localeCompare(a.addedAt))
+  }
+  write(db)
+  return copy(favorites)
 }
 
 export async function resetDemoData() {

@@ -7,18 +7,22 @@ import '@fontsource/space-mono/400.css'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getOutfitsWithProduct, getProduct, getProducts, getThemes } from '@/api'
+import FavButton from '@/components/FavButton.vue'
 import GarmentImage from '@/components/GarmentImage.vue'
 import OutfitLook from '@/components/OutfitLook.vue'
 import ProductCard from '@/components/ProductCard.vue'
+import RecentlyViewed from '@/components/RecentlyViewed.vue'
 import { useFlyToCart } from '@/composables/useFlyToCart'
 import { CATEGORY_NAMES, formatPrice, warmthText } from '@/products/labels'
 import { useCart } from '@/stores/cart'
+import { useHistory } from '@/stores/history'
 import { accentOf } from '@/theme/themes'
 
 const route = useRoute()
 const router = useRouter()
 const { add } = useCart()
 const { fly } = useFlyToCart()
+const { record } = useHistory()
 
 const product = ref(null)
 const outfits = ref([])
@@ -76,6 +80,7 @@ async function load(id) {
     product.value = item
     if (item.sizes.length === 1) size.value = item.sizes[0]
     status.value = 'ready'
+    record('products', item.productId) // 瀏覽紀錄：看到了才算
     // 下面三段是陪襯，晚一點到也沒關係
     const [inOutfits, others, fromBrand] = await Promise.all([
       getOutfitsWithProduct(id),
@@ -251,6 +256,7 @@ function closeZoom(event) {
 
           <div class="actions">
             <button type="submit" class="btn primary" :disabled="size && !canAdd">加入購物車</button>
+            <FavButton kind="products" :id="product.productId" :colour="colour.code" :name="product.name" />
             <span class="feedback" role="status">{{ feedback }}</span>
           </div>
         </form>
@@ -279,6 +285,9 @@ function closeZoom(event) {
         <ProductCard v-for="item in sameBrand" :key="item.productId" :product="item" />
       </div>
     </section>
+
+    <RecentlyViewed kind="products" :exclude="product.productId" />
+
 
     <!-- 放大看：原生 dialog，Esc 會關，點暗處也會關 -->
     <dialog ref="zoom" class="zoom" @click="closeZoom">
