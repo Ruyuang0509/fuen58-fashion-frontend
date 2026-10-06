@@ -18,6 +18,8 @@ const { fly } = useFlyToCart()
 const root = ref(null)
 const price = new Intl.NumberFormat('zh-TW')
 const total = computed(() => props.outfit.items.reduce((sum, item) => sum + item.price, 0))
+// 滑過單品清單的哪一件：那一列亮起來，人形裡那一件也提出來（2026-10-06 使用者：讓買家更直觀知道自己點到啥）
+const hovered = ref(null)
 
 // 加入購物車後短暫顯示的回饋文字
 const feedback = ref('')
@@ -43,10 +45,9 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
 
 <template>
   <article ref="root" class="card" :style="{ '--card-accent': accentOf(outfit.themeCode) }">
-    <!-- 穿搭的樣子：三件疊成人形（正式版換成照片，版面不變）；底是主題色加大量白；整塊連到這套的頁面 -->
-    <!-- 點了之後衣服從這裡飛到穿搭頁（rememberLook 記下位置） -->
+    <!-- 穿搭的樣子：三件疊成人形（正式版換成照片，版面不變）；底是主題色加大量白；整塊連到這套的頁面。點了之後衣服從這裡飛到穿搭頁 -->
     <RouterLink :to="{ name: 'outfit', params: { id: outfit.id } }" class="photo" :aria-label="`看這套：${outfit.title}`" @click="rememberLook(outfit, $event.currentTarget)">
-      <OutfitLook :outfit="outfit" :height="220" :caption="false" />
+      <OutfitLook :outfit="outfit" :height="220" :caption="false" :highlight="hovered" />
     </RouterLink>
 
     <div class="body">
@@ -54,9 +55,9 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
       <p class="meta">{{ themeName }} · {{ outfit.items.length }} 件 · NT$ {{ price.format(total) }}</p>
 
       <ul class="items">
-        <li v-for="item in outfit.items" :key="item.productId">
-          <RouterLink :to="{ name: 'product', params: { id: item.productId } }">{{ item.name }}</RouterLink>
-          <span class="brand">{{ item.brand }}</span>
+        <li v-for="item in outfit.items" :key="item.productId" :class="{ hl: item.productId === hovered }" @pointerenter="hovered = item.productId" @pointerleave="hovered = null">
+          <RouterLink :to="{ name: 'product', params: { id: item.productId }, query: item.colourCode ? { colour: item.colourCode } : {} }" class="item-name">{{ item.name }}</RouterLink>
+          <span class="brand">{{ item.brand }}<template v-if="item.colourName">・{{ item.colourName }}</template></span>
           <span class="price">NT$ {{ price.format(item.price) }}</span>
         </li>
       </ul>
@@ -74,6 +75,8 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
 .card {
   background: var(--surface);
   border-top: 4px solid var(--card-accent);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .photo {
@@ -121,12 +124,41 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
   list-style: none;
 }
 
+/* 每一件是一列；滑過整列亮起來（底色是主題色加大量白），名稱底下的線畫出來 */
 .items li {
   display: grid;
   grid-template-columns: 1fr auto;
   column-gap: var(--s2);
-  padding: var(--s1) 0;
+  margin-inline: calc(-1 * var(--s2));
+  padding: var(--s1) var(--s2);
   border-top: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.25s ease;
+}
+
+.items li.hl {
+  background: color-mix(in srgb, var(--card-accent) 10%, white);
+  border-top-color: transparent;
+}
+
+.items li.hl + li {
+  border-top-color: transparent;
+}
+
+.item-name {
+  color: inherit;
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-size: 0 1px;
+  background-position: 0 100%;
+  transition: background-size 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  justify-self: start;
+}
+
+.items li.hl .item-name,
+.item-name:focus-visible {
+  background-size: 100% 1px;
 }
 
 .brand {

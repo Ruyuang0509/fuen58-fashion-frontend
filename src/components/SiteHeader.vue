@@ -3,7 +3,7 @@
 // 搜尋平常只是一個圖示，點了才滑出輸入框；滑過任何一項，圖示與字變深、底下一條線畫出來。
 // 浮在天空上時（float）沒有底、沒有線，顏色跟著外面；捲過天空後才有底色與一條細線。
 import '@fontsource/noto-serif-tc/600.css'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getWeather } from '@/api'
 import Icon from '@/components/Icon.vue'
@@ -57,11 +57,20 @@ function search() {
   if (q) router.push({ name: 'search', query: { q } })
 }
 
-// 件數變了就跳一下（只是回饋；數字本身立刻更新，沒有延遲）
+// 商品圖飛到提袋的那一刻（useFlyToCart 送的 cart:arrive），件數與提袋一起跳一下。
+// 數字本身在按下的瞬間就更新了，這裡只是回饋。
 const bump = ref(false)
-watch(count, () => {
+let bumpTimer = 0
+function onArrive() {
   bump.value = false
   requestAnimationFrame(() => (bump.value = true))
+  clearTimeout(bumpTimer)
+  bumpTimer = setTimeout(() => (bump.value = false), 600)
+}
+onMounted(() => window.addEventListener('cart:arrive', onArrive))
+onBeforeUnmount(() => {
+  window.removeEventListener('cart:arrive', onArrive)
+  clearTimeout(bumpTimer)
 })
 
 // 站名旁的小天氣：晴、多雲、雨，夜裡是月亮
@@ -111,7 +120,7 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
         <Icon name="camera" />
         <span class="label">穿搭牆</span>
       </RouterLink>
-      <RouterLink to="/cart" class="nav-item cart-link">
+      <RouterLink to="/cart" class="nav-item cart-link" :class="{ arrive: bump }">
         <span class="badge-anchor">
           <Icon name="bag" />
           <span v-if="count" class="count" :class="{ bump }">{{ count }}<span class="visually-hidden"> 件</span></span>
@@ -293,12 +302,26 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
 }
 
 .count.bump {
-  animation: bump 0.35s ease;
+  animation: bump 0.45s ease;
+}
+
+/* 東西飛到的那一刻，提袋也接一下 */
+.cart-link.arrive .badge-anchor .icon {
+  animation: catch 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @keyframes bump {
   40% {
-    transform: scale(1.3);
+    transform: scale(1.35);
+  }
+}
+
+@keyframes catch {
+  30% {
+    transform: translateY(3px) scale(1.12);
+  }
+  60% {
+    transform: translateY(-2px) scale(1.04);
   }
 }
 

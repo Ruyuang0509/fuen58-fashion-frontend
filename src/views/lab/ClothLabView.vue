@@ -232,6 +232,7 @@ figcaption {
   gap: 0.5rem;
   padding: 0.3rem 0.8rem;
   border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
   letter-spacing: 0.1em;
 }
 
@@ -272,6 +273,7 @@ figcaption {
 .modes button {
   padding: 0.3rem 0.8rem;
   border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
   cursor: pointer;

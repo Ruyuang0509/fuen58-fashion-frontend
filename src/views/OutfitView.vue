@@ -371,6 +371,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
 
 .piece.hl {
   background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border-radius: var(--radius-sm);
 }
 
 .thumb {
@@ -478,6 +479,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
   width: 9rem;
   padding: var(--s2);
   border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
   cursor: pointer;

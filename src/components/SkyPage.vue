@@ -136,9 +136,23 @@ onMounted(() => {
 
 watch(() => [props.weather, props.hour, props.tint], paint, { deep: true })
 
+// 第一屏換高度（首頁 100svh → 路線頁 78svh）：高度用 CSS 過渡，過渡完再量一次、也讓 ScrollTrigger 重算位置
+let refreshTimer = 0
+watch(
+  () => props.height,
+  () => {
+    clearTimeout(refreshTimer)
+    refreshTimer = setTimeout(() => {
+      measureHero()
+      ScrollTrigger.refresh()
+    }, 750)
+  },
+)
+
 onBeforeUnmount(() => {
   motion?.revert()
   clearInterval(decayTimer)
+  clearTimeout(refreshTimer)
   window.removeEventListener('resize', measureHero)
   sky?.dispose()
 })
@@ -222,7 +236,8 @@ defineExpose({
   overflow: hidden;
   color: var(--fg);
   font-family: 'Noto Serif TC', serif;
-  transition: color 0.6s ease;
+  /* 字色隨天空明暗；高度在首頁與路線頁之間換時慢慢變，不跳 */
+  transition: color 0.6s ease, height 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* 傍晚與夜裡：天暗了，字變淺 */

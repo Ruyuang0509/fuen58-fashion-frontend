@@ -1,32 +1,35 @@
 <script setup>
-// 路線（主題）頁：這條路線自己的時刻。天空用這個路線的時刻（幾點、什麼天），不用今天的天氣；
-// 從一條路線換到另一條，太陽與雲會慢慢移過去，不是切換。底下是一句話篩選列和這條路線全部的穿搭。
+// 路線頁的第一屏：這條路線自己的時刻。天空用這個路線的時刻（幾點、什麼天），不用今天的天氣；
+// 從一條路線換到另一條，太陽與雲會慢慢移過去（同一個 SkyPage，只換目標）。
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getOutfits, getThemes } from '@/api'
-import { gsap, reducedMotion } from '@/motion/gsap'
-import { rememberLook } from '@/motion/lookFlip'
 import Icon from '@/components/Icon.vue'
 import OutfitLook from '@/components/OutfitLook.vue'
-import OutfitStage from '@/components/OutfitStage.vue'
-import SentenceBar from '@/components/SentenceBar.vue'
-import SiteFooter from '@/components/SiteFooter.vue'
-import SiteHeader from '@/components/SiteHeader.vue'
-import SkyPage from '@/components/SkyPage.vue'
+import { gsap, reducedMotion } from '@/motion/gsap'
+import { rememberLook } from '@/motion/lookFlip'
+import { useExploreSky } from '@/stores/explore'
 import { accentOf, momentOf } from '@/theme/themes'
 
 const route = useRoute()
+const { setSky } = useExploreSky()
 const themes = ref([])
 const looks = ref([])
 const loaded = ref(false)
-const count = ref(null)
-const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const reduced = reducedMotion()
 
 // 用 computed：從一個主題換到另一個主題時，Vue Router 沿用同一個元件、只換網址參數
 const code = computed(() => String(route.params.code))
 const theme = computed(() => themes.value.find((item) => item.code === code.value))
 const moment = computed(() => momentOf(code.value))
 const others = computed(() => themes.value.filter((item) => item.code !== code.value))
+
+// 天空：這條路線的時刻；沒有這條路線就用今天
+watch(
+  moment,
+  (value) => setSky(value ? { hour: value.hour, weather: value.weather, tint: accentOf(code.value), height: '78svh', minHeight: '32rem' } : { height: '78svh', minHeight: '32rem' }),
+  { immediate: true },
+)
 
 let latest = 0
 async function load() {
@@ -46,19 +49,19 @@ watch(code, load, { immediate: true })
 // 換一條路線：天空慢慢移過去的同時，左邊的字一行行從下面浮上來
 const sayEl = ref(null)
 watch(code, async (next, previous) => {
-  if (!previous || reducedMotion()) return
+  if (!previous || reduced) return
   await nextTick()
   if (sayEl.value) gsap.fromTo(sayEl.value.children, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.06, overwrite: 'auto' })
 })
 
 function toList() {
-  document.getElementById('list')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+  document.getElementById('shop')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
 }
 </script>
 
 <template>
-  <SkyPage v-if="theme && moment" class="theme-page" :weather="moment.weather" :hour="moment.hour" :tint="accentOf(code)" height="78svh" min-height="32rem" skip-target="#list" skip-label="跳到穿搭">
-    <template #hero>
+  <div class="theme-hero">
+    <template v-if="theme && moment">
       <div ref="sayEl" class="say">
         <p class="moment">{{ theme.name }}路線的時刻<span class="sep">　／　</span>{{ moment.line }}</p>
         <h1 class="line">{{ theme.name }}</h1>
@@ -80,29 +83,20 @@ function toList() {
       <button type="button" class="down" @click="toList">往下，看這條路線全部的穿搭<Icon name="down" /></button>
     </template>
 
-    <template #default="{ heroHeight }">
-      <div id="list" class="shop">
-        <SentenceBar :offset="heroHeight + 320" />
-        <main class="stage">
-          <h2 class="shop-title">{{ theme.name }}路線的穿搭<span v-if="count !== null" class="count">　{{ count }} 套</span></h2>
-          <OutfitStage @count="count = $event" />
-        </main>
-      </div>
-    </template>
-  </SkyPage>
-
-  <template v-else-if="loaded">
-    <SiteHeader />
-    <main class="state">
-      <h1>找不到這條路線</h1>
-      <p>網址可能打錯了，或這條路線已經收起來。</p>
+    <div v-else-if="loaded" class="say">
+      <h1 class="line small">找不到這條路線</h1>
+      <p class="tagline">網址可能打錯了，或這條路線已經收起來。</p>
       <RouterLink class="btn" :to="{ name: 'outfits' }">看全部穿搭</RouterLink>
-    </main>
-    <SiteFooter />
-  </template>
+    </div>
+  </div>
 </template>
 
 <style scoped>
+.theme-hero {
+  position: absolute;
+  inset: 0;
+}
+
 .say {
   position: absolute;
   left: 2.4rem;
@@ -130,6 +124,10 @@ function toList() {
   font-size: clamp(2.6rem, 6vw, 4.6rem);
   line-height: 1.2;
   letter-spacing: 0.12em;
+}
+
+.line.small {
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
 }
 
 .tagline {
@@ -225,39 +223,8 @@ function toList() {
   transform: translateY(3px);
 }
 
-.stage {
-  max-width: var(--stage-max);
-  margin-inline: auto;
-  padding: var(--s4) var(--s3) var(--s5);
-  min-height: 60vh;
-}
-
-.shop-title {
-  margin: 0 0 var(--s4);
-  font-size: var(--fs-2);
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  color: var(--ink-soft);
-}
-
-.count {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.85em;
-}
-
-.state {
-  display: grid;
-  justify-items: start;
-  gap: var(--s2);
-  max-width: var(--column-max);
-  margin-inline: auto;
-  padding: var(--s5) var(--s3);
-  min-height: 50vh;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .look-enter-active,
-  .look-leave-active,
   .look-link,
   .down .icon {
     transition: none;
@@ -265,6 +232,10 @@ function toList() {
 }
 
 @media (max-width: 52rem) {
+  .theme-hero {
+    position: static;
+  }
+
   .say {
     position: static;
     transform: none;

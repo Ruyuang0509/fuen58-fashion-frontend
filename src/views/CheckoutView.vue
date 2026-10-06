@@ -672,6 +672,7 @@ onMounted(load)
   padding: var(--s3);
   background: var(--surface);
   border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 
 .field {
@@ -773,6 +774,7 @@ fieldset {
   border: 1px solid var(--line);
   background: var(--surface);
   cursor: pointer;
+  border-radius: var(--radius);
 }
 
 .address-option:has(input:checked),

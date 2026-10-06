@@ -11,12 +11,18 @@ const todo = () => import('@/views/PlaceholderView.vue')
 //   level     功能清單的層級：必／特／加（只有佔位畫面會顯示）
 //   note      這一頁要放什麼（只有佔位畫面會顯示）
 const routes = [
-  // 探索區
-  // 入口自己畫全幅的天空與頂欄，所以 bare；一句話篩選在入口是那句大字，不用共用的 SentenceBar
-  { path: '/', name: 'home', component: () => import('@/views/HomeView.vue'), meta: { title: '入口', zone: 'explore', bare: true } },
-  // 第十一輪起，探索區的這幾頁都在同一片天空下（SkyPage 自己畫頂欄與一句話列），所以也是 bare
-  { path: '/themes/:code', name: 'theme', component: () => import('@/views/ThemeView.vue'), meta: { title: '路線', zone: 'explore', bare: true } },
-  { path: '/outfits', name: 'outfits', component: () => import('@/views/OutfitsView.vue'), meta: { title: '全部穿搭', zone: 'explore', bare: true } },
+  // 探索區：首頁、路線頁、全部穿搭共用一個殼（ExploreView 裡的同一片天空、同一條一句話列、同一個穿搭舞台），
+  // 子路由只換天空裡的內容。shell 標記給 scrollBehavior 用：殼內換頁不跳回最上面。bare：殼自己畫頂欄與頁尾
+  {
+    path: '/',
+    component: () => import('@/views/ExploreView.vue'),
+    meta: { zone: 'explore', bare: true, shell: true },
+    children: [
+      { path: '', name: 'home', component: () => import('@/views/explore/HomeHero.vue'), meta: { title: '入口' } },
+      { path: 'themes/:code', name: 'theme', component: () => import('@/views/explore/ThemeHero.vue'), meta: { title: '路線' } },
+      { path: 'outfits', name: 'outfits', component: () => import('@/views/explore/OutfitsHero.vue'), meta: { title: '全部穿搭' } },
+    ],
+  },
   { path: '/outfits/:id', name: 'outfit', component: () => import('@/views/OutfitView.vue'), meta: { title: '穿搭', zone: 'explore', bare: true } },
   // 搜尋結果是單品格，一句話列篩的是穿搭，兩者不是同一組條件，所以這頁不放一句話列
   { path: '/search', name: 'search', component: () => import('@/views/SearchView.vue'), meta: { title: '搜尋結果', zone: 'explore' } },
@@ -66,6 +72,8 @@ export const router = createRouter({
     if (savedPosition) return savedPosition
     // 同一頁只是換篩選條件：留在原地
     if (to.path === from.path) return false
+    // 探索區的殼內換頁（首頁 ↔ 路線 ↔ 全部穿搭）：留在原地——在店裡換風格不該跳回最上面，天空會自己換時刻
+    if (to.meta.shell && from.meta.shell) return false
     return { top: 0 }
   },
 })

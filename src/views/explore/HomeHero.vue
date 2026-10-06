@@ -1,40 +1,38 @@
 <script setup>
-// 首頁：天空在上，店在下（骨架在 SkyPage）。
+// 首頁的第一屏（天空裡的內容；天空本身與底下的店在 ExploreView）。
 //
-// 第一屏是「現在的天空」：時間決定太陽，今天的天氣決定雲、雨、霧。畫面上只有一句話：
 // 「臺北，10 月 6 日，18°，濕度 85%，有雨。」「今天，走［簡約］路線。」括號裡的詞是風格，
 // 底下排著全部風格，指到就換（天空染一點那個風格的顏色、右邊換成那個風格合今天的幾套），點進去就到那個風格。
 // 沒有人動的時候，詞自己每幾秒換一個，像在想；一碰就停。
-//
-// 往下捲，天空在地平線處淡進紙色，底下是店：共用的一句話篩選列黏在頂欄下面，接著是全部的穿搭。
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getOutfits, getThemes, getWeather } from '@/api'
 import Icon from '@/components/Icon.vue'
 import OutfitLook from '@/components/OutfitLook.vue'
-import OutfitStage from '@/components/OutfitStage.vue'
-import SentenceBar from '@/components/SentenceBar.vue'
-import SkyPage from '@/components/SkyPage.vue'
 import { gsap, reducedMotion } from '@/motion/gsap'
 import { rememberLook } from '@/motion/lookFlip'
+import { useExploreSky } from '@/stores/explore'
 import { accentOf } from '@/theme/themes'
 
 const CYCLE_MS = 3600 // 沒有人動時，幾秒換一個詞
 
 const router = useRouter()
-const page = ref(null)
+const page = inject('skyPage', ref(null))
+const { setSky } = useExploreSky()
 const themes = ref([])
 const weather = ref(null)
 const outfits = ref([])
 const active = ref(null) // 現在括號裡的風格代碼
 const touched = ref(false) // 使用者有沒有碰過（碰過就不自動換）
 const loading = ref(true)
-const count = ref(null)
 let cycleTimer = 0
-const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const reduced = reducedMotion()
 
 const theme = computed(() => themes.value.find((item) => item.code === active.value))
 const tint = computed(() => (active.value ? accentOf(active.value) : null))
+// 天空：今天的天氣、現在的時刻，染目前那個風格的顏色
+watch(tint, (value) => setSky({ tint: value, height: '100svh', minHeight: '36rem' }), { immediate: true })
+
 const hasOuter = (outfit) => (outfit.items.some((item) => item.category === 'outer') ? 1 : 0)
 const picks = computed(() => {
   const mine = outfits.value.filter((outfit) => outfit.themeCode === active.value)
@@ -64,11 +62,11 @@ function choose(code, byUser = true) {
   if (byUser) touched.value = true
 }
 
-// 換詞的時候：新的詞與那一句 tagline 從下面浮上來（第十二輪，GSAP）
+// 換詞的時候：新的詞與那一句 tagline 從下面浮上來
 const wordEl = ref(null)
 const taglineEl = ref(null)
 watch(active, async (code, previous) => {
-  if (previous === null || reducedMotion()) return
+  if (previous === null || reduced) return
   await nextTick()
   gsap.fromTo([wordEl.value, taglineEl.value].filter(Boolean), { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.06, overwrite: 'auto' })
 })
@@ -132,69 +130,60 @@ onBeforeUnmount(stopCycle)
 </script>
 
 <template>
-  <SkyPage ref="page" class="home" :class="{ touched }" :weather="weather" :tint="tint" skip-target="#shop" skip-label="跳到穿搭">
-    <template #hero>
-      <div class="say" aria-live="polite">
-        <p class="today">
-          <template v-if="weather">
-            {{ weather.city }}，{{ dateText }}，<span class="num">{{ weather.temperature }}°</span>，濕度 <span class="num">{{ weather.humidity }}%</span><template v-if="conditionText">，{{ conditionText }}</template>。
-          </template>
-          <template v-else-if="loading">正在看今天的天氣……</template>
-          <template v-else>今天。</template>
-        </p>
-        <h1 class="line">
-          今天，<br />走<button type="button" class="slot" :aria-label="theme ? `進入「${theme.name}」` : '風格'" @click="theme && go(theme.code)">
-            <span class="bracket">［</span><span ref="wordEl" class="word">{{ theme?.name ?? '　　' }}</span><span class="bracket">］</span></button>路線。
-        </h1>
-        <p ref="taglineEl" class="tagline">{{ theme?.tagline ?? '　' }}</p>
+  <div class="home-hero" :class="{ touched }">
+    <div class="say" aria-live="polite">
+      <p class="today">
+        <template v-if="weather">
+          {{ weather.city }}，{{ dateText }}，<span class="num">{{ weather.temperature }}°</span>，濕度 <span class="num">{{ weather.humidity }}%</span><template v-if="conditionText">，{{ conditionText }}</template>。
+        </template>
+        <template v-else-if="loading">正在看今天的天氣……</template>
+        <template v-else>今天。</template>
+      </p>
+      <h1 class="line">
+        今天，<br />走<button type="button" class="slot" :aria-label="theme ? `進入「${theme.name}」` : '風格'" @click="theme && go(theme.code)">
+          <span class="bracket">［</span><span ref="wordEl" class="word">{{ theme?.name ?? '　　' }}</span><span class="bracket">］</span></button>路線。
+      </h1>
+      <p ref="taglineEl" class="tagline">{{ theme?.tagline ?? '　' }}</p>
 
-        <!-- 全部的風格：指到換詞；按 Enter 或點進去 -->
-        <nav class="words" aria-label="風格">
-          <button
-            v-for="item in themes"
-            :key="item.code"
-            type="button"
-            :data-code="item.code"
-            :class="{ on: item.code === active }"
-            @pointerenter="choose(item.code)"
-            @focus="choose(item.code)"
-            @click="go(item.code)"
-          >
-            {{ item.name }}
-          </button>
-        </nav>
-      </div>
+      <!-- 全部的風格：指到換詞；按 Enter 或點進去 -->
+      <nav class="words" aria-label="風格">
+        <button
+          v-for="item in themes"
+          :key="item.code"
+          type="button"
+          :data-code="item.code"
+          :class="{ on: item.code === active }"
+          @pointerenter="choose(item.code)"
+          @focus="choose(item.code)"
+          @click="go(item.code)"
+        >
+          {{ item.name }}
+        </button>
+      </nav>
+    </div>
 
-      <!-- 今天的穿搭：這個風格裡合今天天氣的幾套；點一套進那套的頁面 -->
-      <section class="looks" aria-label="今天的穿搭" @pointerenter="touched = true">
-        <h2 class="looks-title">今天的穿搭<span v-if="theme">　／　{{ theme.name }}</span></h2>
-        <TransitionGroup name="look" tag="div" class="row">
-          <RouterLink v-for="(outfit, i) in picks" :key="outfit.id" :to="{ name: 'outfit', params: { id: outfit.id } }" class="look-link" :style="{ '--i': i }" @click="rememberLook(outfit, $event.currentTarget)">
-            <OutfitLook :outfit="outfit" :height="250" />
-          </RouterLink>
-        </TransitionGroup>
-        <p v-if="!loading && !picks.length" class="empty">這個風格今天還沒有搭好的穿搭。</p>
-      </section>
+    <!-- 今天的穿搭：這個風格裡合今天天氣的幾套；點一套進那套的頁面 -->
+    <section class="looks" aria-label="今天的穿搭" @pointerenter="touched = true">
+      <h2 class="looks-title">今天的穿搭<span v-if="theme">　／　{{ theme.name }}</span></h2>
+      <TransitionGroup name="look" tag="div" class="row">
+        <RouterLink v-for="(outfit, i) in picks" :key="outfit.id" :to="{ name: 'outfit', params: { id: outfit.id } }" class="look-link" :style="{ '--i': i }" @click="rememberLook(outfit, $event.currentTarget)">
+          <OutfitLook :outfit="outfit" :height="250" />
+        </RouterLink>
+      </TransitionGroup>
+      <p v-if="!loading && !picks.length" class="empty">這個風格今天還沒有搭好的穿搭。</p>
+    </section>
 
-      <!-- 地平線上的一行字 -->
-      <button type="button" class="down" @click="toShop">往下，看今天全部的穿搭<Icon name="down" /></button>
-    </template>
-
-    <!-- 店：一句話篩選黏在頂欄下面，接著是全部的穿搭 -->
-    <template #default="{ heroHeight }">
-      <div id="shop" class="shop">
-        <!-- 一句話篩選列：捲進店裡再多 320px 才收合，進店時先看得到整句 -->
-        <SentenceBar :offset="heroHeight + 320" />
-        <main class="stage">
-          <h2 class="shop-title">今天全部的穿搭<span v-if="count !== null" class="count">　{{ count }} 套</span></h2>
-          <OutfitStage @count="count = $event" />
-        </main>
-      </div>
-    </template>
-  </SkyPage>
+    <!-- 地平線上的一行字 -->
+    <button type="button" class="down" @click="toShop">往下，看今天全部的穿搭<Icon name="down" /></button>
+  </div>
 </template>
 
 <style scoped>
+.home-hero {
+  position: absolute;
+  inset: 0;
+}
+
 .num {
   font-family: 'Space Mono', monospace;
   font-size: 0.92em;
@@ -365,38 +354,20 @@ onBeforeUnmount(stopCycle)
   transform: translateY(3px);
 }
 
-/* ── 店 ── */
-.stage {
-  max-width: var(--stage-max);
-  margin-inline: auto;
-  padding: var(--s4) var(--s3) var(--s5);
-  min-height: 60vh;
-}
-
-.shop-title {
-  margin: 0 0 var(--s4);
-  font-size: var(--fs-2);
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  color: var(--ink-soft);
-}
-
-.count {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.85em;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .look-enter-active,
-  .look-leave-active,
   .look-link,
   .down .icon {
     transition: none;
   }
 }
 
-/* 窄螢幕：天空裡上下排，穿搭可以左右滑 */
+/* 窄螢幕：上下排，穿搭可以左右滑 */
 @media (max-width: 52rem) {
+  .home-hero {
+    position: static;
+  }
+
   .say {
     position: static;
     transform: none;

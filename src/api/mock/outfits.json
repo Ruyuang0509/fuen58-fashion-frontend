@@ -6,6 +6,7 @@
     "occasions": [
       "work"
     ],
+    "audience": "unisex",
     "items": [
       {
         "productId": 101,
@@ -29,6 +30,7 @@
       "weekend",
       "date"
     ],
+    "audience": "unisex",
     "items": [
       {
         "productId": 104,
@@ -47,6 +49,7 @@
     "occasions": [
       "weekend"
     ],
+    "audience": "men",
     "items": [
       {
         "productId": 201,
@@ -73,6 +76,7 @@
     "occasions": [
       "date"
     ],
+    "audience": "women",
     "items": [
       {
         "productId": 205,
@@ -92,6 +96,7 @@
       "date",
       "weekend"
     ],
+    "audience": "unisex",
     "items": [
       {
         "productId": 301,
@@ -115,6 +120,7 @@
       "outdoor",
       "weekend"
     ],
+    "audience": "unisex",
     "items": [
       {
         "productId": 401,
@@ -141,6 +147,7 @@
     "occasions": [
       "work"
     ],
+    "audience": "men",
     "items": [
       {
         "productId": 501,
@@ -163,6 +170,7 @@
     "occasions": [
       "date"
     ],
+    "audience": "women",
     "items": [
       {
         "productId": 504,
@@ -181,6 +189,7 @@
     "occasions": [
       "weekend"
     ],
+    "audience": "unisex",
     "items": [
       {
         "productId": 506,
@@ -203,6 +212,7 @@
     "occasions": [
       "date"
     ],
+    "audience": "women",
     "items": [
       {
         "productId": 509,
@@ -226,6 +236,7 @@
       "weekend",
       "date"
     ],
+    "audience": "women",
     "items": [
       {
         "productId": 512,
@@ -238,6 +249,30 @@
       {
         "productId": 514,
         "colour": "pink"
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "title": "公園的下午",
+    "themeCode": "outdoor",
+    "occasions": [
+      "weekend",
+      "outdoor"
+    ],
+    "audience": "kids",
+    "items": [
+      {
+        "productId": 601,
+        "colour": "mustard"
+      },
+      {
+        "productId": 602,
+        "colour": "cream"
+      },
+      {
+        "productId": 603,
+        "colour": "khaki"
       }
     ]
   }

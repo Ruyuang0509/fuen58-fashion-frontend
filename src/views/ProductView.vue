@@ -325,6 +325,7 @@ function closeZoom(event) {
   aspect-ratio: 4 / 5;
   max-height: 40rem;
   padding: var(--s3);
+  border-radius: var(--radius);
   background: color-mix(in srgb, var(--tint) 12%, white);
   transition: background-color var(--ease);
 }
@@ -356,6 +357,7 @@ function closeZoom(event) {
   place-items: center;
   width: 5.2rem;
   height: 6.2rem;
+  border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--tint) 8%, white);
   border-bottom: 2px solid transparent;
 }
@@ -444,6 +446,7 @@ function closeZoom(event) {
   margin-top: var(--s2);
   padding: var(--s3);
   border: 1px solid var(--line);
+  border-radius: var(--radius);
   background: var(--surface);
 }
 
@@ -523,6 +526,7 @@ legend,
   min-width: 3.2rem;
   padding: var(--s1) var(--s2);
   border: 1px solid var(--field-line);
+  border-radius: var(--radius-sm);
   background: var(--surface);
   line-height: 1.3;
 }
@@ -619,6 +623,8 @@ legend,
 .stepper {
   display: inline-flex;
   border: 1px solid var(--field-line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
 .stepper button {
@@ -634,6 +640,7 @@ legend,
 }
 
 .stepper input {
+  border-radius: 0;
   width: 3rem;
   padding: var(--s1) 0;
   border: 0;

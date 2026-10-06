@@ -374,6 +374,8 @@ onBeforeUnmount(() => clearTimeout(undoTimer))
 .stepper {
   display: inline-flex;
   border: 1px solid var(--field-line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
 .stepper button {
@@ -389,6 +391,7 @@ onBeforeUnmount(() => clearTimeout(undoTimer))
 }
 
 .stepper input {
+  border-radius: 0;
   width: 2.6rem;
   padding: 0.25rem 0;
   border: 0;
@@ -430,6 +433,7 @@ onBeforeUnmount(() => clearTimeout(undoTimer))
   padding: var(--s3);
   background: var(--surface);
   border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 
 .summary dl {

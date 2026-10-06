@@ -42,6 +42,7 @@ const accent = computed(() => accentOf(props.product.themeCodes[0]))
   place-items: center;
   aspect-ratio: 4 / 5;
   padding: var(--s2);
+  border-radius: var(--radius);
   background: color-mix(in srgb, var(--card-accent) 12%, white);
   transition: background-color var(--ease);
 }

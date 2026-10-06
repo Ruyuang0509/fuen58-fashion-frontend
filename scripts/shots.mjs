@@ -52,12 +52,15 @@ const WAIT = +(process.env.SHOT_WAIT ?? 2000)
 const AFTER = +(process.env.SHOT_AFTER ?? 350)
 const report = {}
 for (const raw of urls) {
+  // 指令寫在 # 後面，用 ; 串接可以疊加：例如 "#scroll=520;hover=.card li"（先捲再滑）
   const zoom = raw.endsWith('#zoom')
-  const hoverMatch = raw.match(/#hover=(.+)$/)
-  const clickMatch = raw.match(/#click=(.+)$/)
-  const scrollMatch = raw.match(/#scroll=(\d+)$/)
-  const cut = hoverMatch ?? clickMatch ?? scrollMatch
-  const url = zoom ? raw.slice(0, -5) : cut ? raw.slice(0, cut.index) : raw
+  const hashAt = raw.indexOf('#')
+  const directives = !zoom && hashAt >= 0 ? raw.slice(hashAt + 1).split(';') : []
+  const pick = (key) => directives.find((d) => d.startsWith(key + '='))?.slice(key.length + 1) ?? null
+  const hoverMatch = pick('hover') ? [null, pick('hover')] : null
+  const clickMatch = pick('click') ? [null, pick('click')] : null
+  const scrollMatch = pick('scroll') ? [null, pick('scroll')] : null
+  const url = zoom ? raw.slice(0, -5) : directives.length ? raw.slice(0, hashAt) : raw
   await send('Page.navigate', { url })
   await sleep(WAIT)
   let name = url.replace(/^https?:\/\/[^/]+/, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'root'

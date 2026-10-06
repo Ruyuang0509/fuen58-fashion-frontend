@@ -44,6 +44,9 @@ items = {
  512: dict(name="蝴蝶結泡泡袖襯衫", brand="半日", brandCode="banri", category="top", price=1380, sizes=["S", "M", "L"], colour="#f6f0ea", kind="blouse"),
  513: dict(name="粉色百褶短裙", brand="半日", brandCode="banri", category="bottom", price=1480, sizes=["S", "M"], colour="#e9c9d3", kind="skirt"),
  514: dict(name="短版針織外套", brand="拾穗製衣", brandCode="shisui", category="outer", price=1980, sizes=["S", "M", "L"], colour="#f6d2dc", kind="blouse"),
+ 601: dict(name="兒童防潑水連帽外套", brand="野徑", brandCode="yejing", category="outer", price=1680, sizes=["110", "120", "130"], colour="#f0b84a", kind="vest"),
+ 602: dict(name="兒童條紋長袖T", brand="半日", brandCode="banri", category="top", price=580, sizes=["110", "120", "130"], colour="#efe6d8", kind="top"),
+ 603: dict(name="兒童束口褲", brand="野徑", brandCode="yejing", category="bottom", price=880, sizes=["110", "120", "130"], colour="#5b5a4e", kind="trousers"),
 }
 
 # fabric for the renderer (cotton | denim | leather | nylon | wool | satin) + display material text
@@ -209,6 +212,21 @@ D = {
       colours=[("pink","淺粉","#f6d2dc"),("cream","奶油","#f2ead8")],
       fit=(160,48,"S","衣長到腰上，袖長到手腕。"),
       tags=["外套","針織外套","短版","量產型"]),
+ 601: dict(fabric="nylon", material="尼龍 100%（防潑水塗層）；內裡刷毛", warmth=3, features=["防潑水"],
+      desc="小孩的防潑水連帽外套，拉鍊到下巴有護片。袖口與下襬鬆緊，跑跳不會跑進風。",
+      colours=[("mustard","芥黃","#f0b84a"),("navy","深藍","#2f3a4a")],
+      fit=(120,22,"120","身高 120 公分穿 120，袖長剛好，衣長蓋過褲頭。"),
+      tags=["外套","小孩","兒童","防潑水","連帽","戶外"]),
+ 602: dict(fabric="cotton", material="棉 100%", warmth=2,
+      desc="小孩的條紋長袖，領口有肩扣，套頭不卡。洗了不太縮。",
+      colours=[("cream","奶油條紋","#efe6d8"),("navy","深藍條紋","#3b4a6b")],
+      fit=(120,22,"120","合身，衣長到褲頭下一點。"),
+      tags=["上衣","小孩","兒童","長袖","條紋"]),
+ 603: dict(fabric="nylon", material="尼龍 88%・彈性纖維 12%", warmth=3, features=["快乾"],
+      desc="小孩的束口褲，膝蓋有補強布，草地上跪著玩也不怕。腰頭鬆緊加抽繩。",
+      colours=[("khaki","卡其","#5b5a4e"),("black","黑","#222225")],
+      fit=(120,22,"120","腰圍剛好，褲口束在腳踝。"),
+      tags=["褲","小孩","兒童","束口褲","戶外"]),
 }
 assert set(D) == set(items), (set(D) ^ set(items))
 
@@ -245,7 +263,19 @@ ONE_SIZE = {
  505: [("全長", "95"), ("寬", "1.8")],
 }
 
+# 童裝尺寸表：110 起、每級加的量；欄名和大人的同款式一樣
+KIDS_SIZES = ["110", "120", "130"]
+KIDS_MEASURE = {
+ "vest":     [("肩寬", 30, 1.5), ("胸寬", 38, 2), ("衣長", 44, 3), ("袖長", 38, 3)],
+ "top":      [("肩寬", 28, 1.5), ("胸寬", 34, 2), ("衣長", 42, 3), ("袖長", 36, 3)],
+ "trousers": [("腰圍", 50, 2), ("臀圍", 62, 3), ("褲長", 62, 5)],
+}
+
 def measure_for(pid, kind, sizes):
+    if sizes and sizes[0] in KIDS_SIZES:
+        cols = KIDS_MEASURE[kind]
+        rows = {s: [round(base + step * KIDS_SIZES.index(s), 1) for _, base, step in cols] for s in sizes}
+        return {"columns": [c for c, _, _ in cols], "rows": rows}
     if pid in ONE_SIZE:
         return {"columns": [c for c, _ in ONE_SIZE[pid]], "rows": {"F": [v for _, v in ONE_SIZE[pid]]}}
     cols = MEASURE[kind]

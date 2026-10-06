@@ -2494,5 +2494,252 @@
       "短版",
       "量產型"
     ]
+  },
+  {
+    "productId": 601,
+    "name": "兒童防潑水連帽外套",
+    "brand": "野徑",
+    "brandCode": "yejing",
+    "category": "outer",
+    "price": 1680,
+    "sizes": [
+      "110",
+      "120",
+      "130"
+    ],
+    "listedAt": "2026-09-11",
+    "sold": 18,
+    "kind": "vest",
+    "fabric": "nylon",
+    "material": "尼龍 100%（防潑水塗層）；內裡刷毛",
+    "description": "小孩的防潑水連帽外套，拉鍊到下巴有護片。袖口與下襬鬆緊，跑跳不會跑進風。",
+    "warmth": 3,
+    "features": [
+      "防潑水"
+    ],
+    "colours": [
+      {
+        "code": "mustard",
+        "name": "芥黃",
+        "hex": "#f0b84a"
+      },
+      {
+        "code": "navy",
+        "name": "深藍",
+        "hex": "#2f3a4a"
+      }
+    ],
+    "stock": {
+      "mustard-110": 4,
+      "mustard-120": 6,
+      "mustard-130": 13,
+      "navy-110": 18,
+      "navy-120": 16,
+      "navy-130": 4
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "110": [
+          30.0,
+          38,
+          44,
+          38
+        ],
+        "120": [
+          31.5,
+          40,
+          47,
+          41
+        ],
+        "130": [
+          33.0,
+          42,
+          50,
+          44
+        ]
+      }
+    },
+    "fit": {
+      "height": 120,
+      "weight": 22,
+      "size": "120",
+      "note": "身高 120 公分穿 120，袖長剛好，衣長蓋過褲頭。"
+    },
+    "tags": [
+      "外套",
+      "小孩",
+      "兒童",
+      "防潑水",
+      "連帽",
+      "戶外"
+    ]
+  },
+  {
+    "productId": 602,
+    "name": "兒童條紋長袖T",
+    "brand": "半日",
+    "brandCode": "banri",
+    "category": "top",
+    "price": 580,
+    "sizes": [
+      "110",
+      "120",
+      "130"
+    ],
+    "listedAt": "2026-09-18",
+    "sold": 3,
+    "kind": "top",
+    "fabric": "cotton",
+    "material": "棉 100%",
+    "description": "小孩的條紋長袖，領口有肩扣，套頭不卡。洗了不太縮。",
+    "warmth": 2,
+    "features": [],
+    "colours": [
+      {
+        "code": "cream",
+        "name": "奶油條紋",
+        "hex": "#efe6d8"
+      },
+      {
+        "code": "navy",
+        "name": "深藍條紋",
+        "hex": "#3b4a6b"
+      }
+    ],
+    "stock": {
+      "cream-110": 9,
+      "cream-120": 16,
+      "cream-130": 10,
+      "navy-110": 9,
+      "navy-120": 17,
+      "navy-130": 17
+    },
+    "measure": {
+      "columns": [
+        "肩寬",
+        "胸寬",
+        "衣長",
+        "袖長"
+      ],
+      "rows": {
+        "110": [
+          28.0,
+          34,
+          42,
+          36
+        ],
+        "120": [
+          29.5,
+          36,
+          45,
+          39
+        ],
+        "130": [
+          31.0,
+          38,
+          48,
+          42
+        ]
+      }
+    },
+    "fit": {
+      "height": 120,
+      "weight": 22,
+      "size": "120",
+      "note": "合身，衣長到褲頭下一點。"
+    },
+    "tags": [
+      "上衣",
+      "小孩",
+      "兒童",
+      "長袖",
+      "條紋"
+    ]
+  },
+  {
+    "productId": 603,
+    "name": "兒童束口褲",
+    "brand": "野徑",
+    "brandCode": "yejing",
+    "category": "bottom",
+    "price": 880,
+    "sizes": [
+      "110",
+      "120",
+      "130"
+    ],
+    "listedAt": "2026-09-25",
+    "sold": 90,
+    "kind": "trousers",
+    "fabric": "nylon",
+    "material": "尼龍 88%・彈性纖維 12%",
+    "description": "小孩的束口褲，膝蓋有補強布，草地上跪著玩也不怕。腰頭鬆緊加抽繩。",
+    "warmth": 3,
+    "features": [
+      "快乾"
+    ],
+    "colours": [
+      {
+        "code": "khaki",
+        "name": "卡其",
+        "hex": "#5b5a4e"
+      },
+      {
+        "code": "black",
+        "name": "黑",
+        "hex": "#222225"
+      }
+    ],
+    "stock": {
+      "khaki-110": 11,
+      "khaki-120": 5,
+      "khaki-130": 14,
+      "black-110": 15,
+      "black-120": 9,
+      "black-130": 18
+    },
+    "measure": {
+      "columns": [
+        "腰圍",
+        "臀圍",
+        "褲長"
+      ],
+      "rows": {
+        "110": [
+          50,
+          62,
+          62
+        ],
+        "120": [
+          52,
+          65,
+          67
+        ],
+        "130": [
+          54,
+          68,
+          72
+        ]
+      }
+    },
+    "fit": {
+      "height": 120,
+      "weight": 22,
+      "size": "120",
+      "note": "腰圍剛好，褲口束在腳踝。"
+    },
+    "tags": [
+      "褲",
+      "小孩",
+      "兒童",
+      "束口褲",
+      "戶外"
+    ]
   }
 ]

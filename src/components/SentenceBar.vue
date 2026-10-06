@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { getThemes, getWeather } from '@/api'
 import { useFilters } from '@/composables/useFilters'
-import { CATEGORIES, OCCASIONS, SIZES } from '@/filters/options'
+import { AUDIENCES, CATEGORIES, OCCASIONS, SIZES } from '@/filters/options'
 import { Flip, reducedMotion } from '@/motion/gsap'
 
 // offset：這一列上方還有多高的東西（首頁的天空），收合的門檻從那裡起算
@@ -71,6 +71,7 @@ const shortOf = (options, value) => options.find((option) => option.value === va
 const summary = computed(() => {
   const parts = [
     weather.value ? `${weather.value.temperature}°C` : '',
+    shortOf(AUDIENCES, filters.value.audience),
     shortOf(OCCASIONS, filters.value.occasion),
     shortOf(styleOptions.value, filters.value.style),
     shortOf(CATEGORIES, filters.value.category),
@@ -90,6 +91,14 @@ const summary = computed(() => {
     <p v-else ref="line" class="line">
       <!-- 每個 clause 是一個不換行的小段，標點跟著前面的字走，不會掉到下一列的開頭；data-flip-id 給重排的動畫對位置 -->
       <span v-if="weather" class="clause" data-flip-id="clause-weather">今天 {{ weather.temperature }}°C，</span>
+      <span class="clause" data-flip-id="clause-audience">
+        <label>
+          <span class="visually-hidden">給誰穿</span>
+          <select @focus="capture" @pointerdown="capture" :value="filters.audience" @change="setFilter('audience', $event.target.value)">
+            <option v-for="option in AUDIENCES" :key="option.value" :value="option.value">{{ option.label }}</option>
+          </select> </label
+        >，
+      </span>
       <span class="clause" data-flip-id="clause-occasion">
         <label>
           <span class="visually-hidden">場合</span>

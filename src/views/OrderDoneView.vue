@@ -212,6 +212,7 @@ onMounted(load)
   padding: var(--s3);
   background: var(--surface);
   border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 
 .lead {

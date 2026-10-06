@@ -56,6 +56,13 @@ select {
   color: inherit;
 }
 
+/* 欄位一律小圓角；只畫底線的欄位（一句話列）自己覆寫成 0 */
+input,
+select,
+textarea {
+  border-radius: var(--radius-sm);
+}
+
 /* 鍵盤走到的元素一定看得到外框 */
 :focus-visible {
   outline: 2px solid var(--accent);

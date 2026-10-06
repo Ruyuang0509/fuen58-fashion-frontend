@@ -46,15 +46,23 @@ function resolveOutfit(outfit) {
   return { ...outfit, items }
 }
 
+// 給誰穿：選女生會連中性的一起出現，選男生也是；中性只給中性；小孩只給小孩
+function forAudience(outfit, audience) {
+  const own = outfit.audience ?? 'unisex'
+  if (audience === 'kids' || audience === 'unisex') return own === audience
+  return own === audience || own === 'unisex'
+}
+
 /**
- * 取得穿搭組合。四個條件都是選填，空字串代表不限。
- * @param {{ style?: string, occasion?: string, category?: string, size?: string }} filters
+ * 取得穿搭組合。五個條件都是選填，空字串代表不限。
+ * @param {{ style?: string, audience?: string, occasion?: string, category?: string, size?: string }} filters
  */
 export async function getOutfits(filters = {}) {
   await wait(250)
-  const { style, occasion, category, size } = filters
+  const { style, audience, occasion, category, size } = filters
   return outfits.map(resolveOutfit).filter((outfit) => {
     if (style && outfit.themeCode !== style) return false
+    if (audience && !forAudience(outfit, audience)) return false
     if (occasion && !outfit.occasions.includes(occasion)) return false
     if (category && !outfit.items.some((item) => item.category === category)) return false
     // 尺寸：只看指定類別的單品有沒有這個尺寸；沒指定類別時，任何一件有就算
