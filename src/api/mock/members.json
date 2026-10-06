@@ -1,0 +1,48 @@
+{
+  "members": [
+    { "id": 1, "email": "demo@example.com", "password": "demo1234", "name": "林示範", "phone": "0912345678", "birthday": "1998-04-12", "gender": "female", "createdAt": "2026-09-01T10:00:00+08:00" }
+  ],
+  "addresses": [
+    { "id": 1, "memberId": 1, "recipient": "林示範", "phone": "0912345678", "postalCode": "106", "city": "臺北市", "district": "大安區", "street": "和平東路二段 100 號 5 樓", "isDefault": true }
+  ],
+  "orders": [
+    {
+      "id": "WD-20260928-0001",
+      "memberId": 1,
+      "createdAt": "2026-09-28T20:00:00+08:00",
+      "status": "已送達",
+      "items": [
+        { "productId": 201, "name": "教練外套", "brand": "夜班車", "colour": "navy", "colourName": "深藍", "size": "L", "qty": 1, "price": 2480 },
+        { "productId": 203, "name": "寬管工作褲", "brand": "拾穗製衣", "colour": "slate", "colourName": "石板藍", "size": "M", "qty": 1, "price": 1780 }
+      ],
+      "address": { "recipient": "林示範", "phone": "0912345678", "postalCode": "106", "city": "臺北市", "district": "大安區", "street": "和平東路二段 100 號 5 樓" },
+      "subtotal": 4260,
+      "shipping": 0,
+      "total": 4260,
+      "payment": { "method": "card", "paidAt": "2026-09-28T20:05:00+08:00" },
+      "history": [
+        { "status": "待付款", "at": "2026-09-28T20:00:00+08:00" },
+        { "status": "已付款", "at": "2026-09-28T20:05:00+08:00" },
+        { "status": "出貨中", "at": "2026-09-29T11:00:00+08:00" },
+        { "status": "已送達", "at": "2026-10-01T14:30:00+08:00" }
+      ]
+    },
+    {
+      "id": "WD-20261003-0002",
+      "memberId": 1,
+      "createdAt": "2026-10-03T19:20:00+08:00",
+      "status": "待付款",
+      "items": [
+        { "productId": 509, "name": "酒紅吊帶連身裙", "brand": "舊課本", "colour": "burgundy", "colourName": "酒紅", "size": "M", "qty": 1, "price": 3680 }
+      ],
+      "address": { "recipient": "林示範", "phone": "0912345678", "postalCode": "106", "city": "臺北市", "district": "大安區", "street": "和平東路二段 100 號 5 樓" },
+      "subtotal": 3680,
+      "shipping": 0,
+      "total": 3680,
+      "payment": { "method": "mock", "paidAt": null },
+      "history": [
+        { "status": "待付款", "at": "2026-10-03T19:20:00+08:00" }
+      ]
+    }
+  ]
+}

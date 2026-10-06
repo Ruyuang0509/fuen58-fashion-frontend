@@ -79,5 +79,11 @@ export function useCart() {
     save()
   }
 
-  return { lines, count, subtotal, add, setQty, setSize, remove, restore }
+  // 下單成功後清空
+  function clear() {
+    lines.splice(0, lines.length)
+    save()
+  }
+
+  return { lines, count, subtotal, add, setQty, setSize, remove, restore, clear }
 }

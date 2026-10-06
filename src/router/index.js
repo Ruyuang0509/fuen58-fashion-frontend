@@ -30,15 +30,17 @@ const routes = [
 
   // 交易區
   { path: '/cart', name: 'cart', component: () => import('@/views/CartView.vue'), meta: { title: '購物車', zone: 'transaction' } },
-  { path: '/checkout', name: 'checkout', component: todo, meta: { title: '結帳', zone: 'transaction', level: '必', note: '收件資訊 → 付款方式。' } },
-  { path: '/checkout/done/:orderId', name: 'checkout-done', component: todo, meta: { title: '訂單完成', zone: 'transaction', level: '必', note: '訂單編號、明細、繼續逛。' } },
-  { path: '/login', name: 'login', component: todo, meta: { title: '登入', zone: 'transaction', level: '必', note: '登入後回到原本的頁面。' } },
-  { path: '/register', name: 'register', component: todo, meta: { title: '註冊', zone: 'transaction', level: '必', note: '電子郵件與密碼；密碼強度檢查；重複帳號提示。' } },
+  // 結帳與會員（第十輪）。auth: true 的頁面沒登入會先到登入頁，登入後回到原本要去的網址
+  { path: '/checkout', name: 'checkout', component: () => import('@/views/CheckoutView.vue'), meta: { title: '結帳', zone: 'transaction', auth: true } },
+  { path: '/checkout/done/:orderId', name: 'checkout-done', component: () => import('@/views/OrderDoneView.vue'), meta: { title: '訂單完成', zone: 'transaction', auth: true } },
+  // guest: true 的頁面是給還沒登入的人的；已登入就直接去會員中心
+  { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue'), meta: { title: '登入', zone: 'transaction', guest: true } },
+  { path: '/register', name: 'register', component: () => import('@/views/RegisterView.vue'), meta: { title: '註冊', zone: 'transaction', guest: true } },
   { path: '/onboarding/body', name: 'onboarding-body', component: todo, meta: { title: '填身形', zone: 'transaction', level: '特', note: '註冊後引導第二步：身高、體重，三圍選填；可略過。' } },
-  { path: '/account', name: 'account', component: todo, meta: { title: '個人資料', zone: 'transaction', level: '必', note: '姓名、電話、生日、性別；修改密碼。' } },
-  { path: '/account/addresses', name: 'account-addresses', component: todo, meta: { title: '地址簿', zone: 'transaction', level: '必', note: '多筆收件地址與預設地址。' } },
-  { path: '/account/orders', name: 'account-orders', component: todo, meta: { title: '訂單紀錄', zone: 'transaction', level: '必', note: '列表與狀態；可取消未付款的訂單。' } },
-  { path: '/account/orders/:id', name: 'account-order', component: todo, meta: { title: '訂單明細', zone: 'transaction', level: '必', note: '明細、狀態、確認收貨。' } },
+  { path: '/account', name: 'account', component: () => import('@/views/AccountView.vue'), meta: { title: '個人資料', zone: 'transaction', auth: true } },
+  { path: '/account/addresses', name: 'account-addresses', component: () => import('@/views/AddressesView.vue'), meta: { title: '地址簿', zone: 'transaction', auth: true } },
+  { path: '/account/orders', name: 'account-orders', component: () => import('@/views/OrdersView.vue'), meta: { title: '訂單紀錄', zone: 'transaction', auth: true } },
+  { path: '/account/orders/:id', name: 'account-order', component: () => import('@/views/OrderView.vue'), meta: { title: '訂單明細', zone: 'transaction', auth: true } },
   { path: '/account/body', name: 'account-body', component: todo, meta: { title: '身形資料', zone: 'transaction', level: '特', note: '供尺寸推薦與試穿使用。' } },
   { path: '/account/style', name: 'account-style', component: todo, meta: { title: '我的偏好', zone: 'transaction', level: '特', note: '以風格組成比例呈現；可重選。' } },
   { path: '/account/favorites', name: 'account-favorites', component: todo, meta: { title: '收藏', zone: 'transaction', level: '特', note: '收藏的商品，可直接加入購物車。' } },
@@ -60,6 +62,17 @@ export const router = createRouter({
     if (to.path === from.path) return false
     return { top: 0 }
   },
+})
+
+// 要登入的頁面：沒登入就先去登入頁，帶著原本要去的網址，登入後回來（功能規劃 2「登入後回到原本頁面」）。
+// session store 用動態載入：首頁這類不用登入的頁面不必先載它。
+router.beforeEach(async (to) => {
+  if (!to.meta.auth && !to.meta.guest) return true
+  const { useSession } = await import('@/stores/session')
+  const loggedIn = useSession().loggedIn.value
+  if (to.meta.guest) return loggedIn ? { name: 'account' } : true
+  if (loggedIn) return true
+  return { name: 'login', query: { redirect: to.fullPath } }
 })
 
 router.afterEach((to) => {

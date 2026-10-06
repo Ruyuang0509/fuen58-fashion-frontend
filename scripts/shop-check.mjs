@@ -203,7 +203,8 @@ check('cart: undo → 5 lines, order kept', (await count('.lines .line')) === 5 
 await shot('cart-ready')
 await click('.summary .primary')
 await sleep(600)
-check('cart: checkout navigates', (await ev('location.pathname')) === '/checkout', await ev('location.pathname'))
+// 沒登入的人按結帳：先到登入頁，帶著原本要去的網址（第十輪的守門）
+check('cart: checkout sends an anonymous shopper to login with redirect', (await ev('location.pathname + location.search')) === '/login?redirect=/checkout', await ev('location.pathname + location.search'))
 
 // ── 5. 搜尋 ──
 await go('/search?q=' + encodeURIComponent('襯衫'), 1800)

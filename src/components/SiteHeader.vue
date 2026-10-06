@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { FEATURES, SITE_NAME } from '@/config'
 import { useCart } from '@/stores/cart'
+import { useSession } from '@/stores/session'
 
 // float：浮在首頁的天空上，沒有底色與底線，字色跟著外面；捲過天空後由外面把它關掉
 defineProps({
@@ -12,6 +13,8 @@ defineProps({
 const route = useRoute()
 const router = useRouter()
 const { count } = useCart()
+// 登入後「會員」變成名字，連到會員中心；沒登入連到登入頁
+const { user, loggedIn } = useSession()
 // 搜尋框顯示網址上的關鍵字：在搜尋結果頁重新整理、按上一頁，框裡的字和結果一致
 const keyword = ref(String(route.query.q ?? ''))
 watch(() => route.query.q, (q) => (keyword.value = String(q ?? '')))
@@ -46,7 +49,8 @@ function search() {
       <RouterLink to="/cart" class="cart-link">
         購物車<span v-if="count" class="count" :class="{ bump }">{{ count }}<span class="visually-hidden"> 件</span></span>
       </RouterLink>
-      <RouterLink to="/login">會員</RouterLink>
+      <RouterLink v-if="loggedIn" :to="{ name: 'account' }" class="member">{{ user.name || '會員' }}</RouterLink>
+      <RouterLink v-else :to="{ name: 'login' }">會員</RouterLink>
     </nav>
   </header>
 </template>
