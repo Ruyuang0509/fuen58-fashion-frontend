@@ -1,6 +1,18 @@
 [
   {
     "productId": 101,
+    "name": "落肩混紡大衣",
+    "brand": "霧岸",
+    "brandCode": "wuan",
+    "category": "outer",
+    "price": 3280,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-09-21",
+    "sold": 28,
     "kind": "coat",
     "fabric": "wool",
     "material": "羊毛 60%・聚酯纖維 40%；內裡聚酯纖維",
@@ -70,6 +82,19 @@
   },
   {
     "productId": 102,
+    "name": "圓領細針織上衣",
+    "brand": "半日",
+    "brandCode": "banri",
+    "category": "top",
+    "price": 1180,
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL"
+    ],
+    "listedAt": "2026-09-28",
+    "sold": 92,
     "kind": "top",
     "fabric": "cotton",
     "material": "棉 85%・尼龍 15%",
@@ -156,6 +181,18 @@
   },
   {
     "productId": 103,
+    "name": "直筒西裝褲",
+    "brand": "霧岸",
+    "brandCode": "wuan",
+    "category": "bottom",
+    "price": 1680,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-08-21",
+    "sold": 81,
     "kind": "trousers",
     "fabric": "wool",
     "material": "聚酯纖維 65%・嫘縈 30%・彈性纖維 5%",
@@ -221,6 +258,18 @@
   },
   {
     "productId": 104,
+    "name": "寬版棉質襯衫",
+    "brand": "半日",
+    "brandCode": "banri",
+    "category": "top",
+    "price": 1380,
+    "sizes": [
+      "M",
+      "L",
+      "XL"
+    ],
+    "listedAt": "2026-08-28",
+    "sold": 107,
     "kind": "top",
     "fabric": "cotton",
     "material": "棉 100%",
@@ -290,6 +339,18 @@
   },
   {
     "productId": 105,
+    "name": "九分打褶褲",
+    "brand": "半日",
+    "brandCode": "banri",
+    "category": "bottom",
+    "price": 1580,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-09-04",
+    "sold": 16,
     "kind": "trousers",
     "fabric": "cotton",
     "material": "棉 97%・彈性纖維 3%",
@@ -355,6 +416,18 @@
   },
   {
     "productId": 201,
+    "name": "教練外套",
+    "brand": "夜班車",
+    "brandCode": "yebanche",
+    "category": "outer",
+    "price": 2480,
+    "sizes": [
+      "M",
+      "L",
+      "XL"
+    ],
+    "listedAt": "2026-09-01",
+    "sold": 44,
     "kind": "jacket",
     "fabric": "nylon",
     "material": "尼龍 100%；內裡聚酯纖維網布",
@@ -432,6 +505,19 @@
   },
   {
     "productId": 202,
+    "name": "厚磅印花短袖",
+    "brand": "夜班車",
+    "brandCode": "yebanche",
+    "category": "top",
+    "price": 880,
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL"
+    ],
+    "listedAt": "2026-09-08",
+    "sold": 118,
     "kind": "top",
     "fabric": "cotton",
     "material": "棉 100%（厚磅 280g）",
@@ -509,6 +595,17 @@
   },
   {
     "productId": 203,
+    "name": "寬管工作褲",
+    "brand": "拾穗製衣",
+    "brandCode": "shisui",
+    "category": "bottom",
+    "price": 1780,
+    "sizes": [
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-09-15",
+    "sold": 27,
     "kind": "trousers",
     "fabric": "denim",
     "material": "棉 100%（11 oz 丹寧）",
@@ -567,6 +664,16 @@
   },
   {
     "productId": 204,
+    "name": "毛帽",
+    "brand": "夜班車",
+    "brandCode": "yebanche",
+    "category": "acc",
+    "price": 480,
+    "sizes": [
+      "F"
+    ],
+    "listedAt": "2026-09-22",
+    "sold": 31,
     "kind": "beanie",
     "fabric": "wool",
     "material": "羊毛 50%・壓克力 50%",
@@ -613,6 +720,18 @@
   },
   {
     "productId": 205,
+    "name": "短版飛行外套",
+    "brand": "夜班車",
+    "brandCode": "yebanche",
+    "category": "outer",
+    "price": 2880,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-09-29",
+    "sold": 62,
     "kind": "jacket",
     "fabric": "nylon",
     "material": "尼龍 100%；內裡聚酯纖維鋪棉",
@@ -682,6 +801,17 @@
   },
   {
     "productId": 206,
+    "name": "百褶短裙",
+    "brand": "拾穗製衣",
+    "brandCode": "shisui",
+    "category": "bottom",
+    "price": 1280,
+    "sizes": [
+      "S",
+      "M"
+    ],
+    "listedAt": "2026-08-22",
+    "sold": 102,
     "kind": "trousers",
     "fabric": "satin",
     "material": "聚酯纖維 100%",
@@ -739,6 +869,18 @@
   },
   {
     "productId": 301,
+    "name": "燈芯絨獵裝外套",
+    "brand": "舊課本",
+    "brandCode": "jiukeben",
+    "category": "outer",
+    "price": 3080,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-09-26",
+    "sold": 101,
     "kind": "coat",
     "fabric": "wool",
     "material": "棉 100%（燈芯絨）",
@@ -808,6 +950,18 @@
   },
   {
     "productId": 302,
+    "name": "古巴領短袖襯衫",
+    "brand": "舊課本",
+    "brandCode": "jiukeben",
+    "category": "top",
+    "price": 1280,
+    "sizes": [
+      "M",
+      "L",
+      "XL"
+    ],
+    "listedAt": "2026-10-03",
+    "sold": 111,
     "kind": "blouse",
     "fabric": "cotton",
     "material": "嫘縈 70%・棉 30%",
@@ -877,6 +1031,18 @@
   },
   {
     "productId": 303,
+    "name": "高腰直筒牛仔褲",
+    "brand": "拾穗製衣",
+    "brandCode": "shisui",
+    "category": "bottom",
+    "price": 1880,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-08-26",
+    "sold": 119,
     "kind": "skirt",
     "fabric": "denim",
     "material": "棉 100%（12 oz 丹寧）",
@@ -942,6 +1108,19 @@
   },
   {
     "productId": 401,
+    "name": "防潑水連帽外套",
+    "brand": "野徑",
+    "brandCode": "yejing",
+    "category": "outer",
+    "price": 3680,
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL"
+    ],
+    "listedAt": "2026-09-06",
+    "sold": 47,
     "kind": "vest",
     "fabric": "nylon",
     "material": "尼龍 100%（防潑水塗層）",
@@ -1021,6 +1200,19 @@
   },
   {
     "productId": 402,
+    "name": "快乾長袖",
+    "brand": "野徑",
+    "brandCode": "yejing",
+    "category": "top",
+    "price": 980,
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL"
+    ],
+    "listedAt": "2026-09-13",
+    "sold": 77,
     "kind": "top",
     "fabric": "cotton",
     "material": "聚酯纖維 88%・彈性纖維 12%",
@@ -1100,6 +1292,18 @@
   },
   {
     "productId": 403,
+    "name": "機能束口褲",
+    "brand": "野徑",
+    "brandCode": "yejing",
+    "category": "bottom",
+    "price": 1680,
+    "sizes": [
+      "M",
+      "L",
+      "XL"
+    ],
+    "listedAt": "2026-09-20",
+    "sold": 31,
     "kind": "trousers",
     "fabric": "nylon",
     "material": "尼龍 92%・彈性纖維 8%",
@@ -1167,6 +1371,16 @@
   },
   {
     "productId": 404,
+    "name": "健行襪",
+    "brand": "野徑",
+    "brandCode": "yejing",
+    "category": "shoes",
+    "price": 280,
+    "sizes": [
+      "F"
+    ],
+    "listedAt": "2026-09-27",
+    "sold": 90,
     "kind": "socks",
     "fabric": "wool",
     "material": "美麗諾羊毛 60%・尼龍 38%・彈性纖維 2%",
@@ -1216,6 +1430,18 @@
   },
   {
     "productId": 501,
+    "name": "單排扣西裝外套",
+    "brand": "霧岸",
+    "brandCode": "wuan",
+    "category": "outer",
+    "price": 3980,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-10-01",
+    "sold": 51,
     "kind": "coat",
     "fabric": "wool",
     "material": "羊毛 70%・聚酯纖維 30%；內裡聚酯纖維",
@@ -1285,6 +1511,19 @@
   },
   {
     "productId": 502,
+    "name": "牛津襯衫",
+    "brand": "舊課本",
+    "brandCode": "jiukeben",
+    "category": "top",
+    "price": 1480,
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL"
+    ],
+    "listedAt": "2026-08-24",
+    "sold": 71,
     "kind": "blouse",
     "fabric": "cotton",
     "material": "棉 100%（牛津布）",
@@ -1362,6 +1601,18 @@
   },
   {
     "productId": 503,
+    "name": "錐形西裝褲",
+    "brand": "霧岸",
+    "brandCode": "wuan",
+    "category": "bottom",
+    "price": 1880,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-08-31",
+    "sold": 111,
     "kind": "trousers",
     "fabric": "wool",
     "material": "羊毛 70%・聚酯纖維 30%",
@@ -1427,6 +1678,18 @@
   },
   {
     "productId": 504,
+    "name": "綁帶襯衫洋裝",
+    "brand": "半日",
+    "brandCode": "banri",
+    "category": "top",
+    "price": 2480,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-09-07",
+    "sold": 111,
     "kind": "blouse",
     "fabric": "satin",
     "material": "聚酯纖維 100%",
@@ -1496,6 +1759,16 @@
   },
   {
     "productId": 505,
+    "name": "細皮帶",
+    "brand": "舊課本",
+    "brandCode": "jiukeben",
+    "category": "acc",
+    "price": 680,
+    "sizes": [
+      "F"
+    ],
+    "listedAt": "2026-09-14",
+    "sold": 71,
     "kind": "belt",
     "fabric": "leather",
     "material": "牛皮；黃銅扣頭",
@@ -1544,6 +1817,18 @@
   },
   {
     "productId": 506,
+    "name": "水洗皮夾克",
+    "brand": "夜班車",
+    "brandCode": "yebanche",
+    "category": "outer",
+    "price": 4280,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-09-21",
+    "sold": 31,
     "kind": "jacket",
     "fabric": "leather",
     "material": "牛皮（水洗處理）；內裡聚酯纖維",
@@ -1605,6 +1890,19 @@
   },
   {
     "productId": 507,
+    "name": "破壞感短T",
+    "brand": "夜班車",
+    "brandCode": "yebanche",
+    "category": "top",
+    "price": 980,
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL"
+    ],
+    "listedAt": "2026-09-28",
+    "sold": 102,
     "kind": "top",
     "fabric": "cotton",
     "material": "棉 100%",
@@ -1682,6 +1980,18 @@
   },
   {
     "productId": 508,
+    "name": "黑色直筒褲",
+    "brand": "霧岸",
+    "brandCode": "wuan",
+    "category": "bottom",
+    "price": 1880,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-08-21",
+    "sold": 90,
     "kind": "trousers",
     "fabric": "denim",
     "material": "棉 98%・彈性纖維 2%",
@@ -1739,6 +2049,17 @@
   },
   {
     "productId": 509,
+    "name": "酒紅吊帶連身裙",
+    "brand": "舊課本",
+    "brandCode": "jiukeben",
+    "category": "outer",
+    "price": 3680,
+    "sizes": [
+      "S",
+      "M"
+    ],
+    "listedAt": "2026-08-28",
+    "sold": 78,
     "kind": "dress",
     "fabric": "satin",
     "material": "聚酯纖維 100%；內裡棉",
@@ -1797,6 +2118,18 @@
   },
   {
     "productId": 510,
+    "name": "蕾絲領襯衫",
+    "brand": "舊課本",
+    "brandCode": "jiukeben",
+    "category": "top",
+    "price": 1580,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-09-04",
+    "sold": 79,
     "kind": "blouse",
     "fabric": "cotton",
     "material": "棉 100%；領口蕾絲為尼龍",
@@ -1857,6 +2190,17 @@
   },
   {
     "productId": 511,
+    "name": "蓬裙襯裙",
+    "brand": "半日",
+    "brandCode": "banri",
+    "category": "bottom",
+    "price": 1280,
+    "sizes": [
+      "S",
+      "M"
+    ],
+    "listedAt": "2026-09-11",
+    "sold": 76,
     "kind": "skirt",
     "fabric": "satin",
     "material": "聚酯纖維 100%（硬紗）",
@@ -1915,6 +2259,18 @@
   },
   {
     "productId": 512,
+    "name": "蝴蝶結泡泡袖襯衫",
+    "brand": "半日",
+    "brandCode": "banri",
+    "category": "top",
+    "price": 1380,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-09-18",
+    "sold": 62,
     "kind": "blouse",
     "fabric": "cotton",
     "material": "棉 65%・聚酯纖維 35%",
@@ -1984,6 +2340,17 @@
   },
   {
     "productId": 513,
+    "name": "粉色百褶短裙",
+    "brand": "半日",
+    "brandCode": "banri",
+    "category": "bottom",
+    "price": 1480,
+    "sizes": [
+      "S",
+      "M"
+    ],
+    "listedAt": "2026-09-25",
+    "sold": 80,
     "kind": "skirt",
     "fabric": "satin",
     "material": "聚酯纖維 100%",
@@ -2049,6 +2416,18 @@
   },
   {
     "productId": 514,
+    "name": "短版針織外套",
+    "brand": "拾穗製衣",
+    "brandCode": "shisui",
+    "category": "outer",
+    "price": 1980,
+    "sizes": [
+      "S",
+      "M",
+      "L"
+    ],
+    "listedAt": "2026-10-02",
+    "sold": 58,
     "kind": "blouse",
     "fabric": "cotton",
     "material": "壓克力 60%・尼龍 30%・羊毛 10%",

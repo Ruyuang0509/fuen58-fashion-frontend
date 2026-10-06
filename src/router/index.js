@@ -20,10 +20,11 @@ const routes = [
   { path: '/search', name: 'search', component: () => import('@/views/SearchView.vue'), meta: { title: '搜尋結果', zone: 'explore' } },
   // 商品頁：上半部屬探索區；購買區塊守慣例（在頁面裡自己分）
   { path: '/products/:id', name: 'product', component: () => import('@/views/ProductView.vue'), meta: { title: '商品頁', zone: 'explore' } },
-  { path: '/brands/:id', name: 'brand', component: todo, meta: { title: '品牌頁', zone: 'explore', level: '加', note: '品牌介紹加上該品牌的單品格。' } },
+  { path: '/brands/:id', name: 'brand', component: () => import('@/views/BrandView.vue'), meta: { title: '品牌頁', zone: 'explore' } },
   { path: '/wall', name: 'wall', component: todo, meta: { title: '穿搭牆', zone: 'explore', level: '特', note: '瀑布流；依主題篩選；依最新或最多讚排序。' } },
   { path: '/wall/:id', name: 'wall-post', component: todo, meta: { title: '穿搭照', zone: 'explore', level: '特', note: '單張穿搭照與照片上的商品標註。' } },
-  { path: '/weather', name: 'weather', component: todo, meta: { title: '天氣穿搭', zone: 'explore', level: '特', note: '一組搭配加一句理由，可以換一組。' } },
+  // 天氣穿搭就是首頁第一屏（天氣、一句理由、合今天的幾套、可換風格），所以這個網址直接回首頁（2026-10-06 使用者裁決）
+  { path: '/weather', name: 'weather', redirect: '/' },
   { path: '/onboarding/style', name: 'onboarding-style', component: todo, meta: { title: '選偏好', zone: 'explore', level: '特', note: '註冊後引導第一步：至少選三張風格圖片；可略過。' } },
   { path: '/fitting', name: 'fitting', component: todo, meta: { title: '試穿間', zone: 'explore', level: '加', note: '2D 人偶試穿；先試做再決定是否排入。' } },
 

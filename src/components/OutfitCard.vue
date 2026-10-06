@@ -29,8 +29,8 @@ function sizeFor(item) {
 }
 
 function addAll() {
-  // 顏色 null 代表每件都是穿搭裡的那個（預設）顏色
-  for (const item of props.outfit.items) add(item, sizeFor(item))
+  // 顏色用這套穿搭選的那個
+  for (const item of props.outfit.items) add(item, sizeFor(item), item.colourCode ?? null)
   fly(root.value?.querySelector('.photo img'))
   feedback.value = `已加入 ${props.outfit.items.length} 件`
   clearTimeout(feedbackTimer)

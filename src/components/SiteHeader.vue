@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { SITE_NAME } from '@/config'
+import { FEATURES, SITE_NAME } from '@/config'
 import { useCart } from '@/stores/cart'
 
 // float：浮在首頁的天空上，沒有底色與底線，字色跟著外面；捲過天空後由外面把它關掉
@@ -39,9 +39,10 @@ function search() {
       <button type="submit">搜尋</button>
     </form>
 
+    <!-- 「天氣穿搭」不另設連結：首頁第一屏就是它（2026-10-06 使用者裁決）；穿搭牆有內容前先不放 -->
     <nav class="links" aria-label="主要">
-      <RouterLink to="/wall">穿搭牆</RouterLink>
-      <RouterLink to="/weather">天氣穿搭</RouterLink>
+      <RouterLink :to="{ name: 'outfits' }">全部穿搭</RouterLink>
+      <RouterLink v-if="FEATURES.wall" to="/wall">穿搭牆</RouterLink>
       <RouterLink to="/cart" class="cart-link">
         購物車<span v-if="count" class="count" :class="{ bump }">{{ count }}<span class="visually-hidden"> 件</span></span>
       </RouterLink>

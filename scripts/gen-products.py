@@ -1,18 +1,50 @@
 """Generate src/api/mock/products.json: per-product details for the 32 items in outfits.json.
 
-Hand-written per product: description, material text, colourways, model-fit note, tags.
+products.json is the MASTER product table (list fields + details); outfits.json only references productId + colourway.
+Hand-written per product: list fields, description, material text, colourways, model-fit note, tags.
 Derived by rule: measurement tables (per kind + size), stock per colour x size (seeded, with chosen zeros).
 Usage: python scripts/gen-products.py (any cwd). Output is UTF-8 without BOM, LF.
 """
 import json, random
+from datetime import date, timedelta
 from pathlib import Path
 
 repo = Path(__file__).resolve().parents[1]
-outfits = json.loads((repo / "src/api/mock/outfits.json").read_text(encoding="utf-8"))
-items = {}
-for o in outfits:
-    for it in o["items"]:
-        items.setdefault(it["productId"], it)
+# 列表欄位（名稱、品牌、類別、價格、尺寸、預設布色）。商品是主表；穿搭（outfits.json）只用 productId 引用。
+items = {
+ 101: dict(name="落肩混紡大衣", brand="霧岸", brandCode="wuan", category="outer", price=3280, sizes=["S", "M", "L"], colour="#d9d4ca", kind="coat"),
+ 102: dict(name="圓領細針織上衣", brand="半日", brandCode="banri", category="top", price=1180, sizes=["S", "M", "L", "XL"], colour="#f1ede6", kind="top"),
+ 103: dict(name="直筒西裝褲", brand="霧岸", brandCode="wuan", category="bottom", price=1680, sizes=["S", "M", "L"], colour="#2e2c29", kind="trousers"),
+ 104: dict(name="寬版棉質襯衫", brand="半日", brandCode="banri", category="top", price=1380, sizes=["M", "L", "XL"], colour="#f1ede6", kind="top"),
+ 105: dict(name="九分打褶褲", brand="半日", brandCode="banri", category="bottom", price=1580, sizes=["S", "M", "L"], colour="#2e2c29", kind="trousers"),
+ 201: dict(name="教練外套", brand="夜班車", brandCode="yebanche", category="outer", price=2480, sizes=["M", "L", "XL"], colour="#2f3a4a", kind="jacket"),
+ 202: dict(name="厚磅印花短袖", brand="夜班車", brandCode="yebanche", category="top", price=880, sizes=["S", "M", "L", "XL"], colour="#e9e4da", kind="top"),
+ 203: dict(name="寬管工作褲", brand="拾穗製衣", brandCode="shisui", category="bottom", price=1780, sizes=["M", "L"], colour="#4a5566", kind="trousers"),
+ 204: dict(name="毛帽", brand="夜班車", brandCode="yebanche", category="acc", price=480, sizes=["F"], colour=None, kind="beanie"),
+ 205: dict(name="短版飛行外套", brand="夜班車", brandCode="yebanche", category="outer", price=2880, sizes=["S", "M", "L"], colour="#2f3a4a", kind="jacket"),
+ 206: dict(name="百褶短裙", brand="拾穗製衣", brandCode="shisui", category="bottom", price=1280, sizes=["S", "M"], colour="#4a5566", kind="trousers"),
+ 301: dict(name="燈芯絨獵裝外套", brand="舊課本", brandCode="jiukeben", category="outer", price=3080, sizes=["S", "M", "L"], colour="#7a4a2a", kind="coat"),
+ 302: dict(name="古巴領短袖襯衫", brand="舊課本", brandCode="jiukeben", category="top", price=1280, sizes=["M", "L", "XL"], colour="#e8d7b0", kind="blouse"),
+ 303: dict(name="高腰直筒牛仔褲", brand="拾穗製衣", brandCode="shisui", category="bottom", price=1880, sizes=["S", "M", "L"], colour="#9a6a3c", kind="skirt"),
+ 401: dict(name="防潑水連帽外套", brand="野徑", brandCode="yejing", category="outer", price=3680, sizes=["S", "M", "L", "XL"], colour="#e8b53a", kind="vest"),
+ 402: dict(name="快乾長袖", brand="野徑", brandCode="yejing", category="top", price=980, sizes=["S", "M", "L", "XL"], colour="#3f5a46", kind="top"),
+ 403: dict(name="機能束口褲", brand="野徑", brandCode="yejing", category="bottom", price=1680, sizes=["M", "L", "XL"], colour="#5b5a4e", kind="trousers"),
+ 404: dict(name="健行襪", brand="野徑", brandCode="yejing", category="shoes", price=280, sizes=["F"], colour=None, kind="socks"),
+ 501: dict(name="單排扣西裝外套", brand="霧岸", brandCode="wuan", category="outer", price=3980, sizes=["S", "M", "L"], colour="#c6a06a", kind="coat"),
+ 502: dict(name="牛津襯衫", brand="舊課本", brandCode="jiukeben", category="top", price=1480, sizes=["S", "M", "L", "XL"], colour="#f3efe8", kind="blouse"),
+ 503: dict(name="錐形西裝褲", brand="霧岸", brandCode="wuan", category="bottom", price=1880, sizes=["S", "M", "L"], colour="#2b3550", kind="trousers"),
+ 504: dict(name="綁帶襯衫洋裝", brand="半日", brandCode="banri", category="top", price=2480, sizes=["S", "M", "L"], colour="#f3efe8", kind="blouse"),
+ 505: dict(name="細皮帶", brand="舊課本", brandCode="jiukeben", category="acc", price=680, sizes=["F"], colour=None, kind="belt"),
+ 506: dict(name="水洗皮夾克", brand="夜班車", brandCode="yebanche", category="outer", price=4280, sizes=["S", "M", "L"], colour="#2b272c", kind="jacket"),
+ 507: dict(name="破壞感短T", brand="夜班車", brandCode="yebanche", category="top", price=980, sizes=["S", "M", "L", "XL"], colour="#5a1f24", kind="top"),
+ 508: dict(name="黑色直筒褲", brand="霧岸", brandCode="wuan", category="bottom", price=1880, sizes=["S", "M", "L"], colour="#1f1c22", kind="trousers"),
+ 509: dict(name="酒紅吊帶連身裙", brand="舊課本", brandCode="jiukeben", category="outer", price=3680, sizes=["S", "M"], colour="#7a2f45", kind="dress"),
+ 510: dict(name="蕾絲領襯衫", brand="舊課本", brandCode="jiukeben", category="top", price=1580, sizes=["S", "M", "L"], colour="#f6efe6", kind="blouse"),
+ 511: dict(name="蓬裙襯裙", brand="半日", brandCode="banri", category="bottom", price=1280, sizes=["S", "M"], colour="#7a2f45", kind="skirt"),
+ 512: dict(name="蝴蝶結泡泡袖襯衫", brand="半日", brandCode="banri", category="top", price=1380, sizes=["S", "M", "L"], colour="#f6f0ea", kind="blouse"),
+ 513: dict(name="粉色百褶短裙", brand="半日", brandCode="banri", category="bottom", price=1480, sizes=["S", "M"], colour="#e9c9d3", kind="skirt"),
+ 514: dict(name="短版針織外套", brand="拾穗製衣", brandCode="shisui", category="outer", price=1980, sizes=["S", "M", "L"], colour="#f6d2dc", kind="blouse"),
+}
 
 # fabric for the renderer (cotton | denim | leather | nylon | wool | satin) + display material text
 # colourways: first is the default (hex must equal the outfit's colour so the outfit look stays the same)
@@ -226,6 +258,7 @@ def measure_for(pid, kind, sizes):
 
 # stock: seeded; a few chosen zeros so the out-of-stock state shows on the first outfit
 rng = random.Random(58)
+rng_sold = random.Random(85)  # 銷量另用一個種子，不影響庫存的亂數序列
 ZERO = {(101, "charcoal", "L"), (101, "oat", "S"), (302, "wheat", "M"), (509, "burgundy", "S"), (203, "slate", "L"), (513, "pink", "M"), (506, "black", "S")}
 LOW = {(102, "ivory", "M"): 2, (201, "navy", "L"): 1, (401, "mustard", "M"): 3, (512, "white", "S"): 2}
 
@@ -247,8 +280,18 @@ for pid in sorted(items):
             else:
                 stock[key] = rng.randint(4, 18)
     h, w, size, note = d["fit"]
+    # 上架日與累計銷量：排序（新上架、熱銷）要用；日期是前端暫定的假資料
+    listed = date(2026, 8, 20) + timedelta(days=(pid * 7) % 45)
     out.append({
         "productId": pid,
+        "name": it["name"],
+        "brand": it["brand"],
+        "brandCode": it["brandCode"],
+        "category": it["category"],
+        "price": it["price"],
+        "sizes": it["sizes"],
+        "listedAt": listed.isoformat(),
+        "sold": rng_sold.randint(3, 120),
         "kind": kind,
         "fabric": d["fabric"],
         "material": d["material"],

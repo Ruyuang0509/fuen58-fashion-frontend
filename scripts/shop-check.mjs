@@ -82,6 +82,7 @@ const phone = W < 600
 // ── 1. 商品頁 101（落肩混紡大衣：兩色、三尺寸、燕麥 S 無庫存） ──
 await go('/products/101', 2200)
 await shot('product-101')
+check('header: links are 全部穿搭／購物車／會員', JSON.stringify(await ev('[...document.querySelectorAll(".links a")].map((a) => a.textContent.trim())')) === JSON.stringify(['全部穿搭', '購物車', '會員']), await ev('[...document.querySelectorAll(".links a")].map((a) => a.textContent.trim()).join("|")'))
 check('product: name', (await text('h1.name')) === '落肩混紡大衣', await text('h1.name'))
 check('product: main image is a rendered PNG', (await ev('document.querySelector(".main img")?.src.startsWith("data:image/png")')) === true)
 check('product: 2 colour thumbs', (await count('.thumbs button')) === 2, await count('.thumbs button'))
@@ -161,6 +162,7 @@ check('outfits: whole outfit added, count 6', (await cartCount()) === '6', await
 await go('/cart', 2200)
 await shot('cart')
 check('cart: 5 lines', (await count('.lines .line')) === 5, await count('.lines .line'))
+check('cart: outfit-added line carries the outfit colour', (await text('.lines .line:nth-child(3) .meta')) === '霧岸・燕麥', await text('.lines .line:nth-child(3) .meta'))
 check('cart: 3 lines missing size', (await count('.size-pick.missing')) === 3, await count('.size-pick.missing'))
 check('cart: checkout disabled', (await ev('document.querySelector(".summary .primary").disabled')) === true)
 check('cart: missing-size hint', (await text('.summary .hint:last-of-type')) === '還有 3 件沒選尺寸。', await text('.summary .hint:last-of-type'))
@@ -214,6 +216,20 @@ await go('/search?q=zzz', 1800)
 await shot('search-empty')
 check('search: empty state with suggestions', (await count('.empty .grid .card')) >= 1 && (await text('.empty > p'))?.includes('找不到'), await count('.empty .grid .card'))
 check('search: overflow 0', (await overflow()) <= 0, await overflow())
+await go('/search?q=' + encodeURIComponent('襯衫') + '&sort=price-desc', 1800)
+check('search: price-desc puts NT$ 2,480 first', (await text('.grid .card .num')) === 'NT$ 2,480', await text('.grid .card .num'))
+check('search: sort select shows 價格高到低', (await ev('document.querySelector(".lead select").selectedOptions[0].textContent.trim()')) === '價格高到低')
+await go('/search?q=' + encodeURIComponent('襯衫') + '&stock=1', 1800)
+check('search: in-stock filter keeps 6 (all shirts have some stock)', (await count('.grid .card')) === 6, await count('.grid .card'))
+
+// ── 6. 品牌頁、天氣穿搭轉址 ──
+await go('/brands/wuan', 1800)
+await shot('brand-wuan')
+check('brand: name and products', (await text('.head h1')) === '霧岸' && (await count('.grid .card')) >= 1, `${await text('.head h1')} / ${await count('.grid .card')}`)
+await go('/brands/nope', 1500)
+check('brand: missing state', (await text('.state h1')) === '找不到這個品牌', await text('.state h1'))
+await go('/weather', 1200)
+check('weather: redirects to home', (await ev('location.pathname')) === '/', await ev('location.pathname'))
 
 const summary = { origin, size: `${W}x${H}`, passed: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok), problems }
 console.log(JSON.stringify(summary, null, 1))

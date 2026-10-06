@@ -9,46 +9,15 @@
     "items": [
       {
         "productId": 101,
-        "name": "落肩混紡大衣",
-        "brand": "霧岸",
-        "category": "outer",
-        "price": 3280,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "coat",
-        "colour": "#d9d4ca"
+        "colour": "oat"
       },
       {
         "productId": 102,
-        "name": "圓領細針織上衣",
-        "brand": "半日",
-        "category": "top",
-        "price": 1180,
-        "sizes": [
-          "S",
-          "M",
-          "L",
-          "XL"
-        ],
-        "kind": "top",
-        "colour": "#f1ede6"
+        "colour": "ivory"
       },
       {
         "productId": 103,
-        "name": "直筒西裝褲",
-        "brand": "霧岸",
-        "category": "bottom",
-        "price": 1680,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "trousers",
-        "colour": "#2e2c29"
+        "colour": "ink"
       }
     ]
   },
@@ -63,31 +32,11 @@
     "items": [
       {
         "productId": 104,
-        "name": "寬版棉質襯衫",
-        "brand": "半日",
-        "category": "top",
-        "price": 1380,
-        "sizes": [
-          "M",
-          "L",
-          "XL"
-        ],
-        "kind": "top",
-        "colour": "#f1ede6"
+        "colour": "ivory"
       },
       {
         "productId": 105,
-        "name": "九分打褶褲",
-        "brand": "半日",
-        "category": "bottom",
-        "price": 1580,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "trousers",
-        "colour": "#2e2c29"
+        "colour": "ink"
       }
     ]
   },
@@ -101,55 +50,19 @@
     "items": [
       {
         "productId": 201,
-        "name": "教練外套",
-        "brand": "夜班車",
-        "category": "outer",
-        "price": 2480,
-        "sizes": [
-          "M",
-          "L",
-          "XL"
-        ],
-        "kind": "jacket",
-        "colour": "#2f3a4a"
+        "colour": "navy"
       },
       {
         "productId": 202,
-        "name": "厚磅印花短袖",
-        "brand": "夜班車",
-        "category": "top",
-        "price": 880,
-        "sizes": [
-          "S",
-          "M",
-          "L",
-          "XL"
-        ],
-        "kind": "top",
-        "colour": "#e9e4da"
+        "colour": "bone"
       },
       {
         "productId": 203,
-        "name": "寬管工作褲",
-        "brand": "拾穗製衣",
-        "category": "bottom",
-        "price": 1780,
-        "sizes": [
-          "M",
-          "L"
-        ],
-        "kind": "trousers",
-        "colour": "#4a5566"
+        "colour": "slate"
       },
       {
         "productId": 204,
-        "name": "毛帽",
-        "brand": "夜班車",
-        "category": "acc",
-        "price": 480,
-        "sizes": [
-          "F"
-        ]
+        "colour": "black"
       }
     ]
   },
@@ -163,30 +76,11 @@
     "items": [
       {
         "productId": 205,
-        "name": "短版飛行外套",
-        "brand": "夜班車",
-        "category": "outer",
-        "price": 2880,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "jacket",
-        "colour": "#2f3a4a"
+        "colour": "navy"
       },
       {
         "productId": 206,
-        "name": "百褶短裙",
-        "brand": "拾穗製衣",
-        "category": "bottom",
-        "price": 1280,
-        "sizes": [
-          "S",
-          "M"
-        ],
-        "kind": "trousers",
-        "colour": "#4a5566"
+        "colour": "slate"
       }
     ]
   },
@@ -201,45 +95,15 @@
     "items": [
       {
         "productId": 301,
-        "name": "燈芯絨獵裝外套",
-        "brand": "舊課本",
-        "category": "outer",
-        "price": 3080,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "coat",
-        "colour": "#7a4a2a"
+        "colour": "tobacco"
       },
       {
         "productId": 302,
-        "name": "古巴領短袖襯衫",
-        "brand": "舊課本",
-        "category": "top",
-        "price": 1280,
-        "sizes": [
-          "M",
-          "L",
-          "XL"
-        ],
-        "kind": "blouse",
-        "colour": "#e8d7b0"
+        "colour": "wheat"
       },
       {
         "productId": 303,
-        "name": "高腰直筒牛仔褲",
-        "brand": "拾穗製衣",
-        "category": "bottom",
-        "price": 1880,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "skirt",
-        "colour": "#9a6a3c"
+        "colour": "camel"
       }
     ]
   },
@@ -254,57 +118,19 @@
     "items": [
       {
         "productId": 401,
-        "name": "防潑水連帽外套",
-        "brand": "野徑",
-        "category": "outer",
-        "price": 3680,
-        "sizes": [
-          "S",
-          "M",
-          "L",
-          "XL"
-        ],
-        "kind": "vest",
-        "colour": "#e8b53a"
+        "colour": "mustard"
       },
       {
         "productId": 402,
-        "name": "快乾長袖",
-        "brand": "野徑",
-        "category": "top",
-        "price": 980,
-        "sizes": [
-          "S",
-          "M",
-          "L",
-          "XL"
-        ],
-        "kind": "top",
-        "colour": "#3f5a46"
+        "colour": "pine"
       },
       {
         "productId": 403,
-        "name": "機能束口褲",
-        "brand": "野徑",
-        "category": "bottom",
-        "price": 1680,
-        "sizes": [
-          "M",
-          "L",
-          "XL"
-        ],
-        "kind": "trousers",
-        "colour": "#5b5a4e"
+        "colour": "khaki"
       },
       {
         "productId": 404,
-        "name": "健行襪",
-        "brand": "野徑",
-        "category": "shoes",
-        "price": 280,
-        "sizes": [
-          "F"
-        ]
+        "colour": "grey"
       }
     ]
   },
@@ -318,46 +144,15 @@
     "items": [
       {
         "productId": 501,
-        "name": "單排扣西裝外套",
-        "brand": "霧岸",
-        "category": "outer",
-        "price": 3980,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "coat",
-        "colour": "#c6a06a"
+        "colour": "camel"
       },
       {
         "productId": 502,
-        "name": "牛津襯衫",
-        "brand": "舊課本",
-        "category": "top",
-        "price": 1480,
-        "sizes": [
-          "S",
-          "M",
-          "L",
-          "XL"
-        ],
-        "kind": "blouse",
-        "colour": "#f3efe8"
+        "colour": "white"
       },
       {
         "productId": 503,
-        "name": "錐形西裝褲",
-        "brand": "霧岸",
-        "category": "bottom",
-        "price": 1880,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "trousers",
-        "colour": "#2b3550"
+        "colour": "navy"
       }
     ]
   },
@@ -371,27 +166,11 @@
     "items": [
       {
         "productId": 504,
-        "name": "綁帶襯衫洋裝",
-        "brand": "半日",
-        "category": "top",
-        "price": 2480,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "blouse",
-        "colour": "#f3efe8"
+        "colour": "white"
       },
       {
         "productId": 505,
-        "name": "細皮帶",
-        "brand": "舊課本",
-        "category": "acc",
-        "price": 680,
-        "sizes": [
-          "F"
-        ]
+        "colour": "black"
       }
     ]
   },
@@ -405,46 +184,15 @@
     "items": [
       {
         "productId": 506,
-        "name": "水洗皮夾克",
-        "brand": "夜班車",
-        "category": "outer",
-        "price": 4280,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "jacket",
-        "colour": "#2b272c"
+        "colour": "black"
       },
       {
         "productId": 507,
-        "name": "破壞感短T",
-        "brand": "夜班車",
-        "category": "top",
-        "price": 980,
-        "sizes": [
-          "S",
-          "M",
-          "L",
-          "XL"
-        ],
-        "kind": "top",
-        "colour": "#5a1f24"
+        "colour": "wine"
       },
       {
         "productId": 508,
-        "name": "黑色直筒褲",
-        "brand": "霧岸",
-        "category": "bottom",
-        "price": 1880,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "trousers",
-        "colour": "#1f1c22"
+        "colour": "black"
       }
     ]
   },
@@ -458,43 +206,15 @@
     "items": [
       {
         "productId": 509,
-        "name": "酒紅吊帶連身裙",
-        "brand": "舊課本",
-        "category": "outer",
-        "price": 3680,
-        "sizes": [
-          "S",
-          "M"
-        ],
-        "kind": "dress",
-        "colour": "#7a2f45"
+        "colour": "burgundy"
       },
       {
         "productId": 510,
-        "name": "蕾絲領襯衫",
-        "brand": "舊課本",
-        "category": "top",
-        "price": 1580,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "blouse",
-        "colour": "#f6efe6"
+        "colour": "ivory"
       },
       {
         "productId": 511,
-        "name": "蓬裙襯裙",
-        "brand": "半日",
-        "category": "bottom",
-        "price": 1280,
-        "sizes": [
-          "S",
-          "M"
-        ],
-        "kind": "skirt",
-        "colour": "#7a2f45"
+        "colour": "burgundy"
       }
     ]
   },
@@ -509,44 +229,15 @@
     "items": [
       {
         "productId": 512,
-        "name": "蝴蝶結泡泡袖襯衫",
-        "brand": "半日",
-        "category": "top",
-        "price": 1380,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "blouse",
-        "colour": "#f6f0ea"
+        "colour": "white"
       },
       {
         "productId": 513,
-        "name": "粉色百褶短裙",
-        "brand": "半日",
-        "category": "bottom",
-        "price": 1480,
-        "sizes": [
-          "S",
-          "M"
-        ],
-        "kind": "skirt",
-        "colour": "#e9c9d3"
+        "colour": "pink"
       },
       {
         "productId": 514,
-        "name": "短版針織外套",
-        "brand": "拾穗製衣",
-        "category": "outer",
-        "price": 1980,
-        "sizes": [
-          "S",
-          "M",
-          "L"
-        ],
-        "kind": "blouse",
-        "colour": "#f6d2dc"
+        "colour": "pink"
       }
     ]
   }

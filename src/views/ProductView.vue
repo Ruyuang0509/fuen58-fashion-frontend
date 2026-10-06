@@ -161,7 +161,7 @@ function closeZoom(event) {
 
       <section class="info">
         <p class="brand">
-          <RouterLink :to="{ name: 'brand', params: { id: product.brand } }">{{ product.brand }}</RouterLink>
+          <RouterLink :to="{ name: 'brand', params: { id: product.brandCode } }">{{ product.brand }}</RouterLink>
           <span class="soft">　{{ CATEGORY_NAMES[product.category] }}</span>
         </p>
         <h1 class="name">{{ product.name }}</h1>

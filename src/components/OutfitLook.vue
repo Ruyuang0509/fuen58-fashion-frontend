@@ -20,11 +20,11 @@ const layers = computed(() => {
   const outer = picked.find((item) => item.category === 'outer')
   return (outer?.kind === 'dress' ? picked.filter((item) => item.category !== 'bottom') : picked).map((item) => ({
       ...item,
-      src: renderGarment(item.kind, { colour: item.colour, fabric: fabricOf(item.kind), px: 560 }),
+      src: renderGarment(item.kind, { colour: item.colour, fabric: item.fabric ?? fabricOf(item.kind), px: 560 }),
     }))
 })
 
-// 布料依款式猜一個：正式版由商品資料提供
+// 商品資料沒給布料時，依款式猜一個
 function fabricOf(kind) {
   return { jacket: 'leather', vest: 'nylon', coat: 'wool', skirt: 'satin', trousers: 'denim' }[kind] ?? 'cotton'
 }
