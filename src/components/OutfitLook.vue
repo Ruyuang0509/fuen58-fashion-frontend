@@ -45,16 +45,18 @@ const brands = computed(() => [...new Set(props.outfit.items.map((item) => item.
   <figure class="look" :class="{ sway }" :style="{ '--h': `${height}px` }">
     <div class="swing">
       <!-- data-flip-id：卡片上的這一套和穿搭頁上的這一套是同一個 id，換頁時衣服才飛得過去（motion/lookFlip.js） -->
-      <div class="stack" :data-flip-id="`look-${outfit.id}`" aria-hidden="true">
+      <!-- TransitionGroup：換一件時新的淡進來、舊的淡出去（穿搭頁的「換一件」、試穿間），不是跳換 -->
+      <TransitionGroup name="piece" tag="div" class="stack" :data-flip-id="`look-${outfit.id}`" aria-hidden="true">
         <img
           v-for="item in layers"
           :key="item.productId"
           :src="item.src"
+          :data-product="item.productId"
           :class="['piece', item.category, { hl: item.productId === highlight }]"
           alt=""
           draggable="false"
         />
-      </div>
+      </TransitionGroup>
     </div>
     <figcaption v-if="caption">
       <strong>{{ outfit.title }}</strong>
@@ -136,6 +138,17 @@ const brands = computed(() => [...new Set(props.outfit.items.map((item) => item.
   filter: drop-shadow(0 18px 24px rgba(20, 24, 40, 0.28));
   pointer-events: none;
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.35s;
+}
+
+/* 換件：淡入淡出；離開的那件本來就是絕對定位，不會擠到別人 */
+.piece-enter-active,
+.piece-leave-active {
+  transition: opacity 0.35s ease;
+}
+
+.piece-enter-from,
+.piece-leave-to {
+  opacity: 0;
 }
 
 /* 被點名的那一件：往前提一點 */

@@ -15,6 +15,7 @@ import RecentlyViewed from '@/components/RecentlyViewed.vue'
 import SizeAdvice from '@/components/SizeAdvice.vue'
 import { useFlyToCart } from '@/composables/useFlyToCart'
 import { useSizeAdvice } from '@/composables/useSizeAdvice'
+import { fittingQueryWith } from '@/fitting/link'
 import { CATEGORY_NAMES, formatPrice, warmthText } from '@/products/labels'
 import { useCart } from '@/stores/cart'
 import { useHistory } from '@/stores/history'
@@ -52,6 +53,9 @@ const zoom = ref(null)
 const colour = computed(() => product.value?.colours.find((entry) => entry.code === colourCode.value) ?? product.value?.colours[0] ?? null)
 // 尺寸建議（第十六輪子輪 2）：有身形就算；只標「建議」，不替人選
 const { advice } = useSizeAdvice(product)
+// 試穿間（第十六輪子輪 3）：畫得出來的三類才有「放進試穿間」；換掉那一層、其他層沿用上一次的
+const fittable = computed(() => !!product.value?.kind && ['outer', 'top', 'bottom'].includes(product.value.category))
+const fittingLink = computed(() => (fittable.value && colour.value ? { name: 'fitting', query: fittingQueryWith(product.value.category, product.value.productId, colour.value.code) } : null))
 const accent = computed(() => accentOf(product.value?.themeCodes[0]))
 const themeName = (code) => themes.value.find((theme) => theme.code === code)?.name ?? code
 const oneSize = computed(() => product.value?.sizes.length === 1)
@@ -287,6 +291,7 @@ function closeZoom(event) {
           <div class="actions">
             <button type="submit" class="btn primary" :disabled="size && !canAdd">加入購物車</button>
             <FavButton kind="products" :id="product.productId" :colour="colour.code" :name="product.name" />
+            <RouterLink v-if="fittingLink" class="fitting-link" :to="fittingLink">放進試穿間</RouterLink>
             <span class="feedback" role="status">{{ feedback }}</span>
           </div>
         </form>
@@ -767,6 +772,17 @@ legend,
 .feedback {
   color: var(--ink-soft);
   font-size: var(--fs-0);
+}
+
+.fitting-link {
+  color: var(--ink-soft);
+  font-size: var(--fs-0);
+  text-underline-offset: 0.3em;
+}
+
+.fitting-link:hover,
+.fitting-link:focus-visible {
+  color: var(--ink);
 }
 
 /* ── 下面兩段 ── */

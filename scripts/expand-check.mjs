@@ -606,6 +606,78 @@ await go('/products/101', 2600)
 check('size: cleared → 輸入身高體重看建議 is back, no tag', (await count('.size-help')) === 1 && (await count('.size-advice .pick')) === 0 && (await count('.sizes .advised')) === 0)
 check('size: overflow 0 on the product page', (await overflow()) <= 0, await overflow())
 
+// ── 第十六輪子輪 3：試穿間 ──
+// 到這裡：登入的是 demo（身形已清掉）。先登出，當訪客塞一個身形（人形要縮放）、從穿搭 1 帶進試穿間、換件、換色、重新整理、整套加入購物車、兩個入口
+const drawable = (category) => PRODUCTS.filter((p) => p.kind && p.category === category)
+// 圖是 data:image/png 的 base64，前面幾十個字全一樣（第一版比前 48 字，永遠相等）：改在頁內記整串、頁內比
+const rememberLayer = (layer) => ev(`window.__layer_${layer} = document.querySelector(".fitting .stack img.${layer}")?.src ?? null; "ok"`)
+const layerChanged = (layer) => ev(`(document.querySelector(".fitting .stack img.${layer}")?.src ?? null) !== window.__layer_${layer}`)
+// 換件後那一層只剩一張（淡出的那張已經拿掉）、是指定的那件、看得見
+const layerIs = (layer, productId) => ev(`(() => { const imgs = [...document.querySelectorAll(".fitting .stack img.${layer}")]; return imgs.length === 1 && imgs[0].dataset.product === "${productId}" && getComputedStyle(imgs[0]).opacity === "1" })()`)
+const openSlot = async (slot, nth = 1) => {
+  await ev(`document.querySelectorAll(".fitting [data-slot=${slot}] .pick")[${nth - 1}]?.click()`)
+  await sleep(350)
+}
+await go('/account', 2200)
+await click('.account-nav .logout')
+await sleep(800)
+await ev('localStorage.setItem("body", JSON.stringify({ height: 190, weight: 90 })); localStorage.removeItem("fitting"); "ok"')
+await go('/fitting?from=1', 3000)
+const fromLayers = [...new Set(OUTFITS.find((o) => o.id === 1).items.map((ref) => productById.get(ref.productId)).filter((p) => p?.kind && ['outer', 'top', 'bottom'].includes(p.category)).map((p) => p.category))]
+check(`fitting: ?from=1 brings the outfit in (${fromLayers.length} layers, one piece each)`, (await count('.fitting .pieces li')) === fromLayers.length && (await count('.fitting .stack img')) === fromLayers.length, `${await count('.fitting .pieces li')} / ${await count('.fitting .stack img')}`)
+check('fitting: the url now carries the layers instead of from=', ((await ev('location.search')) ?? '').includes('top=') && ((await ev('location.search')) ?? '').includes('bottom=') && !((await ev('location.search')) ?? '').includes('from='), await ev('location.search'))
+const pieceNames = await ev('[...document.querySelectorAll(".fitting .pieces .name")].map((a) => a.textContent.trim())')
+check('fitting: the sentence names every piece', (await ev(`(() => { const t = document.querySelector(".fitting .line").textContent; return ${JSON.stringify(pieceNames)}.every((n) => t.includes(n)) })()`)) === true, await text('.fitting .line'))
+const expectedTotal = await ev('[...document.querySelectorAll(".fitting .pieces .price")].reduce((s, el) => s + Number(el.textContent.replace(/[^\\d]/g, "")), 0)')
+check('fitting: total equals the sum of the pieces', ((await text('.fitting .total')) ?? '').replace(/[^\d]/g, '').startsWith(String(expectedTotal)), `${await text('.fitting .total')} / ${expectedTotal}`)
+check('fitting: the figure is scaled for the stored body (190／90) and says so', (await ev('getComputedStyle(document.querySelector(".fitting .stand")).transform')) !== 'none' && ((await text('.scale-note')) ?? '').includes('略為縮放'), await ev('getComputedStyle(document.querySelector(".fitting .stand")).transform'))
+await shot('fitting')
+// 換上身：清單列出全部畫得出來的上衣，選第二件
+await openSlot('top')
+check('fitting: the top picker lists every drawable top', (await count('[role=listbox] [role=option]')) === drawable('top').length, `${await count('[role=listbox] [role=option]')} / ${drawable('top').length}`)
+await rememberLayer('top')
+await click('[role=listbox] [role=option]', 1)
+await sleep(900)
+const secondTop = drawable('top')[1]
+// 102 與 104 的款式圖可能長得一樣（同款式同布料同色），所以不比圖、比 data-product；舊的那張要已經淡出拿掉
+check('fitting: picking another top changes the url and the top layer', ((await ev('location.search')) ?? '').includes(`top=${secondTop.productId}:`) && (await layerIs('top', secondTop.productId)) === true, `${await ev('location.search')} / ${await ev('[...document.querySelectorAll(".fitting .stack img.top")].map((i) => i.dataset.product + ":" + getComputedStyle(i).opacity).join(",")')}`)
+// 外層：不穿，再穿回來
+await openSlot('outer')
+await click('[role=listbox] [role=option]', 0)
+await sleep(900)
+check('fitting: 不穿外層 → no outer in the url, no outer layer, the clause reads 不穿外層', !((await ev('location.search')) ?? '').includes('outer=') && (await count('.fitting .stack img.outer')) === 0 && ((await text('.fitting [data-slot=outer]')) ?? '').includes('不穿外層') && !((await text('.fitting [data-slot=outer]')) ?? '').includes('外層穿'), await text('.fitting [data-slot=outer]'))
+await openSlot('outer')
+await click('[role=listbox] [role=option]', 1)
+await sleep(900)
+const firstOuter = drawable('outer')[0]
+check('fitting: the first outer goes back on', (await count('.fitting .stack img.outer')) === 1 && ((await ev('location.search')) ?? '').includes(`outer=${firstOuter.productId}:`), await ev('location.search'))
+// 換色：外層的第二個顏色
+if (firstOuter.colours.length > 1) {
+  await rememberLayer('outer')
+  await openSlot('outer', 2)
+  check('fitting: the colour picker lists this outer\'s colours with swatches', (await count('[role=listbox] [role=option]')) === firstOuter.colours.length && (await count('[role=listbox] .swatch')) === firstOuter.colours.length, await count('[role=listbox] [role=option]'))
+  await click('[role=listbox] [role=option]', 1)
+  await sleep(900)
+  check('fitting: picking a colour changes the url and the rendered layer', ((await ev('location.search')) ?? '').includes(`outer=${firstOuter.productId}:${firstOuter.colours[1].code}`) && (await layerChanged('outer')) === true && (await layerIs('outer', firstOuter.productId)) === true, `${await ev('location.search')} / changed=${await layerChanged('outer')} / ${await ev('[...document.querySelectorAll(".fitting .stack img.outer")].map((i) => i.dataset.product + ":" + getComputedStyle(i).opacity).join(",")')}`)
+}
+await shot('fitting-changed')
+// 同一個網址重新整理：三層一樣；本機也記著
+const fittingUrl = await ev('location.pathname + location.search')
+await go(fittingUrl, 2800)
+check('fitting: reloading the url restores the same layers', (await ev('location.pathname + location.search')) === fittingUrl && (await count('.fitting .stack img')) === 3, `${await ev('location.search')} / ${await count('.fitting .stack img')}`)
+check('fitting: localStorage fitting mirrors the url', (await ev('JSON.parse(localStorage.getItem("fitting") || "{}").outer?.id')) === firstOuter.productId, await ev('localStorage.getItem("fitting")'))
+check('fitting: overflow 0 and nothing spills', (await overflow()) <= 0 && JSON.stringify(await spill()) === '[]', `${await overflow()} / ${JSON.stringify(await spill())}`)
+// 整套加入購物車
+const cartBefore = Number(await cartCount())
+await click('.fitting .primary')
+await sleep(1000)
+check('fitting: 整套加入購物車 adds 3 lines and says so', Number(await cartCount()) === cartBefore + 3 && ((await text('.fitting .feedback')) ?? '').includes('已加入 3 件'), `${cartBefore} → ${await cartCount()} / ${await text('.fitting .feedback')}`)
+// 入口：單品頁、穿搭頁
+await go('/products/101', 2600)
+check('product: 放進試穿間 carries this coat and its colour, keeps the other layers', ((await ev('document.querySelector(".actions .fitting-link")?.getAttribute("href")')) ?? '').includes('outer=101:oat') && ((await ev('document.querySelector(".actions .fitting-link")?.getAttribute("href")')) ?? '').includes('top='), await ev('document.querySelector(".actions .fitting-link")?.getAttribute("href")'))
+await go('/outfits/1', 2800)
+check('outfit: 拿這套去試穿間改 links to /fitting?from=1', (await ev('document.querySelector(".fitting-link")?.getAttribute("href")')) === '/fitting?from=1', await ev('document.querySelector(".fitting-link")?.getAttribute("href")'))
+
 const summary ={ origin, size: `${W}x${H}`, passed: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok), problems }
 console.log(JSON.stringify(summary, null, 1))
 ws.close()

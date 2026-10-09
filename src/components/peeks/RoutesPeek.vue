@@ -29,6 +29,7 @@ onMounted(async () => {
     <div class="peek-actions">
       <RouterLink class="btn" :to="{ name: 'outfits' }">全部穿搭</RouterLink>
       <RouterLink class="btn ghost" :to="{ name: 'products' }">全部單品</RouterLink>
+      <RouterLink class="btn ghost" :to="{ name: 'fitting' }">試穿間</RouterLink>
     </div>
   </div>
 </template>

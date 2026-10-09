@@ -216,6 +216,8 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
             <p class="sum">整套 <span class="num">{{ formatPrice(total) }}</span></p>
             <button type="button" class="btn primary" @click="addAll">整套加入購物車</button>
             <FavButton kind="outfits" :id="outfit.id" label="收藏這套" :name="outfit.title" />
+            <!-- 試穿間（第十六輪子輪 3）：把這套帶進去改 -->
+            <RouterLink class="fitting-link" :to="{ name: 'fitting', query: { from: outfit.id } }">拿這套去試穿間改</RouterLink>
             <span class="feedback" role="status">{{ feedback }}</span>
           </div>
         </div>
@@ -596,5 +598,16 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
     justify-content: space-between;
     justify-items: start;
   }
+}
+
+.fitting-link {
+  color: var(--ink-soft);
+  font-size: var(--fs-0);
+  text-underline-offset: 0.3em;
+}
+
+.fitting-link:hover,
+.fitting-link:focus-visible {
+  color: var(--ink);
 }
 </style>

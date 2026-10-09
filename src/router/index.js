@@ -40,7 +40,8 @@ const routes = [
   { path: '/weather', name: 'weather', redirect: '/' },
   // 偏好調查（第十五輪子輪 4）：註冊成功後進來，帶 ?redirect= 原本要去的網址；三步都能略過。要登入（結果存在會員身上）
   { path: '/onboarding/style', name: 'onboarding-style', component: () => import('@/views/OnboardingStyleView.vue'), meta: { title: '挑你的風格', zone: 'explore', auth: true } },
-  { path: '/fitting', name: 'fitting', component: todo, meta: { title: '試穿間', zone: 'explore', level: '加', note: '2D 人偶試穿；先試做再決定是否排入。' } },
+  // 試穿間（第十六輪子輪 3；功能規劃 6.5「加」的先試做版）：三層疊成人形、一句話換件、狀態在網址
+  { path: '/fitting', name: 'fitting', component: () => import('@/views/FittingView.vue'), meta: { title: '試穿間', zone: 'explore' } },
 
   // 交易區
   { path: '/cart', name: 'cart', component: () => import('@/views/CartView.vue'), meta: { title: '購物車', zone: 'transaction' } },

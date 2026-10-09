@@ -28,6 +28,7 @@ const findLinks = [
   { to: { name: 'products', query: { stock: '1' } }, label: '只看有貨' },
   { to: { name: 'outfits' }, label: '全部穿搭' },
   { to: { name: 'outfits', query: { for: 'kids' } }, label: '給小孩的穿搭' },
+  { to: { name: 'fitting' }, label: '試穿間' },
 ]
 
 const CONTRACT_URL = `${REPO_URL}/blob/main/docs/api-契約草案.md`
