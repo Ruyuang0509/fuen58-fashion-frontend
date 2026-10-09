@@ -13,6 +13,8 @@
   --field-line: #7d776d; /* 表單控制項的邊框：辨識控制項要靠它 */
   --accent: #3f4a54; /* 強調色；進入主題後由 useThemeAccent 換掉 */
   --on-accent: #ffffff; /* 放在強調色上的文字 */
+  --tone-wait: #fbf1dc; /* 訂單狀態小標：待付款（第十七輪）；上面是主要文字 */
+  --tone-done: #e4efe6; /* 訂單狀態小標：完成 */
 
   /* 字級：全站只用這五級 */
   --fs-0: 0.875rem;

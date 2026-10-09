@@ -26,6 +26,10 @@ const note = computed(() => {
   if (order.value.payment.method === 'cod') {
     return '貨到付款：商品送到時再付款。'
   }
+  // 付款沒成功、留在待付款：期限由後端算（payBy），逾時會自動取消
+  if (order.value.payBy) {
+    return `這張訂單還沒有付款：請在 ${formatDateTime(order.value.payBy)} 前付款（下單後 15 分鐘內），逾時會自動取消。`
+  }
   return '這張訂單還沒有付款。'
 })
 
@@ -146,13 +150,21 @@ onMounted(load)
     </section>
 
     <div class="actions">
+      <!-- 還沒付款的：主按鈕是去付款（在訂單明細裡付） -->
+      <RouterLink
+        v-if="order.payBy"
+        :to="{ name: 'account-order', params: { id: order.id } }"
+        class="btn primary pay-link"
+      >
+        去付款
+      </RouterLink>
       <RouterLink
         :to="{ name: 'account-order', params: { id: order.id } }"
         class="detail-link"
       >
         看訂單明細
       </RouterLink>
-      <RouterLink :to="{ name: 'outfits' }" class="btn primary">
+      <RouterLink :to="{ name: 'outfits' }" :class="order.payBy ? 'detail-link' : 'btn primary'">
         繼續逛
       </RouterLink>
     </div>

@@ -11,11 +11,48 @@ const KEY = 'account'
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const copy = (value) => JSON.parse(JSON.stringify(value))
 
+// ── 訂單的時間規則（第十七輪子輪 1；契約 §8）──
+// 付款期限：待付款（非貨到付款）的訂單下單 15 分鐘內要付，逾時自動取消並回補庫存（功能規劃 4，v1.3；15 分是建議值）。
+// 正式版是後端排程；這裡在每次讀訂單時結算，前台才示範得出來。
+export const PAY_WINDOW_MS = 15 * 60 * 1000
+// 示範用的物流：付款（貨到付款是下單）2 分鐘後出貨、5 分鐘後送達；送達 7 天沒按確認收貨就自動完成。
+// 真的要幾天；這個比例只是為了在發表現場看得到狀態走完，畫面上會寫「示範用的模擬」。7 天是功能規劃「N 天後自動」的建議值。
+export const DEMO_LOGISTICS = {
+  shipAfterMs: 2 * 60 * 1000,
+  deliverAfterMs: 5 * 60 * 1000,
+  autoCompleteAfterMs: 7 * 24 * 60 * 60 * 1000,
+}
+
+// 種子訂單（members.json）的時間是寫死的日期；有了時間規則，第一次讀就會一張逾時取消、一張自動完成，示範的故事就沒了。
+// 所以把種子的時間整體平移：以 SEED_ANCHOR（待付款那張下單後 5 分鐘）對齊「現在」，兩張訂單的每個時間都加同一個差。
+// seedVersion 記在資料庫裡：舊版本的 localStorage 只重排這兩張種子訂單（用訂單編號認），使用者自己下的訂單不動。
+const SEED_VERSION = 2
+const SEED_ANCHOR = '2026-10-03T19:25:00+08:00'
+const SEED_ORDER_IDS = new Set(seed.orders.map((order) => order.id))
+
+const isoAfter = (iso, ms) => new Date(Date.parse(iso) + ms).toISOString()
+
+function rebaseSeedOrders(orders, now = Date.now()) {
+  const delta = now - Date.parse(SEED_ANCHOR)
+  for (const order of orders) {
+    if (!SEED_ORDER_IDS.has(order.id)) continue
+    // 從種子重抄一份再平移：舊版本裡這張可能已經被結算過，重排要回到故事的起點（編號裡的日期不改，它只是個編號）
+    delete order.cancelReason
+    Object.assign(order, copy(seed.orders.find((entry) => entry.id === order.id)))
+    order.createdAt = isoAfter(order.createdAt, delta)
+    if (order.payment.paidAt) order.payment.paidAt = isoAfter(order.payment.paidAt, delta)
+    order.history = order.history.map((entry) => ({ ...entry, at: isoAfter(entry.at, delta) }))
+  }
+}
+
 function fresh() {
-  return {
+  const db = {
     ...copy(seed),
     tokens: {},
+    seedVersion: SEED_VERSION,
   }
+  rebaseSeedOrders(db.orders)
+  return db
 }
 
 let memory = fresh()
@@ -24,6 +61,12 @@ function read() {
   try {
     const parsed = JSON.parse(localStorage.getItem(KEY))
     if (parsed && typeof parsed === 'object' && Array.isArray(parsed.members)) {
+      if (parsed.seedVersion !== SEED_VERSION) {
+        // 舊版本的資料：只重排兩張種子訂單，其餘照舊
+        rebaseSeedOrders(parsed.orders ?? [])
+        parsed.seedVersion = SEED_VERSION
+        write(parsed)
+      }
       memory = parsed
       return parsed
     }
@@ -69,7 +112,13 @@ function publicAddress(address) {
 
 function publicOrder(order) {
   const { memberId, ...result } = order
-  return copy(result)
+  // payBy：待付款（非貨到付款）的付款期限——後端照算、前台只顯示；cancelReason：member 自行取消｜timeout 付款逾時
+  const pending = order.status === '待付款' && order.payment?.method !== 'cod'
+  return {
+    ...copy(result),
+    payBy: pending ? isoAfter(order.createdAt, PAY_WINDOW_MS) : null,
+    cancelReason: order.cancelReason ?? (order.status === '已取消' ? 'member' : null),
+  }
 }
 
 function memberFromToken(db, token) {
@@ -191,6 +240,68 @@ function nextOrderId(db) {
   }, 0)
 
   return `${prefix}${String(largest + 1).padStart(4, '0')}`
+}
+
+// ── 結算：模擬後端排程（第十七輪子輪 1）──
+// 每次讀訂單前把時間到了的狀態往前推。只沿狀態機的箭頭走；時間用「應該發生的那一刻」而不是現在，
+// 所以不管隔多久才打開，進度看起來都一樣，落後兩步也會一次補齊。
+function pushStatus(order, status, at, note) {
+  order.status = status
+  const entry = { status, at }
+  if (note) entry.note = note
+  order.history.push(entry)
+}
+
+const lastAt = (order, status) => {
+  for (let i = order.history.length - 1; i >= 0; i -= 1) {
+    if (order.history[i].status === status) return order.history[i].at
+  }
+  return null
+}
+
+function settleOrder(order, now = Date.now()) {
+  const cod = order.payment?.method === 'cod'
+
+  // 付款逾時：只管要先付款的訂單；貨到付款在送達前本來就沒付款，不逾時
+  if (order.status === '待付款' && !cod && now - Date.parse(order.createdAt) >= PAY_WINDOW_MS) {
+    pushStatus(order, '已取消', isoAfter(order.createdAt, PAY_WINDOW_MS), '付款逾時，自動取消')
+    order.cancelReason = 'timeout'
+    return
+  }
+
+  // 物流的起點：付了款才出貨；貨到付款從下單算
+  const start = cod ? order.createdAt : order.payment?.paidAt
+  if (!start) return
+  const elapsed = now - Date.parse(start)
+  const shippable = order.status === '已付款' || (cod && order.status === '待付款')
+  if (shippable && elapsed >= DEMO_LOGISTICS.shipAfterMs) {
+    pushStatus(order, '出貨中', isoAfter(start, DEMO_LOGISTICS.shipAfterMs))
+  }
+  if (order.status === '出貨中' && elapsed >= DEMO_LOGISTICS.deliverAfterMs) {
+    const at = isoAfter(start, DEMO_LOGISTICS.deliverAfterMs)
+    if (cod) {
+      order.payment.paidAt = at
+      pushStatus(order, '已送達', at, '貨到付款，送達時付款')
+    } else {
+      pushStatus(order, '已送達', at)
+    }
+  }
+  if (order.status === '已送達') {
+    const deliveredAt = lastAt(order, '已送達')
+    if (deliveredAt && now - Date.parse(deliveredAt) >= DEMO_LOGISTICS.autoCompleteAfterMs) {
+      pushStatus(order, '完成', isoAfter(deliveredAt, DEMO_LOGISTICS.autoCompleteAfterMs), '送達 7 天後自動完成')
+    }
+  }
+}
+
+function settleOrders(db) {
+  let changed = false
+  for (const order of db.orders) {
+    const before = `${order.status}:${order.history.length}`
+    settleOrder(order)
+    if (`${order.status}:${order.history.length}` !== before) changed = true
+  }
+  if (changed) write(db)
 }
 
 export class ApiError extends Error {
@@ -515,9 +626,13 @@ export async function payOrder(token, id, { method }) {
   await wait(150)
   const db = read()
   const member = memberFromToken(db, token)
+  settleOrders(db)
   const order = memberOrder(db, member.id, id)
 
   if (!order) throw new ApiError('NOT_FOUND', '找不到這張訂單')
+  if (order.status === '已取消' && order.cancelReason === 'timeout') {
+    throw new ApiError('NOT_PAYABLE', '付款期限已過，訂單已取消')
+  }
   if (order.status !== '待付款') {
     throw new ApiError('NOT_PAYABLE', '只有待付款的訂單可以付款')
   }
@@ -544,6 +659,7 @@ export async function listOrders(token) {
   await wait(150)
   const db = read()
   const member = memberFromToken(db, token)
+  settleOrders(db)
 
   return db.orders
     .filter((order) => order.memberId === member.id)
@@ -555,6 +671,7 @@ export async function getOrder(token, id) {
   await wait(150)
   const db = read()
   const member = memberFromToken(db, token)
+  settleOrders(db)
   const order = memberOrder(db, member.id, id)
 
   return order ? publicOrder(order) : null
@@ -567,16 +684,13 @@ export async function cancelOrder(token, id) {
   const order = memberOrder(db, member.id, id)
 
   if (!order) throw new ApiError('NOT_FOUND', '找不到這張訂單')
+  settleOrders(db)
   if (order.status !== '待付款') {
-    throw new ApiError('NOT_CANCELLABLE', '只有待付款的訂單可以取消')
+    throw new ApiError('NOT_CANCELLABLE', order.cancelReason === 'timeout' ? '付款期限已過，訂單已經自動取消了' : '只有待付款的訂單可以取消')
   }
 
-  const now = new Date().toISOString()
-  order.status = '已取消'
-  order.history.push({
-    status: '已取消',
-    at: now,
-  })
+  pushStatus(order, '已取消', new Date().toISOString(), '自行取消')
+  order.cancelReason = 'member'
 
   write(db)
   return publicOrder(order)
@@ -589,6 +703,7 @@ export async function confirmReceipt(token, id) {
   const order = memberOrder(db, member.id, id)
 
   if (!order) throw new ApiError('NOT_FOUND', '找不到這張訂單')
+  settleOrders(db)
   if (order.status !== '已送達') {
     throw new ApiError('NOT_DELIVERED', '訂單送達後才能確認收貨')
   }

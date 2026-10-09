@@ -45,6 +45,11 @@ const pairs = [
   ['次要文字／卡片底', token('ink-soft'), token('surface'), TEXT],
   ['表單邊框／卡片底', token('field-line'), token('surface'), UI],
   ['表單邊框／頁面底', token('field-line'), token('bg'), UI],
+  // 第十七輪子輪 1：訂單狀態小標的底色，上面是主要文字、外框是表單邊框色（已取消那種用頁面底＋次要文字，上面已經量過）
+  ['狀態小標：主要文字／待付款底', token('ink'), token('tone-wait'), TEXT],
+  ['狀態小標：主要文字／完成底', token('ink'), token('tone-done'), TEXT],
+  ['狀態小標：表單邊框／待付款底', token('field-line'), token('tone-wait'), UI],
+  ['狀態小標：表單邊框／完成底', token('field-line'), token('tone-done'), UI],
 ]
 
 const accents = { 預設: DEFAULT_ACCENT, ...Object.fromEntries(Object.entries(THEME_VISUALS).map(([code, v]) => [code, v.accent])) }
@@ -54,6 +59,8 @@ for (const [name, accent] of Object.entries(accents)) {
   pairs.push([`${name}：佔位圖上的次要文字`, token('ink-soft'), tintOnWhite(accent, 12), TEXT])
   // 頁尾（第十五輪）：底色是頁面底染 6% 路線色，上面是次要文字
   pairs.push([`${name}：頁尾次要文字／頁尾底`, token('ink-soft'), mixOn(accent, token('bg'), 6), TEXT])
+  // 訂單狀態小標「進行中」：卡片底染 12% 路線色，上面是主要文字（第十七輪）
+  pairs.push([`${name}：狀態小標主要文字／進行中底`, token('ink'), mixOn(accent, token('surface'), 12), TEXT])
 }
 
 let failed = 0
