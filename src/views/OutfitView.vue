@@ -177,7 +177,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
           <h2 class="section-title">這套的單品</h2>
           <ul class="list">
             <li v-for="(piece, index) in pieces" :key="piece.productId" class="piece" :class="{ hl: piece.productId === highlight }" @pointerenter="highlight = piece.productId" @pointerleave="highlight = null">
-              <RouterLink :to="{ name: 'product', params: { id: piece.productId }, query: { colour: piece.colourCode } }" class="thumb">
+              <RouterLink :to="{ name: 'product', params: { id: piece.productId }, query: { colour: piece.colourCode } }" class="thumb" :aria-label="`看這件：${piece.name}`">
                 <GarmentImage :kind="piece.kind" :colour="piece.colour" :fabric="piece.fabric" :height="110" />
               </RouterLink>
               <div class="what">

@@ -39,16 +39,21 @@ watch(
 )
 
 let latest = 0
+// 載入失敗和「找不到」是兩回事（第十七輪子輪 2）：失敗要能再試
+const failed = ref(false)
 async function load() {
   const ticket = ++latest
+  failed.value = false
   try {
     const [found, active] = await Promise.all([getCampaign(code.value), getCampaigns({ active: true })])
     if (ticket !== latest) return
     campaign.value = found
     others.value = active.filter((item) => item.code !== code.value)
   } catch {
+    if (ticket !== latest) return
     campaign.value = null
     others.value = []
+    failed.value = true
   }
   loaded.value = true
 }
@@ -94,6 +99,12 @@ function toList() {
 
       <button type="button" class="down" @click="toList">往下，看這檔活動全部的穿搭<Icon name="down" /></button>
     </template>
+
+    <div v-else-if="loaded && failed" class="say failed">
+      <h1 class="line small">活動沒有載入成功</h1>
+      <p class="tagline">連不上伺服器，或資料暫時拿不到。</p>
+      <button type="button" class="btn retry" @click="load">再試一次</button>
+    </div>
 
     <div v-else-if="loaded" class="say">
       <h1 class="line small">找不到這檔活動</h1>

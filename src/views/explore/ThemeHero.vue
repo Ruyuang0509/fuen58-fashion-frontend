@@ -32,15 +32,20 @@ watch(
 )
 
 let latest = 0
+// 載入失敗和「找不到」是兩回事（第十七輪子輪 2）：失敗要能再試
+const failed = ref(false)
 async function load() {
   const ticket = ++latest
+  failed.value = false
   try {
     const [themeList, mine] = await Promise.all([getThemes(), getOutfits({ style: code.value })])
     if (ticket !== latest) return
     themes.value = themeList
     looks.value = mine.slice(0, 3)
   } catch {
+    if (ticket !== latest) return
     themes.value = []
+    failed.value = true
   }
   loaded.value = true
 }
@@ -82,6 +87,12 @@ function toList() {
 
       <button type="button" class="down" @click="toList">往下，看這條路線全部的穿搭<Icon name="down" /></button>
     </template>
+
+    <div v-else-if="loaded && failed" class="say failed">
+      <h1 class="line small">路線沒有載入成功</h1>
+      <p class="tagline">連不上伺服器，或資料暫時拿不到。</p>
+      <button type="button" class="btn retry" @click="load">再試一次</button>
+    </div>
 
     <div v-else-if="loaded" class="say">
       <h1 class="line small">找不到這條路線</h1>

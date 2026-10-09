@@ -16,13 +16,18 @@ const { weather } = useWeather()
 const { profile } = useTaste()
 const outfits = ref([])
 
-onMounted(async () => {
+// 載入失敗（第十七輪子輪 2）：這一排是次要的，但也不留白——一句話加「再試一次」
+const failed = ref(false)
+async function load() {
+  failed.value = false
   try {
     outfits.value = await getOutfits()
   } catch {
     outfits.value = []
+    failed.value = true
   }
-})
+}
+onMounted(load)
 
 const weekday = new Intl.DateTimeFormat('zh-TW', { weekday: 'short', timeZone: 'Asia/Taipei' })
 const dayLabel = (date, i) => (i === 0 ? '今天' : i === 1 ? '明天' : weekday.format(new Date(`${date}T12:00:00+08:00`)))
@@ -61,7 +66,8 @@ const days = computed(() => {
 </script>
 
 <template>
-  <section v-if="days.length" class="week" aria-label="這一週穿什麼">
+  <p v-if="failed" class="week-failed">這一週的穿搭沒有載入成功。<button type="button" class="retry" @click="load">再試一次</button></p>
+  <section v-else-if="days.length" class="week" aria-label="這一週穿什麼">
     <div class="week-head">
       <h2 class="week-title">這一週穿什麼<span class="where">　{{ weather.city }}</span></h2>
       <p class="week-note">七天的預報，每天挑一套合那天溫度的。<template v-if="weather.source === 'demo'">（示範天氣）</template></p>
@@ -109,6 +115,23 @@ const days = computed(() => {
   margin: var(--s1) 0 0;
   color: var(--ink-soft);
   font-size: var(--fs-0);
+}
+
+.week-failed {
+  margin: var(--s3) 0;
+  color: var(--ink-soft);
+  font-size: var(--fs-0);
+}
+
+.retry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  cursor: pointer;
 }
 
 /* 七欄一列；窄的時候改成橫向可滑（每欄固定寬，捲動吸附） */

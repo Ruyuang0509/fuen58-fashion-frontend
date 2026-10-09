@@ -120,7 +120,11 @@ function toShop() {
   document.getElementById('shop')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
 }
 
-onMounted(async () => {
+// 載入失敗（第十七輪子輪 2）：不再默默留白，地平線上寫一句並給「再試一次」
+const failed = ref(false)
+async function load() {
+  loading.value = true
+  failed.value = false
   try {
     const [themeList, outfitList] = await Promise.all([getThemes(), getOutfits(), taste.whenReady()])
     themes.value = themeList
@@ -132,9 +136,14 @@ onMounted(async () => {
     }
   } catch {
     themes.value = []
+    failed.value = true
   }
   loading.value = false
   startCycle()
+}
+
+onMounted(async () => {
+  await load()
   if (import.meta.env.DEV) {
     // 開發時給量測用
     window.__home = {
@@ -201,7 +210,8 @@ onBeforeUnmount(stopCycle)
           <OutfitLook :outfit="outfit" :height="250" />
         </RouterLink>
       </TransitionGroup>
-      <p v-if="!loading && !picks.length" class="empty">這個風格今天還沒有搭好的穿搭。</p>
+      <p v-if="failed" class="empty failed">穿搭沒有載入成功。<button type="button" class="retry" @click="load">再試一次</button></p>
+      <p v-else-if="!loading && !picks.length" class="empty">這個風格今天還沒有搭好的穿搭。</p>
     </section>
 
     <!-- 地平線上的一行字 -->
@@ -454,5 +464,16 @@ onBeforeUnmount(stopCycle)
     position: static;
     margin-top: 1.6rem;
   }
+}
+
+.retry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  cursor: pointer;
 }
 </style>

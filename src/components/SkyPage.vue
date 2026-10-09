@@ -223,6 +223,11 @@ defineExpose({
   --hdr-fg: #f3f1ec;
 }
 
+/* 白天的頂欄字比內文的深字再深一點：站名在天頂的藍上量到 4.47:1（差 0.03 不到 AA），#0f1118 是 5.0:1 */
+.sky-page.dark .header-slot {
+  --hdr-fg: #0f1118;
+}
+
 .sky-page.past .header-slot {
   color: var(--ink);
 }
@@ -292,6 +297,11 @@ defineExpose({
     height: auto;
     min-height: var(--hero-min);
     margin-top: 0;
+  }
+
+  /* 窄螢幕的頂欄不在天空上（天空從頂欄下面開始），字一律墨色——以前跟著天空變淺字，夜裡是淺字壓在紙色上（axe 手機掃出來的） */
+  .header-slot {
+    color: var(--ink);
   }
 
   /* 要留在流裡（高度跟著內容），但不能變成 static：static 的文字會被絕對定位的天空畫布蓋住（手機版字消失的原因） */

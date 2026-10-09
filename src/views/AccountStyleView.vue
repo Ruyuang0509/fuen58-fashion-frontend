@@ -15,13 +15,18 @@ const { profile, preferences, forYou, setForYou, clearPreferences } = useTaste()
 const themes = ref([])
 const clearing = ref('') // '' | busy | error
 
-onMounted(async () => {
+// 路線名稱載入失敗（第十七輪子輪 2）：比例還是畫得出來（用代碼），但要說一聲、能再試
+const themesFailed = ref(false)
+async function loadThemes() {
+  themesFailed.value = false
   try {
     themes.value = await getThemes()
   } catch {
     themes.value = []
+    themesFailed.value = true
   }
-})
+}
+onMounted(loadThemes)
 
 const hasPicks = computed(() => !!preferences.value && Object.keys(preferences.value.themes ?? {}).length > 0)
 const audienceLabel = computed(() => AUDIENCES.find((option) => option.value === (preferences.value?.audience ?? ''))?.label ?? '不限誰')
@@ -43,6 +48,7 @@ async function clear() {
   <header class="head">
     <h1>我的偏好</h1>
     <p class="lead">穿搭預設照你的喜好排：喜歡的路線排前面。這一頁看得到是怎麼算的，也能改。</p>
+    <p v-if="themesFailed" class="lead failed" role="status">路線名稱沒有載入成功，下面先用代碼顯示。<button type="button" class="link retry" @click="loadThemes">再試一次</button></p>
   </header>
 
   <section class="panel picked-panel" aria-labelledby="picked-title">

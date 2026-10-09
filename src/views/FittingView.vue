@@ -85,7 +85,8 @@ async function fromOutfit(id) {
   return result
 }
 
-onMounted(async () => {
+async function load() {
+  status.value = 'loading'
   try {
     const all = await getProducts()
     catalogue.value = all.filter((product) => product.kind && SLOTS.some((slot) => slot.key === product.category))
@@ -107,7 +108,8 @@ onMounted(async () => {
   } catch {
     status.value = 'error'
   }
-})
+}
+onMounted(load)
 
 // 狀態一變：寫網址（replace，不塞瀏覽紀錄）、寫本機
 function sync(replaceFrom = false) {
@@ -238,7 +240,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
     </header>
 
     <p v-if="status === 'loading'" class="state" aria-busy="true">載入中…</p>
-    <div v-else-if="status === 'error'" class="state"><p>單品沒有載入成功。</p><RouterLink class="btn" :to="{ name: 'outfits' }">看全部穿搭</RouterLink></div>
+    <div v-else-if="status === 'error'" class="state"><p>單品沒有載入成功。</p><button type="button" class="btn retry" @click="load">再試一次</button><RouterLink class="link" :to="{ name: 'outfits' }">看全部穿搭</RouterLink></div>
 
     <div v-else class="room">
       <section class="figure" aria-label="人形">

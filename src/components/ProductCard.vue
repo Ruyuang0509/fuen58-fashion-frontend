@@ -26,8 +26,9 @@ const to = computed(() => ({ name: 'product', params: { id: props.product.produc
     <h3 class="name"><RouterLink :to="to" class="name-link">{{ product.name }}</RouterLink></h3>
     <p class="meta">
       <span class="num">{{ formatPrice(product.price) }}</span>
-      <span v-if="product.colours.length > 1" class="colours" :aria-label="`${product.colours.length} 色`">
-        <i v-for="colour in product.colours" :key="colour.code" :style="{ background: colour.hex }"></i>
+      <!-- 色票是裝飾，整組當一張「N 色」的圖（aria-label 不能掛在沒有 role 的 span 上：axe 第一次掃出來的） -->
+      <span v-if="product.colours.length > 1" class="colours" role="img" :aria-label="`${product.colours.length} 色`">
+        <i v-for="colour in product.colours" :key="colour.code" :style="{ background: colour.hex }" aria-hidden="true"></i>
       </span>
     </p>
   </article>

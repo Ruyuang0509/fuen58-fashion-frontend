@@ -871,7 +871,7 @@ legend,
   padding: var(--s1) var(--s3);
   border: 1px solid var(--surface);
   border-radius: 999px;
-  background: transparent;
+  background: var(--ink);
   color: var(--surface);
   cursor: pointer;
 }

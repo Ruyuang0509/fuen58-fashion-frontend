@@ -136,10 +136,47 @@ export function weatherLook(weather) {
   return { cloud, rain, haze }
 }
 
-/** 這片天空上面的字要不要用深色 */
-export function skyWantsDarkText({ elevation }, { cloud }) {
-  // 白天用深字；傍晚與夜裡用淺字。陰天的白天仍是亮的
-  return elevation > 0.08 || (elevation > -0.02 && cloud > 0.6)
+// ── 天空上的字要深還是淺（第十七輪子輪 2 改成用對比度決定）──
+// 以前是「太陽高度 > 0.08 就深字」：清晨與傍晚天空是中間調，深字只有 2.5–3.0:1（截圖量過，docs/21）。
+// 現在照著色器同一套顏色模型估天空在文字那一帶（畫面高度四成處；雲用覆蓋率的平均，不算雜訊）的相對亮度，
+// 深字（#1a1d26）與淺字（#f3f1ec）各算一次 WCAG 對比度，誰高用誰。
+const smoothstep = (a, b, x) => {
+  const t = Math.max(0, Math.min(1, (x - a) / (b - a)))
+  return t * t * (3 - 2 * t)
+}
+const mix3 = (a, b, k) => a.map((v, i) => v + (b[i] - v) * k)
+const toLinear = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+export const relativeLuminance = ([r, g, b]) => 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
+const DARK_TEXT_L = relativeLuminance([0x1a / 255, 0x1d / 255, 0x26 / 255])
+const LIGHT_TEXT_L = relativeLuminance([0xf3 / 255, 0xf1 / 255, 0xec / 255])
+
+/** 估天空在高度 y（0 地平線、1 天頂）的顏色（0–1 的 sRGB），和 FRAG 裡的算法同一套、去掉雜訊與太陽 */
+export function estimateSkyColour({ elevation }, { cloud = 0.5, haze = 0.3 } = {}, y = 0.4) {
+  const day = smoothstep(-0.12, 0.28, elevation)
+  const dusk = Math.exp(-(((elevation - 0.03) / 0.14) ** 2))
+  let zenith = mix3([0.05, 0.07, 0.14], [0.36, 0.55, 0.8], day)
+  let horizon = mix3([0.16, 0.19, 0.3], [0.82, 0.89, 0.95], day)
+  horizon = mix3(horizon, [0.96, 0.74, 0.52], dusk * 0.85)
+  zenith = mix3(zenith, [0.45, 0.42, 0.62], dusk * 0.4)
+  let sky = mix3(horizon, zenith, y ** 0.62)
+  // 雲：覆蓋率大約跟雲量走，顏色取雲底與雲頂的中間
+  let cloudCol = mix3([0.15, 0.165, 0.23], [0.79, 0.81, 0.85], day)
+  cloudCol = mix3(cloudCol, cloudCol.map((v, i) => v * [1.05, 0.9, 0.78][i]), dusk * 0.6)
+  const coverage = Math.max(0, Math.min(1, (cloud - 0.1) / 0.8))
+  sky = mix3(sky, cloudCol, coverage * 0.92)
+  const grey = sky[0] * 0.3 + sky[1] * 0.59 + sky[2] * 0.11
+  sky = mix3(sky, [grey, grey, grey], cloud * 0.22)
+  const hazeCol = mix3([0.17, 0.19, 0.25], [0.85, 0.87, 0.89], day)
+  sky = mix3(sky, hazeCol, haze * (1 - y) * 0.55)
+  return sky
+}
+
+/** 這片天空上面的字要不要用深色：深字與淺字對估出來的天空各算對比度，深字不輸就用深字 */
+export function skyWantsDarkText(sun, look) {
+  const L = relativeLuminance(estimateSkyColour(sun, look))
+  const dark = (L + 0.05) / (DARK_TEXT_L + 0.05)
+  const light = (LIGHT_TEXT_L + 0.05) / (L + 0.05)
+  return dark >= light
 }
 
 export function createSky(canvas, { reduced = false } = {}) {

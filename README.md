@@ -46,10 +46,11 @@ npm run dev
 18. [docs/18-試穿間逐檔解說.md](docs/18-試穿間逐檔解說.md)：子輪 3——試穿間 `/fitting`（三層疊成人形、一句話換件換色、狀態在網址可以貼給人、人形依身形略縮放、整套加入購物車；穿搭頁與單品頁的入口）
 19. [docs/19-訂單全程與強韌化-規格.md](docs/19-訂單全程與強韌化-規格.md)：第十七輪（自主探索）的規格——回頭對功能規劃找還沒做的「必」與「特」：訂單走完全程、全站三態與錯誤邊界、無障礙、交易區的回饋；查證（Vite 的 preloadError、SPA 焦點管理、axe-core）
 20. [docs/20-訂單走完全程逐檔解說.md](docs/20-訂單走完全程逐檔解說.md)：子輪 1——假 API 的結算（付款逾時 15 分鐘取消、示範用的出貨與送達、7 天自動完成、貨到付款四步）、訂單頁的時間線與付款期限倒數、在訂單頁付款、完成後接身形與試穿間、訂單紀錄依狀態篩
+21. [docs/21-強韌化與無障礙逐檔解說.md](docs/21-強韌化與無障礙逐檔解說.md)：子輪 2——出了點問題（錯誤邊界）、舊分頁自動重載一次、換頁的焦點與播報、每頁失敗態與開發版的失敗開關、axe-core 0 違規、天空上的字量像素（字色改用對比度決定）、只用鍵盤走完購買路徑
 
 給後端組員的：[docs/api-契約草案.md](docs/api-契約草案.md)（端點、欄位、錯誤格式；11/2 看 DB 前要對）。
 
-開發用腳本：`scripts/gen-products.py` 產生商品假資料；`scripts/shop-check.mjs` 與 `scripts/member-check.mjs` 用無頭 Chrome 分別走一遍購買流程與會員／結帳流程；`scripts/shots.mjs` 任意網址截圖；`npm run build` 後會自動多出 `dist/404.html`（靜態主機的 SPA fallback；用 Netlify／nginx 的話要另設全部導到 `index.html`）。
+開發用腳本：`scripts/gen-products.py` 產生商品假資料；`scripts/shop-check.mjs` 與 `scripts/member-check.mjs` 用無頭 Chrome 分別走一遍購買流程與會員／結帳流程；`scripts/shots.mjs` 任意網址截圖；`scripts/expand-check.mjs` 探索區與各輪新功能的驗收；`scripts/a11y-check.mjs` axe-core 全頁掃描、天空上的字量像素、只用鍵盤走購買路徑（第十七輪；開發版的失敗開關 `localStorage.apiFail` 見 docs/21）；`npm run build` 後會自動多出 `dist/404.html`（靜態主機的 SPA fallback；用 Netlify／nginx 的話要另設全部導到 `index.html`）。
 
 示範帳號（假資料，發表時用）：`demo@example.com`／`demo1234`。會員與訂單的假資料存在瀏覽器 localStorage 的 `account`，要重置就在主控台跑 `localStorage.removeItem('account')` 再重新整理。
 規劃文件（功能清單、介面方向）在 vault 的 `projects/ispan-fuen58/`。

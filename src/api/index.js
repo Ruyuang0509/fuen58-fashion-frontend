@@ -14,6 +14,7 @@ import outfits from './mock/outfits.json'
 import products from './mock/products.json'
 import brands from './mock/brands.json'
 import campaigns from './mock/campaigns.json'
+import { failIfSwitched } from './errors'
 import { familyOf } from '@/products/colourFamily'
 import { fitVerdict, fitsToday } from '@/products/weatherFit'
 import { cityOf } from '@/weather/cities'
@@ -38,6 +39,7 @@ const brandByCode = new Map(brands.map((brand) => [brand.code, brand]))
 
 export async function getThemes() {
   await wait(150)
+  failIfSwitched('getThemes')
   return [...themes].sort((a, b) => a.sort - b.sort)
 }
 
@@ -107,6 +109,7 @@ function demoOverride() {
  * @param {{ city?: string }} query  縣市代碼（weather/cities.js）；沒給就是臺北
  */
 export async function getWeather({ city } = {}) {
+  failIfSwitched('getWeather')
   const target = cityOf(city)
   const override = demoOverride()
   if (override) return { ...override, city: target.name, cityCode: target.code, source: override.source ?? 'demo', stale: !!override.stale }
@@ -158,6 +161,7 @@ function forAudience(outfit, audience) {
  */
 export async function getOutfits(filters = {}) {
   await wait(250)
+  failIfSwitched('getOutfits')
   const { style, audience, ids, fit, city } = filters
   const occasions = many(filters.occasion)
   const categories = many(filters.category)
@@ -183,6 +187,7 @@ export async function getOutfits(filters = {}) {
 /** 一套穿搭；找不到回 null */
 export async function getOutfit(id) {
   await wait(200)
+  failIfSwitched('getOutfit')
   const outfit = outfits.find((entry) => entry.id === Number(id))
   return outfit ? resolveOutfit(outfit) : null
 }
@@ -190,6 +195,7 @@ export async function getOutfit(id) {
 /** 包含這件商品的穿搭 */
 export async function getOutfitsWithProduct(id) {
   await wait(200)
+  failIfSwitched('getOutfitsWithProduct')
   const pid = Number(id)
   return outfits.filter((outfit) => outfit.items.some((item) => item.productId === pid)).map(resolveOutfit)
 }
@@ -223,6 +229,7 @@ function arrange(list, { sort, inStock } = {}) {
 /** 一件商品；找不到回 null（商品頁據此顯示「找不到這件商品」） */
 export async function getProduct(id) {
   await wait(200)
+  failIfSwitched('getProduct')
   return productOf(Number(id))
 }
 
@@ -251,6 +258,7 @@ function matchesWords(product, words) {
  */
 export async function getProducts({ ids, theme, brand, brands: brandList, exclude = [], q, category, colours, sizes, priceMin, priceMax, sort, inStock } = {}) {
   await wait(200)
+  failIfSwitched('getProducts')
   let list = ids ? ids.map(productOf).filter(Boolean) : products.map((product) => productOf(product.productId))
   if (theme) list = list.filter((product) => product.themeCodes.includes(theme))
   if (brand) list = list.filter((product) => product.brandCode === brand)
@@ -271,6 +279,7 @@ export async function getProducts({ ids, theme, brand, brands: brandList, exclud
 
 /** 關鍵字搜尋（getProducts 的薄包裝）；沒有關鍵字回空陣列 */
 export async function searchProducts(keyword, { sort, inStock } = {}) {
+  failIfSwitched('searchProducts')
   if (!wordsOf(keyword).length) {
     await wait(50)
     return []
@@ -282,12 +291,14 @@ export async function searchProducts(keyword, { sort, inStock } = {}) {
 
 export async function getBrands() {
   await wait(150)
+  failIfSwitched('getBrands')
   return [...brands]
 }
 
 /** 一個品牌；找不到回 null */
 export async function getBrand(code) {
   await wait(150)
+  failIfSwitched('getBrand')
   return brandByCode.get(String(code)) ?? null
 }
 
@@ -310,6 +321,7 @@ function decorateCampaign(campaign) {
  */
 export async function getCampaigns({ active = false, theme, placement } = {}) {
   await wait(150)
+  failIfSwitched('getCampaigns')
   let list = campaigns.map(decorateCampaign)
   if (active) list = list.filter((campaign) => campaign.active)
   if (theme) list = list.filter((campaign) => campaign.themeCode === theme)
@@ -320,6 +332,7 @@ export async function getCampaigns({ active = false, theme, placement } = {}) {
 /** 一檔活動；過期的也回（active 是 false），找不到回 null */
 export async function getCampaign(code) {
   await wait(150)
+  failIfSwitched('getCampaign')
   const found = campaigns.find((campaign) => campaign.code === String(code))
   return found ? decorateCampaign(found) : null
 }

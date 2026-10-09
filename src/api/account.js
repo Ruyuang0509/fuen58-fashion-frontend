@@ -3,6 +3,7 @@
 // 欄位與回傳形狀依照 docs/api-契約草案.md §6–8；首次使用時會把 mock/members.json 複製到 localStorage 的 account。
 // 密碼只有假資料環境才存明碼；真正後端會依功能規劃 7 儲存密碼雜湊。
 import seed from './mock/members.json'
+import { ApiError, failIfSwitched } from './errors'
 import { FREE_SHIPPING_FROM, SHIPPING_FEE } from '@/products/labels'
 
 const KEY = 'account'
@@ -304,14 +305,8 @@ function settleOrders(db) {
   if (changed) write(db)
 }
 
-export class ApiError extends Error {
-  constructor(code, message, field = null) {
-    super(message)
-    this.name = 'ApiError'
-    this.code = code
-    this.field = field
-  }
-}
+// ApiError 定義在 errors.js（index.js 也要用）；畫面照舊從這裡 import
+export { ApiError }
 
 export const PASSWORD_RULE = '密碼至少 8 碼，要有英文與數字'
 
@@ -336,6 +331,7 @@ export const formatDateTime = (iso) => dateTimeFormatter.format(new Date(iso))
 
 export async function register({ email, password, name }) {
   await wait(150)
+  failIfSwitched('register')
   const db = read()
   const cleanName = trim(name)
   const cleanEmail = trim(email).toLowerCase()
@@ -373,6 +369,7 @@ export async function register({ email, password, name }) {
 
 export async function login({ email, password }) {
   await wait(150)
+  failIfSwitched('login')
   const db = read()
   const cleanEmail = trim(email).toLowerCase()
   const member = db.members.find((item) => item.email.toLowerCase() === cleanEmail)
@@ -393,6 +390,7 @@ export async function login({ email, password }) {
 
 export async function logout(token) {
   await wait(150)
+  failIfSwitched('logout')
   const db = read()
 
   if (db.tokens?.[token] !== undefined) {
@@ -405,6 +403,7 @@ export async function logout(token) {
 
 export async function getMe(token) {
   await wait(150)
+  failIfSwitched('getMe')
   const db = read()
   const memberId = db.tokens?.[token]
   const member = db.members.find((item) => item.id === memberId)
@@ -414,6 +413,7 @@ export async function getMe(token) {
 
 export async function updateProfile(token, { name, phone, birthday, gender }) {
   await wait(150)
+  failIfSwitched('updateProfile')
   const db = read()
   const member = memberFromToken(db, token)
   const cleanName = trim(name)
@@ -440,6 +440,7 @@ export async function updateProfile(token, { name, phone, birthday, gender }) {
 
 export async function changePassword(token, { current, next }) {
   await wait(150)
+  failIfSwitched('changePassword')
   const db = read()
   const member = memberFromToken(db, token)
 
@@ -457,6 +458,7 @@ export async function changePassword(token, { current, next }) {
 
 export async function listAddresses(token) {
   await wait(150)
+  failIfSwitched('listAddresses')
   const db = read()
   const member = memberFromToken(db, token)
 
@@ -465,6 +467,7 @@ export async function listAddresses(token) {
 
 export async function addAddress(token, data) {
   await wait(150)
+  failIfSwitched('addAddress')
   const db = read()
   const member = memberFromToken(db, token)
   const clean = validatedAddress(data)
@@ -491,6 +494,7 @@ export async function addAddress(token, data) {
 
 export async function updateAddress(token, id, data) {
   await wait(150)
+  failIfSwitched('updateAddress')
   const db = read()
   const member = memberFromToken(db, token)
   const address = db.addresses.find((item) => item.memberId === member.id && item.id === Number(id))
@@ -517,6 +521,7 @@ export async function updateAddress(token, id, data) {
 
 export async function removeAddress(token, id) {
   await wait(150)
+  failIfSwitched('removeAddress')
   const db = read()
   const member = memberFromToken(db, token)
   const index = db.addresses.findIndex((item) => item.memberId === member.id && item.id === Number(id))
@@ -538,6 +543,7 @@ export async function removeAddress(token, id) {
 
 export async function setDefaultAddress(token, id) {
   await wait(150)
+  failIfSwitched('setDefaultAddress')
   const db = read()
   const member = memberFromToken(db, token)
   const address = db.addresses.find((item) => item.memberId === member.id && item.id === Number(id))
@@ -555,6 +561,7 @@ export async function setDefaultAddress(token, id) {
 
 export async function createOrder(token, { items, addressId, address, payment }) {
   await wait(150)
+  failIfSwitched('createOrder')
   const db = read()
   const member = memberFromToken(db, token)
 
@@ -624,6 +631,7 @@ export async function createOrder(token, { items, addressId, address, payment })
 
 export async function payOrder(token, id, { method }) {
   await wait(150)
+  failIfSwitched('payOrder')
   const db = read()
   const member = memberFromToken(db, token)
   settleOrders(db)
@@ -657,6 +665,7 @@ export async function payOrder(token, id, { method }) {
 
 export async function listOrders(token) {
   await wait(150)
+  failIfSwitched('listOrders')
   const db = read()
   const member = memberFromToken(db, token)
   settleOrders(db)
@@ -669,6 +678,7 @@ export async function listOrders(token) {
 
 export async function getOrder(token, id) {
   await wait(150)
+  failIfSwitched('getOrder')
   const db = read()
   const member = memberFromToken(db, token)
   settleOrders(db)
@@ -679,6 +689,7 @@ export async function getOrder(token, id) {
 
 export async function cancelOrder(token, id) {
   await wait(150)
+  failIfSwitched('cancelOrder')
   const db = read()
   const member = memberFromToken(db, token)
   const order = memberOrder(db, member.id, id)
@@ -698,6 +709,7 @@ export async function cancelOrder(token, id) {
 
 export async function confirmReceipt(token, id) {
   await wait(150)
+  failIfSwitched('confirmReceipt')
   const db = read()
   const member = memberFromToken(db, token)
   const order = memberOrder(db, member.id, id)
@@ -737,6 +749,7 @@ function favoriteKind(kind) {
 
 export async function getFavorites(token) {
   await wait(150)
+  failIfSwitched('getFavorites')
   const db = read()
   const member = memberFromToken(db, token)
   return copy(memberFavorites(member))
@@ -744,6 +757,7 @@ export async function getFavorites(token) {
 
 export async function addFavorite(token, kind, id, extra = {}) {
   await wait(150)
+  failIfSwitched('addFavorite')
   const db = read()
   const member = memberFromToken(db, token)
   const key = favoriteKind(kind)
@@ -760,6 +774,7 @@ export async function addFavorite(token, kind, id, extra = {}) {
 
 export async function removeFavorite(token, kind, id) {
   await wait(150)
+  failIfSwitched('removeFavorite')
   const db = read()
   const member = memberFromToken(db, token)
   const key = favoriteKind(kind)
@@ -773,6 +788,7 @@ export async function removeFavorite(token, kind, id) {
 /** 登入時把訪客在本機收的併進來：聯集；同一件兩邊都有時保留較早的 addedAt。回傳併完的整包 */
 export async function mergeFavorites(token, incoming) {
   await wait(150)
+  failIfSwitched('mergeFavorites')
   const db = read()
   const member = memberFromToken(db, token)
   const favorites = memberFavorites(member)
@@ -818,6 +834,7 @@ function cleanPreferences(data) {
 
 export async function getPreferences(token) {
   await wait(150)
+  failIfSwitched('getPreferences')
   const db = read()
   const member = memberFromToken(db, token)
   return member.preferences ? copy(member.preferences) : null
@@ -826,6 +843,7 @@ export async function getPreferences(token) {
 /** 存整包（PUT：每次都是整包換掉，不是局部更新）；回存好的那包 */
 export async function savePreferences(token, data) {
   await wait(150)
+  failIfSwitched('savePreferences')
   const db = read()
   const member = memberFromToken(db, token)
   member.preferences = cleanPreferences(data)
@@ -835,6 +853,7 @@ export async function savePreferences(token, data) {
 
 export async function clearPreferences(token) {
   await wait(150)
+  failIfSwitched('clearPreferences')
   const db = read()
   const member = memberFromToken(db, token)
   member.preferences = null
@@ -866,6 +885,7 @@ function cleanBodyInput(data) {
 
 export async function getBody(token) {
   await wait(150)
+  failIfSwitched('getBody')
   const db = read()
   const member = memberFromToken(db, token)
   return member.body ? copy(member.body) : null
@@ -874,6 +894,7 @@ export async function getBody(token) {
 /** 存整包（PUT）；回存好的那包 */
 export async function saveBody(token, data) {
   await wait(150)
+  failIfSwitched('saveBody')
   const db = read()
   const member = memberFromToken(db, token)
   member.body = cleanBodyInput(data)
@@ -883,6 +904,7 @@ export async function saveBody(token, data) {
 
 export async function clearBody(token) {
   await wait(150)
+  failIfSwitched('clearBody')
   const db = read()
   const member = memberFromToken(db, token)
   member.body = null
@@ -892,6 +914,7 @@ export async function clearBody(token) {
 
 export async function resetDemoData() {
   await wait(150)
+  failIfSwitched('resetDemoData')
   const db = read()
 
   // 重設會清空所有權杖，因此每個已登入的分頁都會失效
