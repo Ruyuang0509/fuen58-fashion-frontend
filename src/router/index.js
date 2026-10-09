@@ -50,12 +50,13 @@ const routes = [
   // guest: true 的頁面是給還沒登入的人的；已登入就直接去會員中心
   { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue'), meta: { title: '登入', zone: 'transaction', guest: true } },
   { path: '/register', name: 'register', component: () => import('@/views/RegisterView.vue'), meta: { title: '註冊', zone: 'transaction', guest: true } },
-  { path: '/onboarding/body', name: 'onboarding-body', component: todo, meta: { title: '填身形', zone: 'transaction', level: '特', note: '註冊後引導第二步：身高、體重，三圍選填；可略過。' } },
+  // 身形（第十六輪子輪 2）：從偏好調查的結果頁連過來，可略過；存在會員身上，所以要登入
+  { path: '/onboarding/body', name: 'onboarding-body', component: () => import('@/views/OnboardingBodyView.vue'), meta: { title: '填身形', zone: 'transaction', auth: true } },
   { path: '/account', name: 'account', component: () => import('@/views/AccountView.vue'), meta: { title: '個人資料', zone: 'transaction', auth: true } },
   { path: '/account/addresses', name: 'account-addresses', component: () => import('@/views/AddressesView.vue'), meta: { title: '地址簿', zone: 'transaction', auth: true } },
   { path: '/account/orders', name: 'account-orders', component: () => import('@/views/OrdersView.vue'), meta: { title: '訂單紀錄', zone: 'transaction', auth: true } },
   { path: '/account/orders/:id', name: 'account-order', component: () => import('@/views/OrderView.vue'), meta: { title: '訂單明細', zone: 'transaction', auth: true } },
-  { path: '/account/body', name: 'account-body', component: todo, meta: { title: '身形資料', zone: 'transaction', level: '特', note: '供尺寸推薦與試穿使用。' } },
+  { path: '/account/body', name: 'account-body', component: () => import('@/views/AccountBodyView.vue'), meta: { title: '身形', zone: 'transaction', auth: true } },
   { path: '/account/style', name: 'account-style', component: () => import('@/views/AccountStyleView.vue'), meta: { title: '我的偏好', zone: 'transaction', auth: true } },
   // 收藏與看過的（第十五輪子輪 2）：不需要登入——訪客存在本機，登入後併進帳號；會員中心的分頁列也連到這兩頁
   { path: '/favorites', name: 'favorites', component: () => import('@/views/FavoritesView.vue'), meta: { title: '收藏', zone: 'transaction' } },

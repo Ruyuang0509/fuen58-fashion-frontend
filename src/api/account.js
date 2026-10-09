@@ -727,6 +727,54 @@ export async function clearPreferences(token) {
   return true
 }
 
+// ── 身形（第十六輪子輪 2；契約 §14）──
+// 會員的身形：{ height, weight, chest, waist, hips, updatedAt }（公分、公斤；三圍選填），沒填是 null。
+// 只用來算尺寸建議（products/sizeAdvice.js），不公開。真正後端是 member_body 一張表；這裡掛在會員物件上。
+function cleanBodyInput(data) {
+  const take = (key, min, max) => {
+    const n = Number(data?.[key])
+    if (data?.[key] === '' || data?.[key] === null || data?.[key] === undefined) return null
+    if (!Number.isFinite(n) || n < min || n > max) throw new ApiError('VALIDATION', `${{ height: '身高', weight: '體重', chest: '胸圍', waist: '腰圍', hips: '臀圍' }[key]}要在 ${min}–${max} 之間`, key)
+    return Math.round(n)
+  }
+  const body = {
+    height: take('height', 100, 230),
+    weight: take('weight', 25, 200),
+    chest: take('chest', 50, 160),
+    waist: take('waist', 40, 160),
+    hips: take('hips', 50, 170),
+  }
+  if (!body.height) throw new ApiError('VALIDATION', '請填身高', 'height')
+  if (!body.weight) throw new ApiError('VALIDATION', '請填體重', 'weight')
+  return { ...body, updatedAt: new Date().toISOString() }
+}
+
+export async function getBody(token) {
+  await wait(150)
+  const db = read()
+  const member = memberFromToken(db, token)
+  return member.body ? copy(member.body) : null
+}
+
+/** 存整包（PUT）；回存好的那包 */
+export async function saveBody(token, data) {
+  await wait(150)
+  const db = read()
+  const member = memberFromToken(db, token)
+  member.body = cleanBodyInput(data)
+  write(db)
+  return copy(member.body)
+}
+
+export async function clearBody(token) {
+  await wait(150)
+  const db = read()
+  const member = memberFromToken(db, token)
+  member.body = null
+  write(db)
+  return true
+}
+
 export async function resetDemoData() {
   await wait(150)
   const db = read()

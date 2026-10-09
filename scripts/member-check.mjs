@@ -93,8 +93,8 @@ check('login: success returns to /account', (await pathname()) === '/account', a
 // ── 2. 個人資料 ──
 await shot('account')
 // 第十五輪子輪 2：分頁列多了收藏、看過的
-// 子輪 4 加了「我的偏好」：五個變六個
-check('account: nav has 6 links', (await count('.account-nav a')) === 6, await count('.account-nav a'))
+// 第十五輪子輪 4 加了「我的偏好」、第十六輪子輪 2 加了「身形」：五個變七個
+check('account: nav has 7 links', (await count('.account-nav a')) === 7, await count('.account-nav a'))
 check('account: name prefilled', (await ev('document.querySelector("#profile-name")?.value')) === '林示範', await ev('document.querySelector("#profile-name")?.value'))
 await type('#profile-name', '林示範二')
 await click('form.profile button[type=submit]')

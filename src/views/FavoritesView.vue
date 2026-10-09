@@ -8,6 +8,8 @@ import GarmentImage from '@/components/GarmentImage.vue'
 import OutfitCard from '@/components/OutfitCard.vue'
 import { useFlyToCart } from '@/composables/useFlyToCart'
 import { formatPrice } from '@/products/labels'
+import { adviseSize } from '@/products/sizeAdvice'
+import { useBody } from '@/stores/body'
 import { useCart } from '@/stores/cart'
 import { useFavorites } from '@/stores/favorites'
 import { useSession } from '@/stores/session'
@@ -16,6 +18,9 @@ const favorites = useFavorites()
 const { loggedIn } = useSession()
 const { add } = useCart()
 const { fly } = useFlyToCart()
+// 尺寸建議（第十六輪子輪 2）：有身形就在尺寸下拉裡標出建議的那個
+const { body } = useBody()
+const advisedSize = (product) => adviseSize(product, body.value)?.size ?? null
 
 const products = ref([]) // 收藏的單品（商品細節）
 const outfits = ref([]) // 收藏的穿搭（展開後）
@@ -117,7 +122,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
               <span>尺寸</span>
               <select v-model="sizes[product.productId]" :aria-describedby="errors[product.productId] ? `err-${product.productId}` : undefined">
                 <option value="">選尺寸</option>
-                <option v-for="size in product.sizes" :key="size" :value="size" :disabled="stockOf(product, size) === 0">{{ size }}{{ stockOf(product, size) === 0 ? '（無庫存）' : '' }}</option>
+                <option v-for="size in product.sizes" :key="size" :value="size" :disabled="stockOf(product, size) === 0">{{ size }}{{ stockOf(product, size) === 0 ? '（無庫存）' : size === advisedSize(product) ? '（建議）' : '' }}</option>
               </select>
             </label>
             <span v-else class="size-pick"><span>尺寸</span><strong>單一尺寸</strong></span>

@@ -12,7 +12,9 @@ import GarmentImage from '@/components/GarmentImage.vue'
 import OutfitLook from '@/components/OutfitLook.vue'
 import ProductCard from '@/components/ProductCard.vue'
 import RecentlyViewed from '@/components/RecentlyViewed.vue'
+import SizeAdvice from '@/components/SizeAdvice.vue'
 import { useFlyToCart } from '@/composables/useFlyToCart'
+import { useSizeAdvice } from '@/composables/useSizeAdvice'
 import { CATEGORY_NAMES, formatPrice, warmthText } from '@/products/labels'
 import { useCart } from '@/stores/cart'
 import { useHistory } from '@/stores/history'
@@ -48,6 +50,8 @@ const sizeField = ref(null)
 const zoom = ref(null)
 
 const colour = computed(() => product.value?.colours.find((entry) => entry.code === colourCode.value) ?? product.value?.colours[0] ?? null)
+// 尺寸建議（第十六輪子輪 2）：有身形就算；只標「建議」，不替人選
+const { advice } = useSizeAdvice(product)
 const accent = computed(() => accentOf(product.value?.themeCodes[0]))
 const themeName = (code) => themes.value.find((theme) => theme.code === code)?.name ?? code
 const oneSize = computed(() => product.value?.sizes.length === 1)
@@ -235,13 +239,16 @@ function closeZoom(event) {
           <fieldset v-if="!oneSize" ref="sizeField" class="field" :aria-describedby="sizeError ? 'size-error' : undefined">
             <legend>尺寸<span v-if="size" class="chosen">{{ size }}</span></legend>
             <div class="sizes">
-              <label v-for="entry in product.sizes" :key="entry" class="size" :class="{ on: entry === size, out: stockOf(entry) === 0 }">
+              <label v-for="entry in product.sizes" :key="entry" class="size" :class="{ on: entry === size, out: stockOf(entry) === 0, advised: entry === advice?.size && stockOf(entry) !== 0 }">
                 <input type="radio" name="size" :value="entry" :checked="entry === size" :disabled="stockOf(entry) === 0" @change="pickSize(entry)" />
                 <span>{{ entry }}</span>
                 <small v-if="stockOf(entry) === 0">無庫存</small>
+                <small v-else-if="entry === advice?.size" class="tag">建議</small>
               </label>
             </div>
             <p v-if="sizeError" id="size-error" class="error" role="alert">{{ sizeError }}</p>
+            <!-- 尺寸建議（第十六輪子輪 2）：規則寫在畫面上；沒身形時是「輸入身高體重看建議」 -->
+            <SizeAdvice :product="product" :stock-of="stockOf" />
           </fieldset>
           <p v-else class="single">尺寸<span class="chosen">單一尺寸</span></p>
 
@@ -609,6 +616,24 @@ legend,
 
 .size small {
   font-size: 0.7rem;
+}
+
+/* 建議的尺寸：框線實的深一點、底下一個「建議」，不自動選 */
+.size.advised:not(.on) {
+  border-color: var(--ink);
+}
+
+.size .tag {
+  color: var(--ink-soft);
+  letter-spacing: 0.1em;
+}
+
+.size.on .tag {
+  color: inherit;
+}
+
+.size-advice {
+  margin-top: var(--s2);
 }
 
 .size:has(input:focus-visible) {

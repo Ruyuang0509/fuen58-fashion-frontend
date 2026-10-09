@@ -17,6 +17,7 @@ const groups = [
     { name: 'account-addresses', label: '地址簿', icon: 'pin' },
     { name: 'account-orders', label: '訂單紀錄', icon: 'bag' },
     { name: 'account-style', label: '我的偏好', icon: 'palette' },
+    { name: 'account-body', label: '身形', icon: 'ruler' },
   ],
   [
     { name: 'favorites', label: '收藏', icon: 'heart' },
@@ -119,7 +120,7 @@ ul {
   position: relative;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--s2);
+  gap: 0.6rem; /* 第一組五個（子輪 2 加了身形）要放進 38rem 的欄，間距與內距都收一點 */
   margin: 0;
   padding: 0;
   list-style: none;
@@ -150,7 +151,7 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.4rem 0.8rem;
+  padding: 0.4rem 0.7rem;
   border: 1px solid transparent;
   border-radius: 999px;
   color: var(--ink-soft);

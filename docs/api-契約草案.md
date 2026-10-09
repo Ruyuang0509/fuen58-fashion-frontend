@@ -273,3 +273,21 @@
 - `temperature`、`humidity`、`apparent` 都是整數；`forecast` 七筆、含今天；`rainChance` 是當天最大降雨機率（%）。
 - `source`：`cwa`（後端抓到的）｜`cache`（後端的快取）｜`demo`；前台還認 `open-meteo`。
 - 資料表：`weather_cache`（city_code、payload、fetched_at）就夠；「天氣規則」那張表（溫度區間 → 厚薄等級）前台現在寫死在 `products/weatherFit.js`。
+
+## 14. 身形（需登入；第十六輪子輪 2，功能規劃「特」）
+
+只用來算商品頁的「建議尺寸」，不公開。訪客在商品頁臨時輸入的身高體重存在瀏覽器本機；登入時帳號沒有而本機有，前台會 `PUT` 一次併進帳號。
+
+| 端點 | 內容 |
+|---|---|
+| `GET /api/me/body` | `{ height, weight, chest, waist, hips, updatedAt }` 或 `null`（沒填） |
+| `PUT /api/me/body` | 整包換掉。後端驗：身高 100–230、體重 25–200 必填；胸圍 50–160、腰圍 40–160、臀圍 50–170 選填（`null` 代表沒填）；錯誤格式照 §6，`field` 指出哪一欄 |
+| `DELETE /api/me/body` | 清掉；之後 `GET` 回 `null` |
+
+```json
+{ "height": 168, "weight": 58, "chest": 92, "waist": null, "hips": null, "updatedAt": "2026-10-10T10:00:00+08:00" }
+```
+
+- **尺寸建議是純前端的規則**（`src/products/sizeAdvice.js`），後端不用做：以模特兒試穿資訊為基準（身高每 12 公分、體重每 8 公斤算一級，從模特兒穿的尺寸上下移）；有三圍而且尺寸表有對應的欄（胸寬 ×2 當胸圍、腰圍、臀圍）就逐項比鬆份（胸 ≥ 6、腰 ≥ 2、臀 ≥ 4 公分），以三圍為準。門檻是設計假設，畫面上會寫依據。
+- 資料表：`member_body`（member_id 主鍵、height、weight、chest、waist、hips、updated_at）。`GET /api/me`（§6）回的會員物件**要帶 `body`**（沒填是 `null`）。
+- 加分（不排）：訂單裡買過的尺寸、同身高體重的人買的尺寸——要有評論或訂單統計才做得出來。

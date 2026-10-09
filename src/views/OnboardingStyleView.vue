@@ -208,6 +208,8 @@ function again() {
       <h1 id="q3">你的風格組成</h1>
       <TasteBar :weights="weights" :themes="themes" />
       <p class="lead">之後的穿搭會先照這個比例排——喜歡的路線排前面。在會員中心的「我的偏好」可以重挑，也可以關掉。</p>
+      <!-- 身形（第十六輪子輪 2）：不插在三步裡，從這裡連過去，一樣可以略過 -->
+      <p class="body-ask">也填一下身形？<RouterLink :to="{ name: 'onboarding-body', query: route.query }">三十秒，之後商品頁會有尺寸建議</RouterLink></p>
       <p v-if="saving === 'error'" class="error" role="alert">偏好沒有存成功。<button type="button" class="link" @click="finish">再試一次</button></p>
       <p v-else-if="saving === 'saving'" class="soft" aria-busy="true">正在存…</p>
       <div class="actions">
@@ -449,6 +451,17 @@ h1 {
 
 .error {
   color: #9b2c2c; /* 與頁面底 7.1:1（check-contrast 有量） */
+}
+
+.body-ask {
+  margin: 0 0 var(--s3);
+  color: var(--ink-soft);
+}
+
+.body-ask a {
+  margin-left: 0.3em;
+  color: var(--ink);
+  text-underline-offset: 0.3em;
 }
 
 .soft {
