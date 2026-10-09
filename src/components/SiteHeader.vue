@@ -5,7 +5,7 @@
 import '@fontsource/noto-serif-tc/600.css'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getWeather } from '@/api'
+import { useWeather } from '@/stores/weather'
 import HeaderPopover from '@/components/HeaderPopover.vue'
 import Icon from '@/components/Icon.vue'
 import CartPeek from '@/components/peeks/CartPeek.vue'
@@ -92,15 +92,8 @@ onBeforeUnmount(() => {
   favBump.stop()
 })
 
-// 站名旁的小天氣：晴、多雲、雨，夜裡是月亮
-const weather = ref(null)
-onMounted(async () => {
-  try {
-    weather.value = await getWeather()
-  } catch {
-    weather.value = null
-  }
-})
+// 站名旁的小天氣：晴、多雲、雨，夜裡是月亮（第十六輪子輪 1 起讀整站共用的 store：真的天氣、跟著縣市）
+const { weather } = useWeather()
 const hour = new Date().getHours()
 const glyph = computed(() => {
   if (!weather.value) return null

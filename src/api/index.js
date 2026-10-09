@@ -15,12 +15,23 @@ import products from './mock/products.json'
 import brands from './mock/brands.json'
 import campaigns from './mock/campaigns.json'
 import { familyOf } from '@/products/colourFamily'
+import { fitVerdict, fitsToday } from '@/products/weatherFit'
+import { cityOf } from '@/weather/cities'
+import { fetchForecast, toWeather } from '@/weather/openMeteo'
 
 // 多值條件：陣列或逗號字串都收，空的丟掉（第十五輪子輪 3：場合、類別、尺寸、品牌、色系可以多選，任一符合）
 const many = (value) => (Array.isArray(value) ? value : value ? String(value).split(',') : []).map((entry) => String(entry).trim()).filter(Boolean)
 
 // 模擬網路延遲，讓「載入中」的畫面在開發時看得到
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+// 今天是幾號（臺北時間，YYYY-MM-DD）：活動的進行中與否、示範天氣的七天日期都用它
+const todayInTaipei = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Taipei' }).format(new Date())
+const shiftDay = (isoDate, days) => {
+  const date = new Date(`${isoDate}T00:00:00+08:00`)
+  date.setUTCDate(date.getUTCDate() + days)
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Taipei' }).format(date)
+}
 
 const productById = new Map(products.map((product) => [product.productId, product]))
 const brandByCode = new Map(brands.map((brand) => [brand.code, brand]))
@@ -30,10 +41,89 @@ export async function getThemes() {
   return [...themes].sort((a, b) => a.sort - b.sort)
 }
 
-export async function getWeather() {
-  await wait(150)
-  // 正式版接後端的氣象資料；condition 先用 clear | cloudy | rain 三種
-  return { city: '臺北', temperature: 18, humidity: 85, condition: 'rain', observedAt: '2026-10-06T08:00:00+08:00' }
+// ── 天氣（第十六輪子輪 1；契約 §13）──
+// 現在直接打 Open-Meteo（免金鑰、瀏覽器可呼叫）；後端做好 GET /api/weather?city= 之後改打後端，回的形狀不變。
+// 順序：15 分鐘內的快取 → Open-Meteo → 24 小時內的舊快取（stale: true）→ 示範值（source: 'demo'）。
+// 畫面會照 source／stale 寫「示範天氣」「上次 10:20 的資料」，不讓人以為那是現在的天氣。
+const WEATHER_FRESH_MS = 15 * 60 * 1000
+const WEATHER_STALE_MS = 24 * 60 * 60 * 1000
+const weatherKey = (code) => `weather:${code}`
+
+function readWeatherCache(code) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(weatherKey(code)))
+    if (parsed?.fetchedAt && parsed.data && typeof parsed.data === 'object') return parsed
+  } catch {
+    // 儲存空間不能用或內容壞掉：當作沒有快取
+  }
+  return null
+}
+
+function writeWeatherCache(code, data) {
+  try {
+    localStorage.setItem(weatherKey(code), JSON.stringify({ fetchedAt: data.fetchedAt, data }))
+  } catch {
+    // 存不了就每次都打
+  }
+}
+
+// 示範值：第十輪起的那組「臺北 18°、濕度 85%、有雨」，加七天假預報（日期照今天算，這一週那排的星期才對）
+const DEMO_FORECAST = [[21, 17, 80, 'rain'], [22, 17, 60, 'rain'], [24, 18, 20, 'cloudy'], [26, 19, 10, 'clear'], [25, 20, 30, 'cloudy'], [23, 18, 70, 'rain'], [22, 17, 40, 'cloudy']]
+function demoWeather(city) {
+  const today = todayInTaipei()
+  return {
+    city: city.name,
+    cityCode: city.code,
+    temperature: 18,
+    humidity: 85,
+    apparent: 17,
+    condition: 'rain',
+    isDay: true,
+    observedAt: `${today}T08:00:00+08:00`,
+    fetchedAt: null,
+    source: 'demo',
+    stale: false,
+    forecast: DEMO_FORECAST.map(([high, low, rainChance, condition], i) => ({ date: shiftDay(today, i), high, low, rainChance, condition })),
+  }
+}
+
+// 同一個縣市同時被好幾個元件問，只打一次
+const inflight = new Map()
+
+// 開發版：localStorage 的 weatherDemo 整包覆蓋成指定的天氣（驗收與截圖用，結果才可重現）；正式版不認。
+// 放在這裡而不是 store：穿搭的 fit=today 篩選也走 getWeather，覆蓋要兩邊一致（第一次驗收就是卡片 18°、篩選 24° 對不上）
+function demoOverride() {
+  if (!import.meta.env.DEV) return null
+  try {
+    const parsed = JSON.parse(localStorage.getItem('weatherDemo'))
+    return parsed && typeof parsed === 'object' && Number.isFinite(Number(parsed.temperature)) ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 某個縣市現在的天氣與七天預報。永遠會回一包（拿不到就是快取或示範值），不丟錯。
+ * @param {{ city?: string }} query  縣市代碼（weather/cities.js）；沒給就是臺北
+ */
+export async function getWeather({ city } = {}) {
+  const target = cityOf(city)
+  const override = demoOverride()
+  if (override) return { ...override, city: target.name, cityCode: target.code, source: override.source ?? 'demo', stale: !!override.stale }
+  const cached = readWeatherCache(target.code)
+  const age = cached ? Date.now() - Date.parse(cached.fetchedAt) : Infinity
+  if (cached && age < WEATHER_FRESH_MS) return { ...cached.data, source: 'cache', stale: false }
+  try {
+    if (!inflight.has(target.code)) {
+      inflight.set(target.code, fetchForecast(target).then((raw) => toWeather(raw, target)).finally(() => inflight.delete(target.code)))
+    }
+    const fresh = await inflight.get(target.code)
+    writeWeatherCache(target.code, fresh)
+    return fresh
+  } catch {
+    if (cached && age < WEATHER_STALE_MS) return { ...cached.data, source: 'cache', stale: true }
+    return demoWeather(target)
+  }
 }
 
 // ── 穿搭 ──
@@ -45,8 +135,9 @@ function resolveOutfit(outfit) {
       const product = productById.get(ref.productId)
       if (!product) return null
       const way = product.colours.find((entry) => entry.code === ref.colour) ?? product.colours[0]
-      const { name, brand, brandCode, category, price, sizes, kind, fabric } = product
-      return { productId: product.productId, name, brand, brandCode, category, price, sizes, kind, fabric, colour: way.hex, colourCode: way.code, colourName: way.name }
+      // warmth、features 給「合不合今天」用（第十六輪）
+      const { name, brand, brandCode, category, price, sizes, kind, fabric, warmth, features } = product
+      return { productId: product.productId, name, brand, brandCode, category, price, sizes, kind, fabric, warmth, features, colour: way.hex, colourCode: way.code, colourName: way.name }
     })
     .filter(Boolean)
   return { ...outfit, items }
@@ -61,17 +152,21 @@ function forAudience(outfit, audience) {
 
 /**
  * 取得穿搭組合。條件都是選填，空的代表不限。場合、類別、尺寸可以多選（陣列或逗號字串），任一符合就算。
- * @param {{ style?: string, audience?: string, occasion?: string|string[], category?: string|string[], size?: string|string[], ids?: number[] }} filters
- *   ids  只要這幾套（照給的順序；活動頁用）
+ * @param {{ style?: string, audience?: string, occasion?: string|string[], category?: string|string[], size?: string|string[], ids?: number[], fit?: string, city?: string }} filters
+ *   ids   只要這幾套（照給的順序；活動頁用）
+ *   fit   'today' → 只留合今天天氣的（最厚的一層對上今天要的厚度，差 −1～+1；products/weatherFit.js）；city 是看哪個縣市的天氣
  */
 export async function getOutfits(filters = {}) {
   await wait(250)
-  const { style, audience, ids } = filters
+  const { style, audience, ids, fit, city } = filters
   const occasions = many(filters.occasion)
   const categories = many(filters.category)
   const sizes = many(filters.size)
   const base = ids ? ids.map((id) => outfits.find((outfit) => outfit.id === Number(id))).filter(Boolean) : outfits
+  // 後端對應 GET /api/outfits?fit=today&city=taipei：後端自己拿那個縣市的天氣來篩
+  const weather = fit === 'today' ? await getWeather({ city }) : null
   return base.map(resolveOutfit).filter((outfit) => {
+    if (weather && !fitsToday(fitVerdict(outfit.items, weather))) return false
     if (style && outfit.themeCode !== style) return false
     if (audience && !forAudience(outfit, audience)) return false
     if (occasions.length && !occasions.some((occasion) => outfit.occasions.includes(occasion))) return false
@@ -199,8 +294,6 @@ export async function getBrand(code) {
 // ── 活動（第十五輪）──
 // 一檔活動：期間、所屬路線（天空與顏色跟它）、幾套穿搭、幾件單品、放在哪些位置（stage 舞台插卡｜footer 頁尾）。
 // 進行中與否在這裡算（臺北時間，endsAt 含當天），畫面不自己比日期。功能規劃沒有這一項，10/12 要全組確認。
-
-const todayInTaipei = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Taipei' }).format(new Date())
 
 function decorateCampaign(campaign) {
   const today = todayInTaipei()

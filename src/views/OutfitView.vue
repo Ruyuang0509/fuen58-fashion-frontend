@@ -6,7 +6,7 @@
 import '@fontsource/space-mono/400.css'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { getOutfit, getOutfits, getProducts, getThemes, getWeather } from '@/api'
+import { getOutfit, getOutfits, getProducts, getThemes } from '@/api'
 import { flyLookIn, rememberLook, takeLook } from '@/motion/lookFlip'
 import FavButton from '@/components/FavButton.vue'
 import GarmentImage from '@/components/GarmentImage.vue'
@@ -21,6 +21,7 @@ import { CATEGORY_NAMES, formatPrice } from '@/products/labels'
 import { fitReason } from '@/products/weatherFit'
 import { useCart } from '@/stores/cart'
 import { useHistory } from '@/stores/history'
+import { useWeather } from '@/stores/weather'
 import { accentOf } from '@/theme/themes'
 
 const route = useRoute()
@@ -30,7 +31,8 @@ const { record } = useHistory()
 
 const outfit = ref(null)
 const products = ref(new Map()) // productId → 商品細節（厚薄、庫存、布料）
-const weather = ref(null)
+// 天氣讀整站共用的那一份（第十六輪子輪 1）：真的天氣、可換縣市
+const { weather } = useWeather()
 const themes = ref([])
 const others = ref([])
 const status = ref('loading') // loading | ready | missing | error
@@ -73,10 +75,9 @@ async function load(id) {
     flyLookIn(look.value?.$el?.querySelector('.stack'), remembered.state)
   }
   try {
-    const [found, today, themeList] = await Promise.all([getOutfit(id), getWeather(), getThemes()])
+    const [found, themeList] = await Promise.all([getOutfit(id), getThemes()])
     if (ticket !== latest) return
     themes.value = themeList
-    weather.value = today
     if (!found) {
       status.value = 'missing'
       return

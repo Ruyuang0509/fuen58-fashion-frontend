@@ -100,6 +100,8 @@ function toTop() {
         <div class="notes">
           <p>這是課程專題作品，不是營業中的商店，無法實際購買。</p>
           <p>站上的品牌皆為虛構。圖片為 AI 生成或採用允許非商業使用的素材，不作商業用途。</p>
+          <!-- Open-Meteo 的資料是 CC BY 4.0，要標來源（第十六輪子輪 1）；這是頁尾第二個外連，理由是授權 -->
+          <p>天氣資料：<a href="https://open-meteo.com/" class="ext" target="_blank" rel="noopener noreferrer">Open-Meteo</a>（CC BY 4.0）。</p>
         </div>
         <button type="button" class="top" @click="toTop">回到最上面<Icon name="up" /></button>
       </div>

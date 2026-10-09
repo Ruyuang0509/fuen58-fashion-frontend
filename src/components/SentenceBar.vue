@@ -1,10 +1,11 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { getThemes, getWeather } from '@/api'
+import { getThemes } from '@/api'
 import ClausePicker from '@/components/ClausePicker.vue'
 import { useFilters } from '@/composables/useFilters'
 import { AUDIENCES, CATEGORIES, OCCASIONS, SIZES } from '@/filters/options'
 import { Flip, reducedMotion } from '@/motion/gsap'
+import { useWeather } from '@/stores/weather'
 
 // offset：這一列上方還有多高的東西（首頁的天空），收合的門檻從那裡起算
 const props = defineProps({
@@ -13,7 +14,8 @@ const props = defineProps({
 
 const { filters, setFilter } = useFilters()
 const themes = ref([])
-const weather = ref(null)
+// 天氣讀整站共用的那一份（第十六輪子輪 1）：換縣市、拿到真的天氣時，這裡的第一格跟著變
+const { weather } = useWeather()
 
 // 往下捲超過 COLLAPSE_AT 就收合成一行摘要；捲回 EXPAND_AT 以內才自動展開。
 // 兩個門檻刻意不同：收合會讓頁面變矮、捲動位置跟著變，同一個門檻會在邊界上來回閃。
@@ -58,10 +60,12 @@ watch(filters, async () => {
 onMounted(async () => {
   window.addEventListener('scroll', onScroll, { passive: true })
   onScroll()
-  // 兩份資料各自獨立：天氣拿不到時句子少一段，主題拿不到時風格那一格只剩「不限」
-  const [themeResult, weatherResult] = await Promise.allSettled([getThemes(), getWeather()])
-  if (themeResult.status === 'fulfilled') themes.value = themeResult.value
-  if (weatherResult.status === 'fulfilled') weather.value = weatherResult.value
+  // 主題拿不到時風格那一格只剩「不限」；天氣由 store 管（拿不到會退到示範值，句子不會少一段）
+  try {
+    themes.value = await getThemes()
+  } catch {
+    themes.value = []
+  }
 })
 
 onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
@@ -74,9 +78,15 @@ const styleOptions = computed(() => [
 // 收合成一行時的短稱；多選的用「／」連
 const shortOf = (options, value) => [].concat(value).map((entry) => options.find((option) => option.value === entry)?.short ?? '').filter(Boolean).join('／')
 
+// 第一格（第十六輪子輪 1）：「今天 24°C」或「合今天 24°C 的」——後者會篩掉會冷、太厚的穿搭（?fit=today）
+const fitOptions = computed(() => [
+  { value: '', label: `今天 ${weather.value?.temperature}°C`, short: '' },
+  { value: 'today', label: `合今天 ${weather.value?.temperature}°C 的`, short: '合今天' },
+])
+
 const summary = computed(() => {
   const parts = [
-    weather.value ? `${weather.value.temperature}°C` : '',
+    weather.value ? `${filters.value.fit ? '合今天 ' : ''}${weather.value.temperature}°C` : '',
     shortOf(AUDIENCES, filters.value.audience),
     shortOf(OCCASIONS, filters.value.occasion),
     shortOf(styleOptions.value, filters.value.style),
@@ -97,7 +107,9 @@ const summary = computed(() => {
     <p v-else ref="line" class="line">
       <!-- 每個 clause 是一個不換行的小段，標點跟著前面的字走，不會掉到下一列的開頭；data-flip-id 給重排的動畫對位置。
            場合、類別、尺寸可以多選（句子讀成「上班或約會」）；給誰穿、風格單選 -->
-      <span v-if="weather" class="clause" data-flip-id="clause-weather">今天 {{ weather.temperature }}°C，</span>
+      <span v-if="weather" class="clause" data-flip-id="clause-weather">
+        <ClausePicker label="天氣" :options="fitOptions" :model-value="filters.fit" @update:model-value="change('fit', $event)" />，
+      </span>
       <span class="clause" data-flip-id="clause-audience">
         <ClausePicker label="給誰穿" :options="AUDIENCES" :model-value="filters.audience" @update:model-value="change('audience', $event)" />，
       </span>

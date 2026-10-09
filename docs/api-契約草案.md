@@ -243,6 +243,33 @@
 
 1. 品況（二手）欄位——等 10/12 定案。
 2. 穿搭牆（穿搭照、標註、按讚、審核）——等照片來源定案；前台導覽列先藏。
-3. 身形（尺寸推薦）——特色項目，資料表可先留 `member_body`（height、weight、bust、waist、hips）；偏好已在 §11。
+3. 身形（尺寸推薦）——特色項目，資料表可先留 `member_body`（height、weight、bust、waist、hips）；偏好已在 §11；身形的形狀第十六輪子輪 2 會補。
 4. 商品清單的多值條件——第三子輪：`brand`、`colour`（色系代碼）、`size` 逗號分隔、任一符合。
 5. **登入憑證放哪**（2026-10-06 使用者：交給後端決定）：(a) 現在寫的 Bearer token，前台存 localStorage／sessionStorage，寫法簡單、跨網域也行，但 XSS 拿得到；(b) 後端發 `httpOnly; Secure; SameSite=Lax` 的 cookie，前台不碰 token、XSS 拿不到，但要處理 CSRF（同站 cookie 加自訂 header 或 token）與跨網域的部署設定。前台兩種都能接；選了 (b) 就把 §6 的 `Authorization` 改成 cookie、所有需登入的請求帶 `credentials: 'include'`。
+
+## 13. 天氣（第十六輪子輪 1；功能規劃 6.1「特」）
+
+前台現在**直接打 Open-Meteo**（免金鑰、瀏覽器可呼叫、非商業免費、CC BY 4.0 要標來源，頁尾有）。後端做好下面這支就換成打後端——回的形狀一樣，前台只改 `getWeather` 一個函式。氣象署開放資料要金鑰，照 6.1 的原則金鑰只能在後端；後端定時抓、快取 15 分鐘。
+
+| 端點 | 內容 |
+|---|---|
+| `GET /api/weather?city=taipei` | 某縣市現在的天氣與七天預報；`city` 是前台 `src/weather/cities.js` 的代碼（十四個縣市），沒給就臺北。**永遠回 200 一包**：抓不到就回上次快取並標 `stale: true`，連快取都沒有就回示範值 `source: "demo"`，前台會寫在畫面上 |
+| `GET /api/outfits?fit=today&city=taipei` | 只留合今天天氣的穿搭：這套上半身最厚的一層（outer／top 的 `warmth`）對上今天要的厚度，差 −1～+1 就算合（要的厚度：≥ 26° 是 1、≥ 22° 是 2、≥ 16° 是 3、≥ 10° 是 4、其他 5——前台暫定，由「天氣規則管理」維護） |
+
+```json
+{
+  "city": "臺北", "cityCode": "taipei",
+  "temperature": 24, "humidity": 84, "apparent": 28, "condition": "cloudy", "isDay": false,
+  "observedAt": "2026-10-10T01:30:00+08:00", "fetchedAt": "2026-10-10T01:31:12+08:00",
+  "source": "open-meteo", "stale": false,
+  "forecast": [
+    { "date": "2026-10-10", "high": 28, "low": 24, "rainChance": 2, "condition": "rain" },
+    { "date": "2026-10-11", "high": 28, "low": 23, "rainChance": 2, "condition": "cloudy" }
+  ]
+}
+```
+
+- `condition` 只有三種：`clear`｜`cloudy`｜`rain`（天空只畫這三種）。從氣象署的天氣現象對過來：晴→clear；多雲、陰、霧→cloudy；有雨、雷雨、雪→rain。
+- `temperature`、`humidity`、`apparent` 都是整數；`forecast` 七筆、含今天；`rainChance` 是當天最大降雨機率（%）。
+- `source`：`cwa`（後端抓到的）｜`cache`（後端的快取）｜`demo`；前台還認 `open-meteo`。
+- 資料表：`weather_cache`（city_code、payload、fetched_at）就夠；「天氣規則」那張表（溫度區間 → 厚薄等級）前台現在寫死在 `products/weatherFit.js`。

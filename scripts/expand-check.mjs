@@ -6,9 +6,12 @@ import { mkdirSync, readFileSync, writeFileSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { familyOf } from '../src/products/colourFamily.js'
+import { fitVerdict, fitsToday } from '../src/products/weatherFit.js'
 
 // 子輪 3 的色系檢查要對著資料算期望值（用同一個 familyOf：量的是「篩選有沒有接上」，分類對不對另外用眼睛看 docs/12 的對照表）
 const PRODUCTS = JSON.parse(readFileSync(new URL('../src/api/mock/products.json', import.meta.url), 'utf8'))
+// 第十六輪子輪 1：合今天的期望值也從資料算（同一個 fitVerdict）
+const OUTFITS = JSON.parse(readFileSync(new URL('../src/api/mock/outfits.json', import.meta.url), 'utf8'))
 
 const [origin, outDir, w = '1252', h = '699'] = process.argv.slice(2)
 const W = +w
@@ -438,7 +441,85 @@ check('clear: no signals left → no clause, no line, id order', !((await text('
 await go('/products/101', 2600)
 check('clear: 你可能也想看 gone too', (await count('.also')) === 0, await count('.also'))
 
-const summary = { origin, size: `${W}x${H}`, passed: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok), problems }
+// ── 第十六輪子輪 1：天氣真的接到穿搭 ──
+// 真的天氣每次不一樣：先用開發版的覆蓋（localStorage weatherDemo）把天氣釘成 18°、85%、有雨加七天假預報，結果才可重現；
+// 最後再拿掉覆蓋，分別量「擋掉網路 → 示範值」「有舊快取 → 上次的資料」「放開網路 → 真的 Open-Meteo」三條退路
+const taipeiDay = (offset) => {
+  const date = new Date()
+  date.setUTCDate(date.getUTCDate() + offset)
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Taipei' }).format(date)
+}
+const DEMO_DAYS = [[21, 17, 80, 'rain'], [22, 17, 60, 'rain'], [24, 18, 20, 'cloudy'], [26, 19, 10, 'clear'], [25, 20, 30, 'cloudy'], [23, 18, 70, 'rain'], [22, 17, 40, 'cloudy']]
+const DEMO = { temperature: 18, humidity: 85, apparent: 17, condition: 'rain', isDay: true, observedAt: `${taipeiDay(0)}T08:00:00+08:00`, fetchedAt: null, source: 'demo', stale: false, forecast: DEMO_DAYS.map(([high, low, rainChance, condition], i) => ({ date: taipeiDay(i), high, low, rainChance, condition })) }
+const productById = new Map(PRODUCTS.map((p) => [p.productId, p]))
+const itemsOf = (outfit) => outfit.items.map((ref) => productById.get(ref.productId)).filter(Boolean).map((p) => ({ category: p.category, warmth: p.warmth, fabric: p.fabric, features: p.features }))
+const verdicts = OUTFITS.map((outfit) => fitVerdict(itemsOf(outfit), DEMO))
+const expectedFit = verdicts.filter(fitsToday).length
+const expectedBy = (v) => verdicts.filter((entry) => entry === v).length
+const probe = () => ev('window.__weather?.probe() ?? null')
+await ev(`localStorage.setItem("weatherDemo", ${JSON.stringify(JSON.stringify(DEMO))}); localStorage.removeItem("city"); "ok"`)
+await go('/outfits', 2800)
+const demoProbe = await probe()
+check('weather: dev override in effect (probe: demo, 18°, 臺北)', demoProbe?.source === 'demo' && demoProbe?.temperature === 18 && demoProbe?.city === 'taipei', JSON.stringify(demoProbe))
+check('weather: first clause reads 今天 18°C', ((await pickText('weather')) ?? '').includes('今天 18°C'), await pickText('weather'))
+check('weather: header says 臺北 18°，有雨', ((await text('.site-header .today-text')) ?? '').includes('臺北 18°') && ((await text('.site-header .today-text')) ?? '').includes('有雨'), await text('.site-header .today-text'))
+check(`weather: fit chips on the cards match the rule from data (ok ${expectedBy('ok')}, light ${expectedBy('light')}, cold ${expectedBy('cold')}, warm ${expectedBy('warm')})`, (await count('.grid .card .fit.ok')) === expectedBy('ok') && (await count('.grid .card .fit.light')) === expectedBy('light') && (await count('.grid .card .fit.cold')) === expectedBy('cold') && (await count('.grid .card .fit.warm')) === expectedBy('warm'), `${await count('.grid .card .fit.ok')} / ${await count('.grid .card .fit.light')} / ${await count('.grid .card .fit.cold')} / ${await count('.grid .card .fit.warm')}`)
+check('instrument: the rule does split the 18 outfits (not all one verdict)', expectedFit > 0 && expectedFit < OUTFITS.length, `${expectedFit} of ${OUTFITS.length}`)
+check('weather: an ok chip reads 合今天 18°', (await text('.grid .card .fit.ok')) === '合今天 18°', await text('.grid .card .fit.ok'))
+await ev('document.querySelector("[data-flip-id=clause-weather] .pick").click()')
+await sleep(350)
+check('weather: the clause offers 今天 18°C ／ 合今天 18°C 的', (await ev('[...document.querySelectorAll("[role=listbox] [role=option]")].map((o) => o.textContent.trim()).join("|")')) === '今天 18°C|合今天 18°C 的', await ev('[...document.querySelectorAll("[role=listbox] [role=option]")].map((o) => o.textContent.trim()).join("|")'))
+await click('[role=listbox] [role=option]', 1)
+await sleep(1200)
+check(`weather: 合今天的 → ?fit=today and ${expectedFit} outfits (from data)`, (await ev('location.search')) === '?fit=today' && (await count('.grid .card')) === expectedFit, `${await ev('location.search')} / ${await count('.grid .card')}`)
+check('weather: every listed card is 合今天 or 偏薄', (await ev('[...document.querySelectorAll(".grid .card")].every((c) => c.querySelector(".fit.ok, .fit.light"))')) === true)
+check('weather: the clause now reads 合今天 18°C 的', ((await pickText('weather')) ?? '').includes('合今天 18°C 的'), await pickText('weather'))
+await shot('outfits-fit-today')
+await go('/outfits/1', 2800)
+check('weather: outfit page reason mentions 今天 18°', ((await text('.reason')) ?? '').includes('今天 18°'), await text('.reason'))
+// 首頁：這一週、縣市
+await go('/', 3000)
+check('week: 7 columns, each with a look linking to an outfit', (await count('.week .day')) === 7 && (await count('.week .day .pick')) === 7, `${await count('.week .day')} / ${await count('.week .day .pick')}`)
+check('week: seven different outfits', (await ev('new Set([...document.querySelectorAll(".week .day .pick")].map((a) => a.getAttribute("href"))).size')) === 7, await ev('[...document.querySelectorAll(".week .day .pick")].map((a) => a.getAttribute("href")).join(",")'))
+check('week: first column is 今天 and marked', (await text('.week .day.today .when strong')) === '今天' && (await ev('document.querySelector(".week .day")?.classList.contains("today")')) === true)
+check('week: rain chance shown only when ≥ 30% (5 of the 7 demo days)', (await count('.week .rain')) === DEMO.forecast.filter((d) => d.rainChance >= 30).length, await count('.week .rain'))
+check('week: note says 示範天氣', ((await text('.week-note')) ?? '').includes('示範天氣'), await text('.week-note'))
+check('hero: note says 示範天氣', (await text('.home-hero .note')) === '示範天氣', await text('.home-hero .note'))
+check('hero: the city word is a picker reading 臺北', ((await text('.home-hero .today .pick')) ?? '').includes('臺北'), await text('.home-hero .today .pick'))
+await ev('document.querySelector(".week")?.scrollIntoView()')
+await sleep(500)
+await shot('home-week')
+check('week: overflow 0 and nothing spills', (await overflow()) <= 0 && JSON.stringify(await spill()) === '[]', `${await overflow()} / ${JSON.stringify(await spill())}`)
+await ev('window.scrollTo(0, 0)')
+await sleep(300)
+await ev('document.querySelector(".home-hero .today .pick").click()')
+await sleep(350)
+check('city: list offers 用我的位置 + 14 cities', (await count('[role=listbox] [role=option]')) === 15 && (await text('[role=listbox] [role=option]')) === '用我的位置', await count('[role=listbox] [role=option]'))
+await shot('home-city-list')
+await click('[role=listbox] [role=option]', 10) // 高雄（CITIES 的第 10 個，前面多一項「用我的位置」）
+await sleep(1200)
+check('city: hero, header and week strip say 高雄; localStorage city=kaohsiung', ((await text('.home-hero .today .pick')) ?? '').includes('高雄') && ((await text('.site-header .today-text')) ?? '').includes('高雄') && ((await text('.week-title')) ?? '').includes('高雄') && (await ev('localStorage.getItem("city")')) === 'kaohsiung', `${await text('.home-hero .today .pick')} / ${await text('.site-header .today-text')} / ${await ev('localStorage.getItem("city")')}`)
+// 三條退路（拿掉覆蓋）
+await ev('localStorage.removeItem("weatherDemo"); localStorage.removeItem("city"); Object.keys(localStorage).filter((k) => k.startsWith("weather:")).forEach((k) => localStorage.removeItem(k)); "ok"')
+await send('Network.enable')
+await send('Network.setBlockedURLs', { urls: ['*open-meteo.com*'] })
+await go('/', 3200)
+const blocked = await probe()
+check('fallback: open-meteo blocked, no cache → demo weather, hero says 示範天氣', blocked?.source === 'demo' && (await text('.home-hero .note')) === '示範天氣', JSON.stringify(blocked))
+const staleAt = new Date(Date.now() - 2 * 3600 * 1000).toISOString()
+await ev(`localStorage.setItem("weather:taipei", ${JSON.stringify(JSON.stringify({ fetchedAt: staleAt, data: { ...DEMO, city: '臺北', cityCode: 'taipei', temperature: 21, source: 'open-meteo', fetchedAt: staleAt } }))}); "ok"`)
+await go('/', 3200)
+const stale = await probe()
+check('fallback: blocked but a 2-hour-old cache exists → cache, stale, 21°, hero says 上次…的資料', stale?.source === 'cache' && stale?.stale === true && stale?.temperature === 21 && ((await text('.home-hero .note')) ?? '').startsWith('上次'), `${JSON.stringify(stale)} / ${await text('.home-hero .note')}`)
+await send('Network.setBlockedURLs', { urls: [] })
+await ev('Object.keys(localStorage).filter((k) => k.startsWith("weather:")).forEach((k) => localStorage.removeItem(k)); "ok"')
+await go('/', 4200)
+const live = await probe()
+check('live: open-meteo answered (source open-meteo, numeric temperature, 7 forecast days) — needs the real network', live?.source === 'open-meteo' && Number.isFinite(live?.temperature) && live?.forecast === 7, JSON.stringify(live))
+check('live: no 示範天氣 note on the hero', (await count('.home-hero .note')) === 0, await text('.home-hero .note'))
+check('live: the sentence clause carries the live temperature', ((await pickText('weather')) ?? '').includes(`今天 ${live?.temperature}°C`), await pickText('weather'))
+
+const summary ={ origin, size: `${W}x${H}`, passed: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok), problems }
 console.log(JSON.stringify(summary, null, 1))
 ws.close()
 chrome.kill()

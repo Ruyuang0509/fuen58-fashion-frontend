@@ -7,7 +7,8 @@ import { AUDIENCES, CATEGORIES, OCCASIONS, SIZES } from '@/filters/options'
 //   風格 → 路徑 /themes/:code（單選：它也是天空的時刻）
 //   給誰穿 → ?for=（單選：語意已含中性）
 //   場合、類別、尺寸 → ?occasion=work,date 這樣逗號分隔，可以多選、任一符合（第十五輪子輪 3）
-const QUERY_KEYS = { audience: 'for', occasion: 'occasion', category: 'category', size: 'size' }
+//   合今天的 → ?fit=today（第十六輪子輪 1：一句話列的第一格；只有這一個值）
+const QUERY_KEYS = { audience: 'for', occasion: 'occasion', category: 'category', size: 'size', fit: 'fit' }
 const MULTI = new Set(['occasion', 'category', 'size'])
 const OPTIONS = { audience: AUDIENCES, occasion: OCCASIONS, category: CATEGORIES, size: SIZES }
 
@@ -35,6 +36,7 @@ export function useFilters() {
     occasion: listFrom(route.query.occasion, OCCASIONS),
     category: listFrom(route.query.category, CATEGORIES),
     size: listFrom(route.query.size, SIZES),
+    fit: route.query.fit === 'today' ? 'today' : '',
   }))
 
   /**

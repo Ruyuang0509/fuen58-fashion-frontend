@@ -6,13 +6,15 @@
 // 沒有人動的時候，詞自己每幾秒換一個，像在想；一碰就停。
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { getOutfits, getThemes, getWeather } from '@/api'
+import { getOutfits, getThemes } from '@/api'
+import ClausePicker from '@/components/ClausePicker.vue'
 import Icon from '@/components/Icon.vue'
 import OutfitLook from '@/components/OutfitLook.vue'
 import { gsap, reducedMotion } from '@/motion/gsap'
 import { rememberLook } from '@/motion/lookFlip'
 import { useExploreSky } from '@/stores/explore'
 import { useTaste } from '@/stores/taste'
+import { useWeather } from '@/stores/weather'
 import { accentOf } from '@/theme/themes'
 
 const CYCLE_MS = 3600 // 沒有人動時，幾秒換一個詞
@@ -21,9 +23,33 @@ const router = useRouter()
 const page = inject('skyPage', ref(null))
 const { setSky } = useExploreSky()
 const taste = useTaste()
+// 天氣（第十六輪子輪 1）：真的天氣，可以換縣市；「臺北」那個詞就是選縣市的格子
+const { weather, city, cities, setCity, locate, status: weatherStatus } = useWeather()
 const themes = ref([])
-const weather = ref(null)
 const outfits = ref([])
+const locateFailed = ref(false)
+
+const cityOptions = computed(() => [{ value: 'locate', label: '用我的位置', short: '' }, ...cities.map((entry) => ({ value: entry.code, label: entry.name, short: entry.name }))])
+async function pickCity(value) {
+  locateFailed.value = false
+  if (value === 'locate') {
+    touched.value = true
+    locateFailed.value = !(await locate())
+    return
+  }
+  touched.value = true
+  setCity(value)
+}
+
+// 這行天氣是真的嗎：示範值、舊快取都要說
+const timeText = new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const note = computed(() => {
+  if (locateFailed.value) return `拿不到位置，先用${weather.value?.city ?? '臺北'}`
+  if (!weather.value) return ''
+  if (weather.value.source === 'demo') return '示範天氣'
+  if (weather.value.stale && weather.value.fetchedAt) return `上次 ${timeText.format(new Date(weather.value.fetchedAt))} 的資料`
+  return ''
+})
 const active = ref(null) // 現在括號裡的風格代碼
 const touched = ref(false) // 使用者有沒有碰過（碰過就不自動換）
 const loading = ref(true)
@@ -96,9 +122,8 @@ function toShop() {
 
 onMounted(async () => {
   try {
-    const [themeList, today, outfitList] = await Promise.all([getThemes(), getWeather(), getOutfits(), taste.whenReady()])
+    const [themeList, outfitList] = await Promise.all([getThemes(), getOutfits(), taste.whenReady()])
     themes.value = themeList
-    weather.value = today
     outfits.value = outfitList
     if (!active.value && themeList.length) {
       // 第一個詞：推測得出喜好就用首選的那條路線（第十五輪子輪 4），不然照清單的第一個
@@ -140,9 +165,9 @@ onBeforeUnmount(stopCycle)
     <div class="say" aria-live="polite">
       <p class="today">
         <template v-if="weather">
-          {{ weather.city }}，{{ dateText }}，<span class="num">{{ weather.temperature }}°</span>，濕度 <span class="num">{{ weather.humidity }}%</span><template v-if="conditionText">，{{ conditionText }}</template>。
+          <ClausePicker label="縣市" :options="cityOptions" :model-value="city" @update:model-value="pickCity" />，{{ dateText }}，<span class="num">{{ weather.temperature }}°</span>，濕度 <span class="num">{{ weather.humidity }}%</span><template v-if="conditionText">，{{ conditionText }}</template>。<span v-if="note" class="note">{{ note }}</span>
         </template>
-        <template v-else-if="loading">正在看今天的天氣……</template>
+        <template v-else-if="loading || weatherStatus === 'loading'">正在看今天的天氣……</template>
         <template v-else>今天。</template>
       </p>
       <h1 class="line">
@@ -211,6 +236,28 @@ onBeforeUnmount(stopCycle)
   color: var(--fg-soft);
   font-size: 1rem;
   letter-spacing: 0.1em;
+}
+
+/* 縣市那一格：和第一屏其他字一樣細，不要句子裡的粗體 */
+.today :deep(.pick) {
+  font-weight: 400;
+  padding-inline: 0.1em;
+  border-bottom-color: var(--fg-soft);
+}
+
+.today :deep(.pick:hover),
+.today :deep(.pick:focus-visible),
+.today :deep(.open .pick) {
+  background: transparent;
+  color: var(--fg);
+  border-bottom-color: var(--fg);
+}
+
+/* 示範天氣、舊資料：小小一句，不搶眼但看得到 */
+.note {
+  margin-left: 0.6em;
+  font-size: 0.8rem;
+  opacity: 0.85;
 }
 
 .line {

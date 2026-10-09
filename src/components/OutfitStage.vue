@@ -5,6 +5,8 @@ import CampaignTile from '@/components/CampaignTile.vue'
 import OutfitCard from '@/components/OutfitCard.vue'
 import { useFilters } from '@/composables/useFilters'
 import { useTaste } from '@/stores/taste'
+import { useWeather } from '@/stores/weather'
+import { VERDICT_TEXT, fitVerdict } from '@/products/weatherFit'
 import { sortByWeights } from '@/taste/profile'
 
 const props = defineProps({
@@ -21,6 +23,8 @@ const emit = defineEmits(['count', 'sorted'])
 
 const { filters } = useFilters()
 const taste = useTaste()
+// 天氣（第十六輪子輪 1）：卡片上「合今天」的小標；一句話列選了「合今天的」就把縣市一起送給 API
+const { weather, city } = useWeather()
 const outfits = ref([])
 const themes = ref([])
 // 每個要資料的畫面都有三種狀態：載入中、有結果（可能是空的）、出錯
@@ -44,7 +48,7 @@ async function load() {
   const ticket = ++latest
   status.value = 'loading'
   try {
-    const query = props.ids ? { ...filters.value, ids: props.ids } : filters.value
+    const query = { ...filters.value, city: city.value, ...(props.ids ? { ids: props.ids } : {}) }
     // 推測的資料也一起等：不然卡片先照 id 排好、半秒後再跳成照喜好排
     const [outfitList, themeList] = await Promise.all([getOutfits(query), getThemes(), taste.whenReady()])
     if (ticket !== latest) return
@@ -57,8 +61,8 @@ async function load() {
   }
 }
 
-// 網址上的條件、要列哪幾套一變就重新要資料；immediate 讓元件一出現就先要一次
-watch([filters, () => props.ids, () => props.waiting], load, { immediate: true })
+// 網址上的條件、要列哪幾套一變就重新要資料；選了「合今天的」時換縣市、天氣更新也要重篩。immediate 讓元件一出現就先要一次
+watch([filters, () => props.ids, () => props.waiting, () => (filters.value.fit ? `${city.value}:${weather.value?.temperature}` : '')], load, { immediate: true })
 
 // 穿搭卡與活動插卡排成一列格子：第 n 張插卡放在第 AFTER[n] 張穿搭之後（穿搭不夠就放在最後）。
 // 格子的寬度循環照常套在插卡身上，它看起來就像雜誌裡的夾頁，不是另開一條橫幅。
@@ -80,8 +84,15 @@ const cells = computed(() => {
   return out
 })
 
+// 卡片上的「合今天 24°」「偏薄」「會冷」「太厚」：沒有天氣就不給
+const fitOf = (outfit) => {
+  const verdict = fitVerdict(outfit.items, weather.value)
+  if (!verdict) return {}
+  return { fit: verdict, fitLabel: verdict === 'ok' ? `合今天 ${weather.value.temperature}°` : VERDICT_TEXT[verdict] }
+}
+
 const propsFor = (cell) => (cell.outfit
-  ? { outfit: cell.outfit, themeName: themeNames.value[cell.outfit.themeCode] ?? '', preferredSize: filters.value.size }
+  ? { outfit: cell.outfit, themeName: themeNames.value[cell.outfit.themeCode] ?? '', preferredSize: filters.value.size, ...fitOf(cell.outfit) }
   : { campaign: cell.campaign })
 </script>
 

@@ -12,6 +12,9 @@ const props = defineProps({
   themeName: { type: String, default: '' },
   // 一句話列選的尺寸（可以多選，第十五輪子輪 3 起是陣列；空的代表沒選）
   preferredSize: { type: [String, Array], default: '' },
+  // 合不合今天（第十六輪子輪 1）：ok｜light｜cold｜warm 與要顯示的字；沒有天氣就不給
+  fit: { type: String, default: '' },
+  fitLabel: { type: String, default: '' },
 })
 
 const { add } = useCart()
@@ -54,7 +57,7 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
 
     <div class="body">
       <h3><RouterLink :to="{ name: 'outfit', params: { id: outfit.id } }" class="title" @click="rememberLook(outfit, root)">{{ outfit.title }}</RouterLink></h3>
-      <p class="meta">{{ themeName }} · {{ outfit.items.length }} 件 · NT$ {{ price.format(total) }}</p>
+      <p class="meta"><span v-if="fit" class="fit" :class="fit">{{ fitLabel }}</span>{{ themeName }} · {{ outfit.items.length }} 件 · NT$ {{ price.format(total) }}</p>
 
       <ul class="items">
         <li v-for="item in outfit.items" :key="item.productId" :class="{ hl: item.productId === hovered }" @pointerenter="hovered = item.productId" @pointerleave="hovered = null">
@@ -119,6 +122,23 @@ onBeforeUnmount(() => clearTimeout(feedbackTimer))
 .meta {
   color: var(--ink-soft);
   font-size: var(--fs-0);
+}
+
+/* 合不合今天的小標：剛好的用這套路線的顏色框起來，其他的只是灰字 */
+.fit {
+  display: inline-block;
+  margin-right: var(--s1);
+  padding: 0 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+}
+
+.fit.ok {
+  border-color: var(--card-accent);
+  color: var(--ink);
 }
 
 .items {

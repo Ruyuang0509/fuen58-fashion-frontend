@@ -5,22 +5,25 @@
 // 這樣從首頁點進路線、或在店裡換風格，天空不重建、頂欄不重畫——以前會像網頁刷新（第十四輪使用者回報）。
 import { computed, onMounted, provide, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { getCampaign, getCampaigns, getProducts, getThemes, getWeather } from '@/api'
+import { getCampaign, getCampaigns, getProducts, getThemes } from '@/api'
 import HomeShelves from '@/components/HomeShelves.vue'
 import OutfitStage from '@/components/OutfitStage.vue'
 import ProductCard from '@/components/ProductCard.vue'
 import SentenceBar from '@/components/SentenceBar.vue'
 import SkyPage from '@/components/SkyPage.vue'
+import WeekStrip from '@/components/WeekStrip.vue'
 import { useFilters } from '@/composables/useFilters'
 import { useExploreSky } from '@/stores/explore'
 import { useTaste } from '@/stores/taste'
+import { useWeather } from '@/stores/weather'
 
 const route = useRoute()
 const { sky } = useExploreSky()
 const { filters } = useFilters()
 const { profile, forYou, setForYou, nameOf } = useTaste()
+// 天氣（第十六輪子輪 1）：整站共用的 store；天空、子頁的一行字都讀它
+const { weather } = useWeather()
 const page = ref(null)
-const weather = ref(null)
 const themes = ref([])
 const count = ref(null)
 const activeCampaigns = ref([])
@@ -32,8 +35,7 @@ provide('skyPage', page)
 provide('today', weather)
 
 onMounted(async () => {
-  const [weatherResult, themeResult, campaignResult] = await Promise.allSettled([getWeather(), getThemes(), getCampaigns({ active: true, placement: 'stage' })])
-  if (weatherResult.status === 'fulfilled') weather.value = weatherResult.value
+  const [themeResult, campaignResult] = await Promise.allSettled([getThemes(), getCampaigns({ active: true, placement: 'stage' })])
   if (themeResult.status === 'fulfilled') themes.value = themeResult.value
   if (campaignResult.status === 'fulfilled') activeCampaigns.value = campaignResult.value
 })
@@ -118,6 +120,8 @@ const reason = computed(() => {
       <div id="shop" class="shop">
         <SentenceBar :offset="heroHeight + offsetExtra" />
         <main class="stage">
+          <!-- 首頁多一排「這一週穿什麼」（第十六輪子輪 1） -->
+          <WeekStrip v-if="route.name === 'home'" />
           <div class="shop-head">
             <h2 class="shop-title">{{ title }}<span v-if="count !== null" class="count">　{{ count }} 套</span><span v-if="sorted" class="for-you">，照你的喜好排</span></h2>
             <p v-if="tasteLine" class="taste-line">
