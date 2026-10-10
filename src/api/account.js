@@ -3,6 +3,7 @@
 // 欄位與回傳形狀依照 docs/api-契約草案.md §6–8；首次使用時會把 mock/members.json 複製到 localStorage 的 account。
 // 密碼只有假資料環境才存明碼；真正後端會依功能規劃 7 儲存密碼雜湊。
 import seed from './mock/members.json'
+import coupons from './mock/coupons.json'
 import { ApiError, failIfSwitched } from './errors'
 import { FREE_SHIPPING_FROM, SHIPPING_FEE } from '@/products/labels'
 
@@ -559,7 +560,28 @@ export async function setDefaultAddress(token, id) {
   return addresses.map(publicAddress)
 }
 
-export async function createOrder(token, { items, addressId, address, payment }) {
+// ── 折扣碼（第十八輪子輪 3；功能規劃 4「優惠券」加分項；契約 §16）──
+// 規則是示範值：amount 滿額折固定金額、percent 打折（有上限）、shipping 免運；過期看臺北日期。
+// 前台先用它驗給回饋；下單時 createOrder 會再算一次，正式版金額以後端回的為準。
+export async function checkCoupon(code, subtotal) {
+  await wait(120)
+  failIfSwitched('checkCoupon')
+  const normalised = String(code ?? '').trim().toUpperCase()
+  if (!normalised) throw new ApiError('COUPON_INVALID', '請輸入折扣碼', 'coupon')
+  const found = coupons.find((entry) => entry.code === normalised)
+  if (!found) throw new ApiError('COUPON_INVALID', '沒有這個折扣碼', 'coupon')
+  if (found.expiresAt < taipeiDay()) throw new ApiError('COUPON_INVALID', '這個折扣碼已經過期', 'coupon')
+  const amount = Number(subtotal) || 0
+  if (amount < (found.minSubtotal ?? 0)) {
+    throw new ApiError('COUPON_INVALID', `未達門檻：滿 ${new Intl.NumberFormat('zh-TW').format(found.minSubtotal)} 元才能用`, 'coupon')
+  }
+  let discount = 0
+  if (found.kind === 'amount') discount = Math.min(found.value, amount)
+  else if (found.kind === 'percent') discount = Math.min(Math.round((amount * found.value) / 100), found.maxDiscount ?? Infinity)
+  return { code: found.code, label: found.label, discount, freeShipping: found.kind === 'shipping' }
+}
+
+export async function createOrder(token, { items, addressId, address, payment, couponCode }) {
   await wait(150)
   failIfSwitched('createOrder')
   const db = read()
@@ -598,7 +620,11 @@ export async function createOrder(token, { items, addressId, address, payment })
   }
 
   const subtotal = storedItems.reduce((sum, item) => sum + item.price * item.qty, 0)
-  const shipping = subtotal >= FREE_SHIPPING_FROM ? 0 : SHIPPING_FEE
+  // 折扣碼：下單時再驗一次（真正後端也是這樣）；免運門檻看折扣後的小計，免運券直接 0
+  const coupon = couponCode ? await checkCoupon(couponCode, subtotal) : null
+  const discount = coupon?.discount ?? 0
+  const afterDiscount = subtotal - discount
+  const shipping = coupon?.freeShipping ? 0 : afterDiscount >= FREE_SHIPPING_FROM ? 0 : SHIPPING_FEE
   const createdAt = new Date().toISOString()
 
   // 真正後端會重新計價並扣庫存；假 API 信任購物車送來的快照價格
@@ -610,8 +636,10 @@ export async function createOrder(token, { items, addressId, address, payment })
     items: storedItems,
     address: storedAddress,
     subtotal,
+    coupon,
+    discount,
     shipping,
-    total: subtotal + shipping,
+    total: afterDiscount + shipping,
     payment: {
       method: payment.method,
       paidAt: null,

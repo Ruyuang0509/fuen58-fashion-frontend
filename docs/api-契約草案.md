@@ -150,7 +150,7 @@
 
 | 端點 | 內容 | 錯誤 |
 |---|---|---|
-| `POST /api/orders` | 下單：`{ items: [{ productId, colour, size, qty }], addressId 或 address, payment: { method } }`。後端重算金額（單價、運費、合計）、**扣庫存**，回訂單（`待付款`） | `OUT_OF_STOCK`（附 `field` 指出哪一件） |
+| `POST /api/orders` | 下單：`{ items: [{ productId, colour, size, qty }], addressId 或 address, payment: { method }, couponCode? }`。後端重算金額（單價、折扣、運費、合計）、**扣庫存**，回訂單（`待付款`） | `OUT_OF_STOCK`（附 `field` 指出哪一件）；`COUPON_INVALID`（`field: "coupon"`） |
 | `POST /api/orders/:id/pay` `{ method }` | 付款：金流沙盒或「模擬付款成功」（發表備援）。`待付款 → 已付款`。訂單頁也能呼叫（結帳時付款失敗、留在待付款的訂單） | `NOT_PAYABLE`（不是待付款；付款期限已過的訊息是「付款期限已過，訂單已取消」） |
 | `GET /api/orders` | 我的訂單，新的在前 | |
 | `GET /api/orders/:id` | 明細 | 404 |
@@ -164,7 +164,7 @@
   "status": "待付款",
   "items": [{ "productId": 509, "name": "酒紅吊帶連身裙", "brand": "舊課本", "colour": "burgundy", "colourName": "酒紅", "size": "M", "qty": 1, "price": 3680 }],
   "address": { "recipient": "林示範", "phone": "0912345678", "postalCode": "106", "city": "臺北市", "district": "大安區", "street": "和平東路二段 100 號 5 樓" },
-  "subtotal": 3680, "shipping": 0, "total": 3680,
+  "subtotal": 3680, "coupon": null, "discount": 0, "shipping": 0, "total": 3680,
   "payment": { "method": "mock", "paidAt": null },
   "payBy": "2026-10-03T19:35:00+08:00",
   "cancelReason": null,
@@ -182,6 +182,7 @@
 - **示範用的時間比例只在前台假 API**（`src/api/account.js` 的 `DEMO_LOGISTICS`）：付款（貨到付款是下單）2 分鐘後出貨、5 分鐘後送達，讓發表現場看得到狀態走完；訂單頁有寫是模擬。後端不用做這個——出貨與送達是後台操作。
 - 訂單裡的單品是**下單當時的快照**（名稱、價格），商品之後改價不影響訂單。
 - 運費規則：固定 80 元，滿 2,000 免運——**前端暫定，全組決定**；正式以後端算的為準，前台只顯示。
+- **折扣碼（第十八輪子輪 3；功能規劃 4「優惠券」加分項）**：`coupon` 是 `{ code, label, discount, freeShipping }` 或 `null`；`discount` 是折掉的元數；`total = subtotal − discount + shipping`。免運門檻看折扣後的小計；免運券的 `shipping` 直接 0。端點與規則在 §16。
 - 付款逾時 15 分鐘自動取消並回補庫存是後端排程的事，前台只顯示狀態與 `payBy`（倒數到了就重讀一次訂單）。前台假 API 在每次讀訂單時結算，所以示範得出來。
 - 訂單編號格式 `WD-YYYYMMDD-NNNN` 是前台假資料用的，後端可以換。
 
@@ -312,4 +313,20 @@
 | `EMAIL_TAKEN`、`INVALID_CREDENTIALS`、`UNAUTHORIZED` | §6 | `UNAUTHORIZED` 一律登出並帶著原網址回登入頁 |
 | `OUT_OF_STOCK` | §8 下單 | `field` 指出哪一件；回購物車處理 |
 | `NOT_PAYABLE`、`NOT_CANCELLABLE`、`NOT_DELIVERED` | §8 | 把 `message` 貼在按鈕旁，並重讀訂單（狀態可能已被排程改掉） |
+| `COUPON_INVALID` | §16、§8 下單 | `message` 寫原因（沒有這個折扣碼／已經過期／未達門檻：滿 N 元才能用），`field: "coupon"`；結帳頁貼在折扣碼欄旁 |
 | `NETWORK` | 前台自己用 | 後端連不上、逾時、回的不是 JSON 時前台的 `fetch` 包裝丟這個；頁面顯示「沒有載入成功」與「再試一次」。後端不會回它 |
+
+## 16. 折扣碼（第十八輪子輪 3；功能規劃 4「優惠券」加分項、後台 5「優惠券管理」）
+
+| 端點 | 內容 |
+|---|---|
+| `GET /api/coupons/:code?subtotal=280` | 結帳前驗一次給回饋：回 `{ code, label, discount, freeShipping }`；不能用就 `COUPON_INVALID`（見 §15） |
+
+```json
+{ "code": "SHIPFREE", "label": "免運", "discount": 0, "freeShipping": true }
+```
+
+- 規則（前台假資料的四個示範碼，`src/api/mock/coupons.json`）：`WELCOME100` 滿 1,000 折 100；`AUTUMN15` 85 折、最多折 500；`SHIPFREE` 免運；`SPRING2026` 已過期。種類：`amount`（固定金額，不超過小計）、`percent`（百分比，可設上限）、`shipping`（免運）；`minSubtotal` 門檻、`expiresAt` 到期日（臺北日期）。
+- 下單（`POST /api/orders`）帶 `couponCode`，**後端再驗一次並重算**；前台顯示的折扣只是預覽。
+- 資料表：`coupon`（code、label、kind、value、max_discount、min_subtotal、expires_at、uses_left 選填）；訂單記 `coupon_code`、`discount`。
+- 沒做：一人一次、指定商品、同時用多張。

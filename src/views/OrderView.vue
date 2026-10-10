@@ -378,8 +378,12 @@ onBeforeUnmount(() => {
       <dl>
         <dt>小計</dt>
         <dd class="num">{{ formatPrice(currentOrder.subtotal) }}</dd>
+        <template v-if="currentOrder.discount">
+          <dt class="discount">折扣<template v-if="currentOrder.coupon">（{{ currentOrder.coupon.code }}）</template></dt>
+          <dd class="num discount">−{{ formatPrice(currentOrder.discount) }}</dd>
+        </template>
         <dt>運費</dt>
-        <dd class="num">{{ currentOrder.shipping ? formatPrice(currentOrder.shipping) : '免運' }}</dd>
+        <dd class="num shipping">{{ currentOrder.shipping ? formatPrice(currentOrder.shipping) : currentOrder.coupon?.freeShipping ? '免運（折扣碼）' : '免運' }}</dd>
         <dt class="total">合計</dt>
         <dd class="total num">{{ formatPrice(currentOrder.total) }}</dd>
       </dl>

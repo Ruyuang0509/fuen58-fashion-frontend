@@ -1,0 +1,35 @@
+[
+  {
+    "code": "WELCOME100",
+    "label": "新朋友折 100",
+    "kind": "amount",
+    "value": 100,
+    "minSubtotal": 1000,
+    "expiresAt": "2026-12-31"
+  },
+  {
+    "code": "AUTUMN15",
+    "label": "秋季 85 折",
+    "kind": "percent",
+    "value": 15,
+    "maxDiscount": 500,
+    "minSubtotal": 0,
+    "expiresAt": "2026-11-30"
+  },
+  {
+    "code": "SHIPFREE",
+    "label": "免運",
+    "kind": "shipping",
+    "value": 0,
+    "minSubtotal": 0,
+    "expiresAt": "2026-12-31"
+  },
+  {
+    "code": "SPRING2026",
+    "label": "春季折 200",
+    "kind": "amount",
+    "value": 200,
+    "minSubtotal": 0,
+    "expiresAt": "2026-05-31"
+  }
+]

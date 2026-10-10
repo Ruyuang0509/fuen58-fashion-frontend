@@ -8,6 +8,7 @@ import {
   ApiError,
   PAYMENT_METHODS,
   addAddress,
+  checkCoupon,
   createOrder,
   listAddresses,
   payOrder,
@@ -92,11 +93,38 @@ const blocked = computed(() => (
   && rows.value.some((row) => !row.product || !row.line.size)
 ))
 
-// 金額規則和購物車頁同一套；正式以後端重算為準。
+// 折扣碼（第十八輪子輪 3）：先用假 API 驗給回饋；下單時後端再算一次，以後端回的為準
+const couponCode = ref('')
+const coupon = ref(null) // { code, label, discount, freeShipping }
+const couponError = ref('')
+const couponBusy = ref(false)
+
+const applyCoupon = async () => {
+  couponError.value = ''
+  couponBusy.value = true
+  try {
+    coupon.value = await checkCoupon(couponCode.value, subtotal.value)
+  } catch (error) {
+    coupon.value = null
+    couponError.value = error instanceof ApiError ? error.message : '折扣碼沒有驗證成功，請再試一次。'
+  } finally {
+    couponBusy.value = false
+  }
+}
+
+const clearCoupon = () => {
+  coupon.value = null
+  couponCode.value = ''
+  couponError.value = ''
+}
+
+// 金額規則和購物車頁同一套；正式以後端重算為準。免運門檻看折扣後的小計；免運券直接 0。
+const discount = computed(() => coupon.value?.discount ?? 0)
+const afterDiscount = computed(() => subtotal.value - discount.value)
 const shipping = computed(() => (
-  subtotal.value >= FREE_SHIPPING_FROM ? 0 : SHIPPING_FEE
+  coupon.value?.freeShipping ? 0 : afterDiscount.value >= FREE_SHIPPING_FROM ? 0 : SHIPPING_FEE
 ))
-const total = computed(() => subtotal.value + shipping.value)
+const total = computed(() => afterDiscount.value + shipping.value)
 
 const chosenAddress = computed(() => (
   choice.value === 'new'
@@ -243,6 +271,7 @@ const placeOrder = async () => {
       addressId: address ? null : choice.value,
       address,
       payment: { method: payment.value },
+      couponCode: coupon.value?.code ?? null,
     })
 
     if (payment.value !== 'cod') {
@@ -569,15 +598,47 @@ onMounted(load)
         </li>
       </ul>
 
+      <!-- 折扣碼（第十八輪子輪 3；功能規劃 4「優惠券」）：Enter 也能套用，不會送出整張表單 -->
+      <div class="coupon">
+        <template v-if="coupon">
+          <p class="coupon-applied" role="status">
+            <span class="num">{{ coupon.code }}</span>
+            <span>{{ coupon.label }}：{{ coupon.freeShipping ? '免運' : `折 ${formatPrice(coupon.discount)}` }}</span>
+            <button type="button" class="link coupon-clear" @click="clearCoupon">取消折扣</button>
+          </p>
+        </template>
+        <template v-else>
+          <label for="coupon-code">折扣碼</label>
+          <div class="coupon-row">
+            <input
+              id="coupon-code"
+              v-model="couponCode"
+              type="text"
+              autocomplete="off"
+              placeholder="例如 WELCOME100"
+              :aria-invalid="couponError ? 'true' : undefined"
+              :aria-describedby="couponError ? 'coupon-error' : undefined"
+              @keydown.enter.prevent="applyCoupon"
+            />
+            <button type="button" class="btn coupon-apply" :disabled="couponBusy" @click="applyCoupon">套用</button>
+          </div>
+          <p v-if="couponError" id="coupon-error" class="field-error coupon-error" role="alert">{{ couponError }}</p>
+        </template>
+      </div>
+
       <dl class="amounts">
         <div class="row">
           <dt>小計</dt>
           <dd class="num">{{ formatPrice(subtotal) }}</dd>
         </div>
+        <div v-if="discount" class="row">
+          <dt>折扣</dt>
+          <dd class="num">−{{ formatPrice(discount) }}</dd>
+        </div>
         <div class="row">
           <dt>運費</dt>
-          <dd class="num">
-            {{ shipping ? formatPrice(shipping) : '免運' }}
+          <dd class="num shipping">
+            {{ shipping ? formatPrice(shipping) : coupon?.freeShipping ? '免運（折扣碼）' : '免運' }}
           </dd>
         </div>
         <div class="row total">
@@ -749,6 +810,44 @@ fieldset {
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+.coupon {
+  display: grid;
+  gap: var(--s1);
+}
+
+.coupon-row {
+  display: flex;
+  gap: var(--s2);
+}
+
+.coupon-row input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--s1) var(--s2);
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  text-transform: uppercase;
+}
+
+.coupon-apply {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--field-line);
+}
+
+.coupon-apply:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.coupon-applied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1) var(--s2);
 }
 
 .steps {
