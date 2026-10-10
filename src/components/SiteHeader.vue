@@ -6,6 +6,7 @@ import '@fontsource/noto-serif-tc/600.css'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useWeather } from '@/stores/weather'
+import { getBrands, getThemes, searchProducts } from '@/api'
 import HeaderPopover from '@/components/HeaderPopover.vue'
 import Icon from '@/components/Icon.vue'
 import CartPeek from '@/components/peeks/CartPeek.vue'
@@ -52,6 +53,7 @@ async function toggleSearch() {
 }
 
 function closeSearch() {
+  closeSuggest()
   if (!onResults()) searching.value = false
 }
 
@@ -62,7 +64,94 @@ function onBlur() {
 
 function search() {
   const q = keyword.value.trim()
+  closeSuggest()
   if (q) router.push({ name: 'products', query: { q } })
+}
+
+// ── 搜尋建議（第十八輪子輪 2）──
+// 打字 150 毫秒後列：單品（最多 5）、品牌（最多 3）、路線（最多 3）、最後一行「搜尋「X」的單品」。
+// 照 WAI-ARIA APG 的 combobox：焦點留在輸入框，aria-activedescendant 指目前那一項；Down／Up 移動、Enter 走、Esc 關清單（再按一下才關搜尋框）、Tab 關。
+// 建議不替人搜：沒選到任何一項按 Enter，照舊去結果頁。
+const SUGGEST_ID = 'site-suggest'
+const suggestions = ref([])
+const suggestOpen = ref(false)
+const activeIndex = ref(-1)
+let suggestTimer = 0
+let suggestTicket = 0
+let catalogue = null
+const optionId = (index) => `${SUGGEST_ID}-${index}`
+
+async function loadCatalogue() {
+  if (catalogue) return catalogue
+  const [brands, themes] = await Promise.all([getBrands().catch(() => []), getThemes().catch(() => [])])
+  catalogue = { brands, themes }
+  return catalogue
+}
+
+async function suggest(q) {
+  const ticket = ++suggestTicket
+  const [{ brands, themes }, products] = await Promise.all([loadCatalogue(), searchProducts(q).catch(() => [])])
+  if (ticket !== suggestTicket || keyword.value.trim() !== q) return
+  const needle = q.toLowerCase()
+  const rows = []
+  for (const product of products.slice(0, 5)) rows.push({ kind: 'product', label: product.name, sub: product.brand, to: { name: 'product', params: { id: product.productId } } })
+  for (const brand of brands.filter((entry) => entry.name.toLowerCase().includes(needle)).slice(0, 3)) rows.push({ kind: 'brand', label: brand.name, sub: '品牌', to: { name: 'brand', params: { id: brand.code } } })
+  for (const theme of themes.filter((entry) => entry.name.toLowerCase().includes(needle)).slice(0, 3)) rows.push({ kind: 'theme', label: theme.name, sub: '路線', to: { name: 'theme', params: { code: theme.code } } })
+  rows.push({ kind: 'search', label: `搜尋「${q}」的單品`, sub: '', to: { name: 'products', query: { q } } })
+  suggestions.value = rows.map((row, index) => ({ ...row, id: optionId(index), href: router.resolve(row.to).href }))
+  activeIndex.value = -1
+  suggestOpen.value = true
+}
+
+function closeSuggest() {
+  clearTimeout(suggestTimer)
+  suggestOpen.value = false
+  activeIndex.value = -1
+}
+
+function onInput() {
+  clearTimeout(suggestTimer)
+  const q = keyword.value.trim()
+  if (!q) {
+    closeSuggest()
+    return
+  }
+  suggestTimer = setTimeout(() => suggest(q), 150)
+}
+
+function goTo(row) {
+  closeSuggest()
+  if (row.kind !== 'search') {
+    keyword.value = ''
+    searching.value = false
+  }
+  router.push(row.to)
+}
+
+function onSearchKey(event) {
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault()
+    if (!suggestOpen.value) {
+      if (keyword.value.trim()) suggest(keyword.value.trim())
+      return
+    }
+    const total = suggestions.value.length
+    activeIndex.value = event.key === 'ArrowDown' ? (activeIndex.value + 1) % total : (activeIndex.value - 1 + total) % total
+  } else if (event.key === 'Enter') {
+    if (suggestOpen.value && activeIndex.value >= 0) {
+      event.preventDefault()
+      goTo(suggestions.value[activeIndex.value])
+    }
+  } else if (event.key === 'Escape') {
+    if (suggestOpen.value) {
+      event.preventDefault()
+      closeSuggest()
+    } else {
+      closeSearch()
+    }
+  } else if (event.key === 'Tab') {
+    closeSuggest()
+  }
 }
 
 // 商品圖飛到提袋的那一刻（useFlyToCart 送的 cart:arrive）、小愛心飛到收藏的那一刻（fav:arrive），
@@ -121,7 +210,41 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
           <span class="label">搜尋</span>
         </button>
         <label class="visually-hidden" for="site-search">搜尋單品、品牌或路線</label>
-        <input id="site-search" ref="searchInput" v-model="keyword" type="search" placeholder="單品、品牌、路線" :tabindex="searching ? 0 : -1" @keydown.esc="closeSearch" @blur="onBlur" />
+        <input
+          id="site-search"
+          ref="searchInput"
+          v-model="keyword"
+          type="search"
+          placeholder="單品、品牌、路線"
+          role="combobox"
+          aria-autocomplete="list"
+          :aria-expanded="suggestOpen"
+          :aria-controls="suggestOpen ? SUGGEST_ID : undefined"
+          :aria-activedescendant="activeIndex >= 0 ? optionId(activeIndex) : undefined"
+          :tabindex="searching ? 0 : -1"
+          @input="onInput"
+          @keydown="onSearchKey"
+          @blur="onBlur"
+        />
+        <!-- 建議清單：焦點不來這裡（pointerdown 擋掉，輸入框才不會先 blur）；data-href 給驗收看 Enter 會去哪。
+             列的 class 帶 s- 前綴：叫 search 會撞到窄螢幕的 .searching .search 規則（第一版手機上整列變成 absolute 蓋住清單） -->
+        <ul v-if="suggestOpen" :id="SUGGEST_ID" class="suggest" role="listbox" aria-label="搜尋建議">
+          <li
+            v-for="(row, index) in suggestions"
+            :id="row.id"
+            :key="row.id"
+            role="option"
+            :aria-selected="index === activeIndex"
+            :class="[`s-${row.kind}`, { active: index === activeIndex }]"
+            :data-href="row.href"
+            @pointerdown.prevent
+            @pointerenter="activeIndex = index"
+            @click="goTo(row)"
+          >
+            <span class="s-label">{{ row.label }}</span>
+            <span v-if="row.sub" class="s-sub">{{ row.sub }}</span>
+          </li>
+        </ul>
       </form>
 
       <!-- 每個圖示都是連結，滑到或 Tab 到會多一個預覽的小面板（HeaderPopover；只在桌機）：
@@ -375,8 +498,62 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
 
 /* ── 搜尋：圖示在前，輸入框從它右邊滑出來 ── */
 .search {
+  position: relative;
   display: flex;
   align-items: center;
+}
+
+/* 建議清單：和一句話列的下拉格同一種盒子；顏色固定用墨色（頂欄浮在天空上時文字是淺的，清單不跟） */
+.suggest {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 30;
+  min-width: 16rem;
+  max-width: 24rem;
+  margin: 0;
+  padding: 0.4rem;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 14px 36px rgba(31, 29, 26, 0.14);
+  color: var(--ink);
+  font-size: var(--fs-0);
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.suggest li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.suggest li.active {
+  background: color-mix(in srgb, var(--accent) 12%, white);
+}
+
+.suggest .s-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggest .s-sub {
+  flex: none;
+  color: var(--ink-soft);
+}
+
+.suggest li.s-search {
+  margin-top: 0.3rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
 }
 
 .search input {
@@ -465,6 +642,13 @@ const conditionText = computed(() => ({ rain: '有雨', cloudy: '多雲', clear:
     flex: 1;
     width: auto;
     min-width: 0;
+  }
+
+  /* 建議清單接在搜尋列下面、整寬 */
+  .searching .suggest {
+    left: 0;
+    right: 0;
+    max-width: none;
   }
 }
 </style>
