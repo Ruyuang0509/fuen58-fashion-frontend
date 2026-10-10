@@ -179,8 +179,9 @@ export function skyWantsDarkText(sun, look) {
   return dark >= light
 }
 
-export function createSky(canvas, { reduced = false } = {}) {
-  const gl = canvas.getContext('webgl', { antialias: false, alpha: false })
+export function createSky(canvas, { reduced = false, plain = false } = {}) {
+  // plain：使用者選了一般模式（第十八輪）——不碰 WebGL，直接走下面沒有 gl 的那條（CSS 漸層）
+  const gl = plain ? null : canvas.getContext('webgl', { antialias: false, alpha: false })
   const state = { sun: 0.5, sunX: 0.5, cloud: 0.5, rain: 0, haze: 0.3, tint: [0.5, 0.5, 0.5], tintK: 0 }
   const goal = { ...state, tint: [...state.tint] }
   let wind = [0, 0]

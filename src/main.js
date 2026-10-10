@@ -2,6 +2,8 @@ import { createApp, nextTick } from 'vue'
 import App from './App.vue'
 import { router } from './router'
 import { reportFatal } from './stores/fatal'
+// 畫面模式（第十八輪）：一開站就把 reduce-motion 掛到 <html> 上，第一次繪製就是對的
+import './stores/motion'
 // 身形 store 要一開站就在：登入那一刻把訪客在商品頁輸入的身形併進帳號，不管人在哪一頁（第十六輪子輪 2）
 import './stores/body'
 import './styles/tokens.css'

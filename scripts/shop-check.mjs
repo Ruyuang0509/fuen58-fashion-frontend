@@ -51,6 +51,9 @@ const send = (method, params = {}) =>
 await send('Runtime.enable')
 await send('Page.enable')
 await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: W < 600 })
+// 無頭 Chrome 的頁面預設沒有「焦點」，鍵盤事件有時送不到 activeElement（手機尺寸的下拉格鍵盤段 2026-10-10 七跑三紅、桌機從沒紅過）：
+// 和 a11y-check 一樣開 focus emulation，頁面就當自己是前景視窗
+await send('Emulation.setFocusEmulationEnabled', { enabled: true })
 
 const ev = async (expression) => {
   const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true })

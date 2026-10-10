@@ -5,10 +5,12 @@
 import gsap from 'gsap'
 import { Flip } from 'gsap/Flip'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { isReduced } from '@/stores/motion'
 
 gsap.registerPlugin(ScrollTrigger, Flip)
 gsap.defaults({ ease: 'power3.out', duration: 0.6 })
 
-export const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+// 第十八輪子輪 1：除了系統設定，頁尾的「畫面」選單（stores/motion.js）選了減少動態或一般模式也算
+export const reducedMotion = () => isReduced()
 
 export { gsap, ScrollTrigger, Flip }

@@ -14,6 +14,7 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import SiteHeader from '@/components/SiteHeader.vue'
 import { gsap, ScrollTrigger, reducedMotion } from '@/motion/gsap'
+import { isPlain } from '@/stores/motion'
 import { createSky, skyWantsDarkText, sunNow, weatherLook } from '@/sky/sky'
 
 const props = defineProps({
@@ -85,7 +86,10 @@ function measureHero() {
 }
 
 onMounted(() => {
-  sky = createSky(canvas.value, { reduced })
+  sky = createSky(canvas.value, { reduced, plain: isPlain() })
+  // 驗收用：畫布標出是 WebGL 還是 CSS 漸層、會動還是只畫一張
+  canvas.value.dataset.sky = sky.webgl ? 'webgl' : 'css'
+  canvas.value.dataset.motion = reduced ? 'static' : 'live'
   paint()
   measureHero()
   window.addEventListener('resize', measureHero, { passive: true })

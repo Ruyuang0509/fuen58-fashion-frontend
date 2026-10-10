@@ -4,7 +4,10 @@
 // 頂欄在窄螢幕是靜態的、可能已經捲出畫面，那時就不飛，直接送到站事件。
 // 2026-10-06 使用者：原本 0.62 秒、縮到 6% 太快太小，不注意看不到——改成 1.05 秒、弧線先往上、最後留到 20% 才消失，
 // 到站那一刻才讓頂欄的提袋跳一下（cart:arrive 事件；件數本身在按下的瞬間就更新了，不等動畫）。
-const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+import { isReduced } from '@/stores/motion'
+
+// 系統設定或頁尾的「畫面」選單（第十八輪）都算
+const reduced = () => isReduced()
 
 const arrive = (eventName) => window.dispatchEvent(new CustomEvent(eventName))
 

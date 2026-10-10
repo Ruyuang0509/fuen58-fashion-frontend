@@ -7,6 +7,7 @@ import { onMounted, ref } from 'vue'
 import { getBrands, getCampaigns, getThemes } from '@/api'
 import Icon from '@/components/Icon.vue'
 import { REPO_URL, SITE_NAME } from '@/config'
+import { isReduced, useMotion } from '@/stores/motion'
 
 const themes = ref([])
 const brands = ref([])
@@ -39,9 +40,12 @@ const until = (iso) => {
 }
 
 function toTop() {
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
+  window.scrollTo({ top: 0, behavior: isReduced() ? 'auto' : 'smooth' })
 }
+
+// 畫面模式（第十八輪子輪 1；功能規劃 1.1「一般模式」）：自動／減少動態／一般模式；選了就重載
+const motion = useMotion()
+const modeLabel = (entry) => (entry.value === 'auto' && motion.osReduced.value ? '自動（系統目前是減少動態）' : entry.label)
 </script>
 
 <template>
@@ -103,6 +107,14 @@ function toTop() {
           <p>站上的品牌皆為虛構。圖片為 AI 生成或採用允許非商業使用的素材，不作商業用途。</p>
           <!-- Open-Meteo 的資料是 CC BY 4.0，要標來源（第十六輪子輪 1）；這是頁尾第二個外連，理由是授權 -->
           <p>天氣資料：<a href="https://open-meteo.com/" class="ext" target="_blank" rel="noopener noreferrer">Open-Meteo</a>（CC BY 4.0）。</p>
+          <!-- 畫面模式（第十八輪子輪 1；功能規劃 1.1「一般模式」的切換鍵）：自動／減少動態／一般模式，記在本機，選了就重載 -->
+          <p class="display">
+            <label for="motion-mode">畫面</label>
+            <select id="motion-mode" :value="motion.mode.value" @change="motion.set($event.target.value)">
+              <option v-for="entry in motion.modes" :key="entry.value" :value="entry.value">{{ modeLabel(entry) }}</option>
+            </select>
+            <small>切換會重新載入這一頁。</small>
+          </p>
         </div>
         <button type="button" class="top" @click="toTop">回到最上面<Icon name="up" /></button>
       </div>
@@ -197,6 +209,27 @@ function toTop() {
 .notes p {
   margin: 0;
   line-height: 1.7;
+}
+
+.display {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1) var(--s2);
+  margin-top: var(--s2) !important;
+}
+
+.display select {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--field-line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.display small {
+  color: var(--ink-soft);
 }
 
 .top {

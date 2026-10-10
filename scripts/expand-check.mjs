@@ -59,6 +59,9 @@ const send = (method, params = {}) =>
 await send('Runtime.enable')
 await send('Page.enable')
 await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: W < 600 })
+// 無頭 Chrome 的頁面預設沒有「焦點」，鍵盤事件有時送不到 activeElement（手機尺寸的下拉格鍵盤段 2026-10-10 七跑三紅、桌機從沒紅過）：
+// 和 a11y-check 一樣開 focus emulation，頁面就當自己是前景視窗
+await send('Emulation.setFocusEmulationEnabled', { enabled: true })
 
 const ev = async (expression) => {
   const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true })
@@ -261,6 +264,7 @@ await go('/outfits?occasion=foo,work&size=M,M', 2600)
 check('multi: unknown and duplicate values dropped → 2 outfits, phrase 去上班／M', (await count('.grid .card')) === 2 && (await pickText('occasion'))?.includes('去上班') && (await pickText('size'))?.replace(/^.*：/, '').trim() === 'M', `${await count('.grid .card')} / ${await pickText('occasion')} / ${await pickText('size')}`)
 // 鍵盤：方向鍵開、方向鍵移、空白鍵勾、Esc 關、焦點回按鈕
 await go('/outfits', 2600)
+check('picker: the page has focus (instrument positive control)', (await ev('document.hasFocus()')) === true, await ev('document.hasFocus()'))
 await ev('document.querySelector("[data-flip-id=clause-occasion] .pick").focus()')
 await key('ArrowDown', 'ArrowDown')
 await sleep(250)
@@ -744,6 +748,28 @@ check('chunk: a second failure within 30 s shows the error screen instead of loo
 await ev('sessionStorage.removeItem("reloaded-for-chunk"); 1')
 // 這一段故意製造的錯誤會進主控台；從 problems 拿掉，剩下的才是真的
 for (let i = problems.length - 1; i >= 0; i--) if (/測試：|chunk 404|\[fatal\]/.test(problems[i])) problems.splice(i, 1)
+
+// ── 10. 一般模式／減少動態（第十八輪子輪 1）：頁尾的「畫面」選單，記在 localStorage.motion，切換會重載 ──
+const skyData = () => ev('(() => { const c = document.querySelector("canvas.sky"); return c ? `${c.dataset.sky}/${c.dataset.motion}` : "no-canvas" })()')
+const reduceClass = () => ev('document.documentElement.classList.contains("reduce-motion")')
+// 探針：一個行內 transition 1s 的元素，算出來的 duration 是 1s（正常）或 0s（全域規則蓋過行內）
+const probeDuration = () => ev('(() => { const d = document.createElement("div"); d.style.transition = "opacity 1s"; document.body.appendChild(d); const v = getComputedStyle(d).transitionDuration; d.remove(); return v })()')
+const pickMode = (value) => ev(`(() => { const s = document.querySelector("#motion-mode"); if (!s) return "missing"; s.value = ${JSON.stringify(value)}; s.dispatchEvent(new Event("change", { bubbles: true })); return "changed" })()`)
+await ev('localStorage.removeItem("motion"); 1')
+await go('/', 2400)
+check('motion: default is auto — WebGL sky, live, no reduce-motion class, probe 1s', (await skyData()) === 'webgl/live' && (await reduceClass()) === false && (await probeDuration()) === '1s', `${await skyData()} / ${await reduceClass()} / ${await probeDuration()}`)
+check('motion: the footer control has three options and shows auto', (await count('#motion-mode option')) === 3 && (await ev('document.querySelector("#motion-mode")?.value')) === 'auto', await ev('document.querySelector("#motion-mode")?.value'))
+await pickMode('plain')
+await sleep(2800)
+check('motion: 一般模式 → CSS sky, reduce-motion class, remembered, probe 0s', (await skyData()) === 'css/static' && (await reduceClass()) === true && (await ev('localStorage.getItem("motion")')) === 'plain' && (await ev('document.querySelector("#motion-mode")?.value')) === 'plain' && (await probeDuration()) === '0s', `${await skyData()} / ${await reduceClass()} / ${await probeDuration()}`)
+check('motion: 一般模式 survives a fresh load', (await (async () => { await go('/', 2400); return (await skyData()) === 'css/static' && (await reduceClass()) === true })()) === true, await skyData())
+await pickMode('reduce')
+await sleep(2800)
+check('motion: 減少動態 → WebGL sky but static, reduce-motion class, probe 0s', (await skyData()) === 'webgl/static' && (await reduceClass()) === true && (await probeDuration()) === '0s', `${await skyData()} / ${await reduceClass()} / ${await probeDuration()}`)
+await pickMode('auto')
+await sleep(2800)
+check('motion: back to auto — positive control: WebGL live, no class, probe 1s, nothing stored but auto', (await skyData()) === 'webgl/live' && (await reduceClass()) === false && (await probeDuration()) === '1s' && (await ev('localStorage.getItem("motion")')) === 'auto', `${await skyData()} / ${await reduceClass()} / ${await probeDuration()}`)
+await ev('localStorage.removeItem("motion"); 1')
 
 const summary ={ origin, size: `${W}x${H}`, passed: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok), problems }
 console.log(JSON.stringify(summary, null, 1))

@@ -101,3 +101,12 @@ textarea {
     scroll-behavior: auto !important;
   }
 }
+
+/* 使用者在頁尾選了「減少動態」或「一般模式」（stores/motion.js 在 <html> 掛 reduce-motion）：和系統設定同一套 */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
+  scroll-behavior: auto !important;
+}
