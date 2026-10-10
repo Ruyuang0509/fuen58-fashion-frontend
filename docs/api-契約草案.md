@@ -4,13 +4,17 @@
 欄位名、端點、狀態碼都可以改，但改了要一起改前台 `src/api/`。
 參考實作就是前台的假資料層：`src/api/index.js`、`src/api/account.js`（會員與訂單，第十輪）、`src/api/mock/*.json`。
 
+2026-10-11 依 `docs/28-契約稽核核對與增補.md` 增補：標了 **〔第十八輪稽核增補・待 11/2 全組確認〕** 的段落，是照前台**現況**寫成的**提案**——前台負責人與全組都還沒確認，11/2 對 DB 前要定下來；沒標的部分不動。
+
 通則：
 
 - JSON、UTF-8；日期時間用 ISO 8601 含時區（`2026-10-06T08:00:00+08:00`）；金額是整數（新台幣元）。
-- 清單用 `{ items, page, pageSize, total }` 包起來；單筆直接回物件。
+  **〔第十八輪稽核增補・待 11/2 全組確認〕** 純日期欄位用 `YYYY-MM-DD`（`listedAt`、`birthday`、`startsAt`／`endsAt`、`forecast[].date`、折扣碼的 `expiresAt`）。日期時間任何 ISO 8601 偏移都收（前台假資料用 `toISOString()` 的 `Z` 結尾，範例用 `+08:00`），前台一律換成臺北時間顯示。
+- 單筆直接回物件。清單 **〔第十八輪稽核增補・待 11/2 全組確認〕**：前台現在把每個清單端點都當 **JSON 陣列**讀（`themes`、`brands`、`outfits`、`campaigns`、`me/addresses`、`orders`、`products`），不送 `page`／`pageSize`，「共 N 件」是陣列長度。提案：清單一律回陣列；只有 `GET /api/products` 帶 `page` 時才回 `{ items, page, pageSize, total }`（§4.2）。前台接真後端時的 fetch 包裝會兩種都收（陣列或 `{ items }`），但請定一種。（原本這行寫「清單用 `{ items, page, pageSize, total }` 包起來」，與 §1、§3、§9 的「→ 陣列」和假資料層的實作不一致。）
 - 錯誤一律 `{ error: { code, message, field? } }`，`message` 是給使用者看的繁體中文，`field` 指出是哪個欄位（表單錯誤貼在欄位旁要用）。
-  常用 `code`：`NOT_FOUND`、`VALIDATION`、`EMAIL_TAKEN`、`INVALID_CREDENTIALS`、`UNAUTHORIZED`、`OUT_OF_STOCK`、`NOT_CANCELLABLE`、`NOT_DELIVERED`。
+  `code` 的完整清單、建議的 HTTP 狀態碼、前台會對的 `field` 值都在 §15（這裡不再另列一份，免得兩份漂移）。
 - 需要登入的端點帶 `Authorization: Bearer <token>`；沒帶或過期回 401 `UNAUTHORIZED`。
+- **〔第十八輪稽核增補・待 11/2 全組確認〕** 單筆 `GET`（`/products/:id`、`/outfits/:id`、`/brands/:code`、`/campaigns/:code`、`/orders/:id`）找不到回 404 `NOT_FOUND`；前台的 fetch 包裝會把它轉成 `null`，各頁據此顯示「找不到」（現在的假 API 就是回 `null`——`ProductView`、`OutfitView`、`BrandView`、`OrderView` 都走這個分支，不是 catch 錯誤）。
 - 前台不直接呼叫氣象來源，天氣由後端抓取並快取（功能規劃 6.1）。
 
 ## 1. 風格主題 `GET /api/themes`
@@ -74,20 +78,21 @@
 | `category` | `outer | top | bottom | shoes | acc` | 3.1 分類 |
 | `colours` | 顏色清單；第一個是預設色。`hex` 現在給程式畫款式圖用，有照片後可以不給 | 3.1 規格 |
 | `stock` | 顏色代碼 + `-` + 尺寸 → 庫存件數。**規格 = 顏色 × 尺寸**；現在各色同價，若要各色不同價，`price` 要搬進 `colours` | 3.1 規格 |
-| `sizes` | 尺寸順序（畫面照這個順序排）；單一尺寸用 `["F"]` | |
-| `measure` | 尺寸表：欄名依類別不同；平量公分 | 3.1 尺寸表 |
+| `sizes` | 尺寸順序（畫面照這個順序排）；單一尺寸用 `["F"]`。**〔第十八輪稽核增補・待 11/2 全組確認〕** 尺寸代碼現在只有 `S｜M｜L｜XL｜F｜110｜120｜130`（後三個是童裝）；前台的篩選器（`src/filters/options.js`）只認這 8 個，尺寸建議只對 XS–XXL 算 | |
+| `measure` | 尺寸表：欄名依類別不同；平量公分。**〔第十八輪稽核增補・待 11/2 全組確認〕** `rows` 的格子是數字；單一尺寸（`F`）的配件可為字串（範圍或小數——假資料 204 毛帽 `'56–60'`、404 健行襪 `'23–27'`／`'22'`、505 細皮帶 `'95'`／`'1.8'`，共 5 格）。尺寸建議只對 XS–XXL 的尺寸算，字串格不會進去。若後端欄位要純數字，就把這 5 格改掉、這一行維持「數字」 | 3.1 尺寸表 |
 | `fit` | 模特兒試穿資訊：身高、體重、穿的尺寸、一句穿感 | 3.1、3.3（必，v1.3） |
-| `warmth` | 厚薄等級 1–5；`features` 機能標籤（防潑水、快乾…） | 3.1 天氣標籤 |
-| `kind`、`fabric` | 給前端程式畫款式圖；正式有照片後改用 `images` | 過渡期 |
+| `warmth` | 厚薄等級 1–5；`features` 機能標籤，現在的值只有 `防潑水`、`快乾`。**〔第十八輪稽核增補・待 11/2 全組確認〕** `防潑水` 這個字串被前台當程式邏輯用（`src/products/weatherFit.js`：下雨時外層吸不吸水），`fabric` 的 `nylon`、`leather` 也是——要改字請一起改前台 | 3.1 天氣標籤 |
+| `kind`、`fabric` | 給前端程式畫款式圖；正式有照片後改用 `images`。**〔第十八輪稽核增補・待 11/2 全組確認〕** 現在的值：`kind` ＝ `coat｜jacket｜vest｜top｜blouse｜dress｜trousers｜skirt｜beanie｜socks｜belt`；`fabric` ＝ `cotton｜wool｜nylon｜satin｜denim｜leather`。`kind` 不在前台款式圖表（`src/garments/flats.js`）裡的會改畫布料近拍，所以後端要新增 `kind` 得同步前台 | 過渡期 |
 | `images` | 正式版：多張；區分模特兒圖、平拍圖 | 3.1 圖片 |
-| `themeCodes` | 一件商品可屬於多個主題 | 3.1 風格主題 |
+| `themeCodes` | 一件商品可屬於多個主題。**〔第十八輪稽核增補・待 11/2 全組確認〕** **必有的陣列**（可以是 `[]`，不能是 `null`）：`ProductCard` 直接取 `themeCodes[0]` 當路線色。資料來源二選一：(a) 新表 `product_themes`；(b) 由 `outfit_items` 反推——商品出現在哪些穿搭，那些穿搭的 `themeCode` 去重。(b) 是現在假資料的做法（`products.json` 沒有這欄，`src/api/index.js` 的 `themeCodesOf()` 算出來的） | 3.1 風格主題 |
 | `listedAt`、`sold` | 排序用（新上架、熱銷） | 3.2 排序 |
 | 品況 | **還沒有**：等 10/12 二手做法定案再加 `condition` | 3.1 品況 |
 
 ### 4.2 清單 `GET /api/products`
 
 查詢字串（都選填）：`q`（關鍵字：比對名稱、品牌、標籤、主題名稱）、`theme`、`brand`、`category`、`size`、`colour`、`priceMin`、`priceMax`、`inStock=1`、`sort=new|popular|price-asc|price-desc`、`page`、`pageSize`。
-回 `{ items: [商品], page, pageSize, total }`，`items` 的每筆可以只給列表欄位（4.1 的前 12 個欄位加 `colours`）。
+**〔第十八輪稽核增補・待 11/2 全組確認〕** 再加兩個前台已經在用的：`ids=101,102`（只要這幾件，**照給的順序回**，找不到的略過；不與其他條件併用——購物車、結帳、收藏、看過的、試穿間、訂單頁、活動頁共 11 處呼叫）、`exclude=101,102`（不要這幾件；商品頁「同路線」「同品牌」、穿搭頁「換一件」共 4 處）。
+回傳：不帶 `page` 回**陣列**（前台現況，見通則）；帶 `page` 才回 `{ items: [商品], page, pageSize, total }`——待 11/2 定。`ids=` 查詢回的每件是 §4.1 的**完整物件**（結帳、購物車要讀 `stock`、`sizes`、`colours`；收藏要 `measure`、`fit` 算建議尺寸；試穿間要 `stock`、`warmth`、`features`、`brandCode`）；其他清單查詢每筆至少要有 4.1 的前 12 個欄位加 `colours` 與 `themeCodes`（`ProductCard` 要 `themeCodes[0]`），不能只給前 12 欄。
 篩選條件全部寫在前台網址裡（3.2「篩選寫入網址」），所以後端要接受全部用查詢字串傳。
 
 第十五輪子輪 3 起的多值與色系（前台 `/products` 已在用）：
@@ -95,6 +100,18 @@
 - `colour` 傳的是**色系代碼**不是商品的色名：`black | white | grey | beige | brown | yellow | green | blue | purple | pink | red`。前台現在用 hex 算 HSL 分類（`src/products/colourFamily.js`，門檻在裡面）；正式版建議商品顏色表加一欄 `family`，由後台在建顏色時填（或用同一套規則算一次存起來），查詢就直接比對欄位。
 - 價格前台給三檔預設，送出去仍是 `priceMin`／`priceMax`（含）：兩千以下 → `priceMax=1999`；兩千到四千 → `priceMin=2000&priceMax=4000`；四千以上 → `priceMin=4001`。
 - 不認得的值（`size=XXL`）前台會先丟掉；後端收到也請忽略而不是回錯。
+
+**〔第十八輪稽核增補・待 11/2 全組確認〕** 查詢參數的名字對照——線上（這份契約）用單數、逗號分隔；前台畫面內部用複數、陣列。接真後端時只在 `src/api/index.js` 的包裝裡換名，畫面不改；後端照**線上名**做即可：
+
+| 線上名（契約） | 前台內部名 | 說明 |
+|---|---|---|
+| `brand=wuan,banri` | `brands: ['wuan', 'banri']`（另有單值 `brand`） | 品牌代碼，任一符合 |
+| `colour=black,grey` | `colours: [...]` | 色系代碼（上面那 11 個） |
+| `size=S,M` | `sizes: [...]` | 任一符合 |
+| `inStock=1` | `inStock: true` | 前台送布林，線上送 `1` |
+| `theme`（§5 穿搭） | `style` | 路線代碼 |
+| `for`（§5 穿搭） | `audience` | 給誰穿 |
+| 商品的 `ids`、`exclude`、`q`、`category`、`theme`、`priceMin`、`priceMax`、`sort`；穿搭的 `occasion`、`category`、`size`、`ids` | 同名 | 多值在線上一律逗號分隔（假 API 陣列或逗號字串都收） |
 
 ## 5. 穿搭
 
@@ -115,6 +132,17 @@
 
 資料表：`outfits`（id、title、theme_code、created…）、`outfit_items`（outfit_id、product_id、colour_code、sort）、`outfit_occasions`（outfit_id、occasion）。
 `colour` 是那套穿搭選的顏色代碼。**前台會把 `items` 展開成商品欄位**（`src/api/index.js` 的 `resolveOutfit()`），後端也可以直接回展開後的。
+
+**〔第十八輪稽核增補・待 11/2 全組確認〕** 展開後的 item——畫面（穿搭卡、穿搭頁、試穿間、首頁「這一週」、合今天的判斷）讀的全是這個形狀，不是上面的原始引用：
+
+```json
+{ "productId": 101, "name": "落肩混紡大衣", "brand": "霧岸", "brandCode": "wuan", "category": "outer", "price": 3280, "sizes": ["S", "M", "L"], "kind": "coat", "fabric": "wool", "warmth": 5, "features": [], "colour": "#d9d4ca", "colourCode": "oat", "colourName": "燕麥" }
+```
+
+- 十四個欄位：前十一個從 §4.1 的商品抄過來；顏色三欄是依那套穿搭選的 `colour_code` 從商品的 `colours` 挑出來的那一筆——`colourCode` 是代碼、`colourName` 是色名、**`colour` 是那個色的 hex**（畫款式圖用）。注意原始引用裡的 `colour` 是代碼、展開後的 `colour` 是 hex，同名不同義，兩種形狀不要混回。
+- 穿搭引用到的商品找不到時那一件略過（假 API 如此）。
+- 提案：**後端直接回展開後的**（省前台每套再打一次 `GET /api/products?ids=`）。若後端只回 `{ productId, colour }`，前台就要自己 join——哪一邊做，11/2 定一個。
+- 參數名：線上 `theme`／`for` ↔ 前台內部 `style`／`audience`，對照表在 §4.2。
 `occasions`：`work | date | weekend | outdoor`。**這是功能規劃沒有的欄位**，一句話列的「場合」那格靠它；使用者 2026-10-06 裁決先留，請後端在穿搭表加這個標籤。
 `audience`：`women | men | unisex | kids`（穿搭表一欄）。查詢 `for=women` 要回 women 加 unisex，`for=men` 回 men 加 unisex，`unisex` 與 `kids` 只回自己（第十四輪，使用者要求加「男、女、中性、小孩」）。
 第十五輪起穿搭有 18 套（每條路線至少兩套）；第三子輪會把 `occasion`、`category`、`size` 改成多值逗號分隔（任一符合）。
@@ -123,18 +151,22 @@
 
 | 端點 | 內容 | 錯誤 |
 |---|---|---|
-| `POST /api/auth/register` `{ email, password, name }` | 建帳號並登入，回 `{ token, user }` | `EMAIL_TAKEN`、`VALIDATION`（密碼至少 8 碼、要有英文與數字） |
+| `POST /api/auth/register` `{ email, password, name }` | 建帳號並登入，回 `{ token, user }` | `EMAIL_TAKEN`（`field: "email"`）、`VALIDATION`（`name` 必填 → `field: "name"`；電子郵件格式 → `"email"`；密碼至少 8 碼、要有英文與數字 → `"password"`） |
 | `POST /api/auth/login` `{ email, password }` | 回 `{ token, user }` | `INVALID_CREDENTIALS`（訊息不區分是帳號還是密碼錯） |
 | `POST /api/auth/logout` | 讓 token 失效 | |
 | `GET /api/me` | 目前會員 | 401 |
-| `PATCH /api/me` `{ name, phone, birthday, gender }` | 改個人資料 | `VALIDATION` |
-| `POST /api/me/password` `{ current, next }` | 改密碼 | `INVALID_CREDENTIALS`（舊密碼錯） |
+| `PATCH /api/me` `{ name, phone, birthday, gender }` | 改個人資料；**〔第十八輪稽核增補・待 11/2 全組確認〕** **回完整的 user**（前台拿回傳覆蓋登入態） | `VALIDATION`：`name` 必填；`phone` 選填、`09` 開頭 10 碼（空白與 `-` 先去掉）；`birthday` 選填、`YYYY-MM-DD` 且不晚於今天；`field` 就是欄位名。`gender` 不在四個值裡落 `unsaid` |
+| `POST /api/me/password` `{ current, next }` | 改密碼 | `INVALID_CREDENTIALS`（舊密碼錯，`field: "current"`）、`VALIDATION`（新密碼不合規，`field: "next"`） |
 
 ```json
 { "id": 1, "email": "demo@example.com", "name": "林示範", "phone": "0912345678", "birthday": "1998-04-12", "gender": "female", "createdAt": "2026-09-01T10:00:00+08:00" }
 ```
 
 `gender`：`female | male | other | unsaid`。密碼只存雜湊（功能規劃 7）。「記住登入」由前台決定把 token 放 localStorage 還是 sessionStorage。
+
+**〔第十八輪稽核增補・待 11/2 全組確認〕**
+- register／login／`GET /api/me` 回的 `user` 都要帶 `preferences`（§11；沒挑過是 `null`）與 `body`（§14；沒填是 `null`）。前台**不打 `GET /api/me`**（`session.refresh()` 目前沒有呼叫端），舞台怎麼排、尺寸建議怎麼算，都是登入那一刻從 `user` 讀的；上面的範例少了這兩欄。
+- `phone`、`birthday` 選填；空值回 `""` 還是 `null` 請定一個（假資料是 `""`，前台 `?? ''` 兩種都吃）。
 
 ## 7. 地址簿（需登入）
 
@@ -146,16 +178,22 @@
 
 刪掉預設地址時，剩下的第一筆變預設。
 
+**〔第十八輪稽核增補・待 11/2 全組確認〕** 回傳與規則（都是前台假 API 的現況，`AddressesView` 依賴其中兩個回傳）：
+- `POST` 回新地址（物件）；`PATCH` 回更新後的地址。這兩個前台不讀（存完重新 `GET`）。
+- `DELETE /api/me/addresses/:id` 回**剩餘的整份清單**、`POST .../:id/default` 回**整份清單**——前台直接把回傳當新狀態。若後端想回 204 或單筆，請說一聲，前台改成重新 `GET`。
+- 第一筆新增自動成為預設。`PATCH` 帶 `isDefault: true` 會把其他筆取消預設；**不能用 `PATCH` 把預設取消**（畫面也把那個勾鎖住）。找不到回 404 `NOT_FOUND`。
+- 驗證（`VALIDATION`，`field` 就是欄位名）：`recipient`、`phone`、`postalCode`、`city`、`district`、`street` 六欄必填；`phone` 去掉空白與 `-` 後要是 `09` 開頭 10 碼；`postalCode` 3、5 或 6 位數字。
+
 ## 8. 訂單（需登入）
 
 | 端點 | 內容 | 錯誤 |
 |---|---|---|
-| `POST /api/orders` | 下單：`{ items: [{ productId, colour, size, qty }], addressId 或 address, payment: { method }, couponCode? }`。後端重算金額（單價、折扣、運費、合計）、**扣庫存**，回訂單（`待付款`） | `OUT_OF_STOCK`（附 `field` 指出哪一件）；`COUPON_INVALID`（`field: "coupon"`） |
-| `POST /api/orders/:id/pay` `{ method }` | 付款：金流沙盒或「模擬付款成功」（發表備援）。`待付款 → 已付款`。訂單頁也能呼叫（結帳時付款失敗、留在待付款的訂單） | `NOT_PAYABLE`（不是待付款；付款期限已過的訊息是「付款期限已過，訂單已取消」） |
+| `POST /api/orders` | 下單：`{ items: [{ productId, colour, size, qty }], addressId 或 address, payment: { method }, couponCode? }`。後端重算金額（單價、折扣、運費、合計）、**扣庫存**，回訂單（`待付款`）。**〔第十八輪稽核增補・待 11/2 全組確認〕** `payment.method` ∈ `card｜cod｜mock`（`card` 在發表時是真的沙盒還是等同 `mock`，待定）。前台現在每件多送 `name`、`brand`、`colourName`、`price`（購物車的快照）：提案是後端忽略多的欄位、金額以後端重算為準；或者要求前台只送四欄（改 `CheckoutView`），二選一 | `OUT_OF_STOCK`（附 `field` 指出哪一件——格式待定：`items[<index>]` 或 `productId:<id>`，二選一；結帳頁目前只把 `message` 貼在表單頂，§15 寫的「回購物車處理」還沒做）；`COUPON_INVALID`（`field: "coupon"`）；〔稽核增補〕`VALIDATION`（`field`：`items` 空購物車｜`address` 沒選地址｜`payment` 付款方式不在三個值裡）、`NOT_FOUND`（`addressId` 不是自己的地址） |
+| `POST /api/orders/:id/pay` `{ method }` | 付款：金流沙盒或「模擬付款成功」（發表備援）。`待付款 → 已付款`。訂單頁也能呼叫（結帳時付款失敗、留在待付款的訂單）。**〔第十八輪稽核增補・待 11/2 全組確認〕** `method` 只收 `card｜mock`（貨到付款不走這支）；**回完整訂單**（訂單頁拿回傳直接換掉畫面上的訂單） | `NOT_PAYABLE`（不是待付款；付款期限已過的訊息是「付款期限已過，訂單已取消」）；〔稽核增補〕`VALIDATION`（`field: "payment"`）、`NOT_FOUND` |
 | `GET /api/orders` | 我的訂單，新的在前 | |
 | `GET /api/orders/:id` | 明細 | 404 |
-| `POST /api/orders/:id/cancel` | 只有 `待付款` 能取消；回補庫存 | `NOT_CANCELLABLE` |
-| `POST /api/orders/:id/confirm` | 確認收貨：只有 `已送達` 能按；`→ 完成` | `NOT_DELIVERED` |
+| `POST /api/orders/:id/cancel` | 只有 `待付款` 能取消；回補庫存；〔稽核增補〕**回完整訂單**（`cancelReason: "member"`，`history` 多一步 `note: "自行取消"`） | `NOT_CANCELLABLE`（逾時已自動取消的訊息是「付款期限已過，訂單已經自動取消了」）、`NOT_FOUND` |
+| `POST /api/orders/:id/confirm` | 確認收貨：只有 `已送達` 能按；`→ 完成`；〔稽核增補〕**回完整訂單** | `NOT_DELIVERED`、`NOT_FOUND` |
 
 ```json
 {
@@ -185,10 +223,11 @@
 - **折扣碼（第十八輪子輪 3；功能規劃 4「優惠券」加分項）**：`coupon` 是 `{ code, label, discount, freeShipping }` 或 `null`；`discount` 是折掉的元數；`total = subtotal − discount + shipping`。免運門檻看折扣後的小計；免運券的 `shipping` 直接 0。端點與規則在 §16。
 - 付款逾時 15 分鐘自動取消並回補庫存是後端排程的事，前台只顯示狀態與 `payBy`（倒數到了就重讀一次訂單）。前台假 API 在每次讀訂單時結算，所以示範得出來。
 - 訂單編號格式 `WD-YYYYMMDD-NNNN` 是前台假資料用的，後端可以換。
+- **〔第十八輪稽核增補・待 11/2 全組確認〕** 前台假 API **不扣庫存、不驗庫存**，`OUT_OF_STOCK` 從來沒有真的被觸發過；這條錯誤的處理（含 `field` 格式與「回購物車」）要等後端有了才測得到。
 
 ## 9. 活動（第十五輪；**功能規劃沒有這一項，10/12 要全組確認**）
 
-- `GET /api/campaigns?active=1` → 陣列（進行中的；沒帶 `active` 就全部）。前台另外會用 `placement=stage|footer` 篩放哪裡，後端可以不做、前台自己篩。
+- `GET /api/campaigns?active=1` → 陣列（進行中的；沒帶 `active` 就全部）。前台另外會用 `placement=stage|footer` 篩放哪裡，後端可以不做、前台自己篩。**〔第十八輪稽核增補・待 11/2 全組確認〕** 清單排序：`endsAt` 升冪（快結束的在前）——舞台只插前兩檔，順序有意義。
 - `GET /api/campaigns/:code` → 單筆；過期的也回（前台顯示「已經結束」），沒有回 404。
 
 ```json
@@ -201,11 +240,12 @@
   "brandCodes": ["yejing"],
   "outfitIds": [6, 18, 12],
   "productIds": [401, 402, 403, 404, 601, 603],
-  "placements": ["stage", "footer"]
+  "placements": ["stage", "footer"],
+  "active": true
 }
 ```
 
-- 進行中 = `startsAt ≤ 今天 ≤ endsAt`（臺北時間，`endsAt` 含當天）。後端算也行、回 `active: true|false` 最好。
+- 進行中 = `startsAt ≤ 今天 ≤ endsAt`（臺北時間，`endsAt` 含當天）。**〔第十八輪稽核增補・待 11/2 全組確認〕** `active: true|false` 是**必有**欄位（原本寫「最好」）：活動頁直接依它顯示「已經結束」。另外回應要加 `outfits`——展開後的穿搭陣列（§5 展開後的形狀，依 `campaign_outfits.sort` 排）：舞台插卡取第一套、活動頁取前三套畫人形；前台假資料的 `decorateCampaign()` 就是這樣多回 `active` 與 `outfits`。
 - 資料表：`campaigns`（code、title、tagline、starts_at、ends_at、theme_code、created…）、`campaign_brands`、`campaign_outfits`（campaign_id、outfit_id、sort）、`campaign_products`（campaign_id、product_id、sort）、`campaign_placements`（或一個字串欄）。
 - 前台放在：穿搭格子裡的插卡（首頁與全部穿搭最多兩檔、路線頁只放同路線的）、活動頁 `/campaigns/:code`、頁尾「現在的活動」。**購物車、結帳、會員頁不放活動**。
 - 假資料四檔，其中 `summer-linen` 已結束，用來驗證過期的處理。
@@ -304,17 +344,19 @@
 
 ## 15. 錯誤代碼（整理；第十七輪）
 
-通則裡列的 `code` 加上後來各節用到的，全部在這：
+全部的 `code` 都在這（通則只指到這裡）。**〔第十八輪稽核增補・待 11/2 全組確認〕** 多了兩欄：「HTTP」是建議的狀態碼——前台接線時的 fetch 包裝打算以 JSON 裡的 `error.code` 為準，狀態碼只在回應沒有 JSON 時兜底（404 → `NOT_FOUND`、401 → `UNAUTHORIZED`、其餘 → `NETWORK`），所以後端用哪個 4xx 不會弄壞前台，但請定一套；「前台會對的 `field`」是表單真的拿來貼欄位的值，改名要同步前台。
 
-| `code` | 哪裡 | 前台怎麼用 |
-|---|---|---|
-| `VALIDATION` | 所有寫入 | `field` 指欄位，錯誤貼在欄位旁；沒有 `field` 就貼在表單頂 |
-| `NOT_FOUND` | 單筆 | 頁面顯示「找不到」與回上一層的連結 |
-| `EMAIL_TAKEN`、`INVALID_CREDENTIALS`、`UNAUTHORIZED` | §6 | `UNAUTHORIZED` 一律登出並帶著原網址回登入頁 |
-| `OUT_OF_STOCK` | §8 下單 | `field` 指出哪一件；回購物車處理 |
-| `NOT_PAYABLE`、`NOT_CANCELLABLE`、`NOT_DELIVERED` | §8 | 把 `message` 貼在按鈕旁，並重讀訂單（狀態可能已被排程改掉） |
-| `COUPON_INVALID` | §16、§8 下單 | `message` 寫原因（沒有這個折扣碼／已經過期／未達門檻：滿 N 元才能用），`field: "coupon"`；結帳頁貼在折扣碼欄旁 |
-| `NETWORK` | 前台自己用 | 後端連不上、逾時、回的不是 JSON 時前台的 `fetch` 包裝丟這個；頁面顯示「沒有載入成功」與「再試一次」。後端不會回它 |
+| `code` | HTTP（建議） | 哪裡 | 前台會對的 `field` | 前台怎麼用 |
+|---|---|---|---|---|
+| `VALIDATION` | 422 | 所有寫入 | 註冊 `name`／`email`／`password`；個人資料 `name`／`phone`／`birthday`；改密碼 `next`；地址 `recipient`／`phone`／`postalCode`／`city`／`district`／`street`；身形 `height`／`weight`／`chest`／`waist`／`hips`；下單 `items`／`address`／`payment`（假 API 會給，結帳頁目前只貼 `message`） | `field` 指欄位，錯誤貼在欄位旁；沒有 `field` 或對不到欄位就貼在表單頂 |
+| `NOT_FOUND` | 404 | 單筆 GET；地址、訂單的寫入 | — | 單筆 GET 由 fetch 包裝轉成 `null`，頁面顯示「找不到」與回上一層的連結（通則） |
+| `EMAIL_TAKEN` | 409 | §6 註冊 | `email` | 貼在信箱欄旁 |
+| `INVALID_CREDENTIALS` | 401 | §6 登入、改密碼 | 登入沒有；改密碼 `current` | 登入貼在表單頂；改密碼貼在「目前的密碼」旁 |
+| `UNAUTHORIZED` | 401 | 所有需登入的 | — | 一律登出並帶著原網址回登入頁 |
+| `OUT_OF_STOCK` | 409 | §8 下單 | 格式待定（`items[<index>]` 或 `productId:<id>`） | `field` 指出哪一件；回購物車處理（**還沒做**，目前只貼 `message`） |
+| `NOT_PAYABLE`、`NOT_CANCELLABLE`、`NOT_DELIVERED` | 409 | §8 | — | 把 `message` 貼在按鈕旁，並重讀訂單（狀態可能已被排程改掉） |
+| `COUPON_INVALID` | 422 | §16、§8 下單 | `coupon` | `message` 寫原因（沒有這個折扣碼／已經過期／未達門檻：滿 N 元才能用）；結帳頁貼在折扣碼欄旁 |
+| `NETWORK` | — | 前台自己用 | — | 後端連不上、逾時、回的不是 JSON 時前台的 `fetch` 包裝丟這個；頁面顯示「沒有載入成功」與「再試一次」。後端不會回它 |
 
 ## 16. 折扣碼（第十八輪子輪 3；功能規劃 4「優惠券」加分項、後台 5「優惠券管理」）
 
