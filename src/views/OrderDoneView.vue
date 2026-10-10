@@ -1,13 +1,19 @@
 <script setup>
 // 完成頁集中呈現訂單結果，讓買家立即核對付款、商品與收件資訊。
+// 第十七輪子輪 3（功能規劃 4「下單完成：一段簡短的完成動畫，可跳過」）：剛從結帳過來才播——訂單裡畫得出來的衣服
+// 一件件落進提袋，提袋晃一下，再出一行「收到了」。1.6 秒上下、右上角可跳過、Esc 也行；減少動態時直接出最後的畫面；
+// 播完的畫面和跳過的畫面是同一個（動畫結束把行內樣式清掉，剩下的就是 CSS 的靜態版）。重新整理不再播。
 import '@fontsource/space-mono/400.css'
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import GarmentImage from '@/components/GarmentImage.vue'
+import { getProducts } from '@/api'
 import {
   PAYMENT_METHODS,
   formatDateTime,
   getOrder,
 } from '@/api/account'
+import { gsap, reducedMotion } from '@/motion/gsap'
 import { formatPrice } from '@/products/labels'
 import { useSession } from '@/stores/session'
 
@@ -17,11 +23,18 @@ const { token, logout } = useSession()
 
 const order = ref(null)
 const status = ref('loading')
+const products = ref(new Map())
+// 剛下單（結帳頁留了記號）才播；idle 還沒開始｜playing 播放中｜done 靜止
+const celebrating = ref(false)
+const animState = ref('idle')
+const stage = ref(null)
+let timeline = null
+let loadVersion = 0
 
 const note = computed(() => {
   if (!order.value) return ''
   if (order.value.status === '已付款') {
-    return '付款完成，我們會盡快出貨。'
+    return '付款完成，我們會盡快出貨；出貨進度看訂單明細。'
   }
   if (order.value.payment.method === 'cod') {
     return '貨到付款：商品送到時再付款。'
@@ -33,15 +46,88 @@ const note = computed(() => {
   return '這張訂單還沒有付款。'
 })
 
+const itemCount = computed(() => order.value?.items.reduce((sum, item) => sum + item.qty, 0) ?? 0)
+
+// 提袋裡的衣服：訂單裡畫得出來的（有款式圖的）單品，最多四件
+const garments = computed(() => {
+  if (!order.value) return []
+  const list = []
+  for (const item of order.value.items) {
+    const product = products.value.get(item.productId)
+    if (!product?.kind) continue
+    const colour = product.colours.find((entry) => entry.code === item.colour) ?? product.colours[0]
+    list.push({ key: `${item.productId}-${item.colour}-${item.size}`, kind: product.kind, fabric: product.fabric, hex: colour?.hex ?? '#cccccc', name: item.name })
+    if (list.length === 4) break
+  }
+  return list
+})
+// 每件在袋子裡的左右位置：依件數置中散開
+const slotStyle = (index) => ({ '--dx': `${(index - (garments.value.length - 1) / 2) * 26}px`, zIndex: index + 1 })
+
 const sizeText = (item) => (
   item.size === 'F' ? '單一尺寸' : item.size
 )
 
+const flagKey = () => `celebrate:${route.params.orderId}`
+function takeFlag() {
+  try {
+    const value = sessionStorage.getItem(flagKey())
+    if (value) sessionStorage.removeItem(flagKey())
+    return !!value
+  } catch {
+    return false
+  }
+}
+
+function settle() {
+  animState.value = 'done'
+  const parts = stage.value?.querySelectorAll('.drop, .bag-front, .celebrate-note') ?? []
+  // 清掉行內樣式（含 transform-origin）：剩下的就是 CSS 的靜態畫面，和沒播過的一樣
+  gsap.set(parts, { clearProps: 'all' })
+  timeline?.kill()
+  timeline = null
+}
+
+function skip() {
+  if (animState.value !== 'playing') return
+  if (timeline) timeline.progress(1)
+  else settle()
+}
+
+async function play() {
+  await nextTick()
+  const items = stage.value ? [...stage.value.querySelectorAll('.drop')] : []
+  const front = stage.value?.querySelector('.bag-front')
+  const caption = stage.value?.querySelector('.celebrate-note')
+  if (!items.length || reducedMotion()) {
+    animState.value = 'done'
+    return
+  }
+  animState.value = 'playing'
+  timeline = gsap.timeline({ onComplete: settle })
+  // 衣服從上面落下來（每件錯開一點、帶一點歪），落地擺正
+  timeline.fromTo(items, { y: -190, rotation: (i) => (i % 2 ? 9 : -9), opacity: 0 }, { y: 0, rotation: 0, opacity: 1, duration: 0.7, ease: 'power2.in', stagger: 0.12 }, 0)
+  // 最後一件落地：提袋往下壓一下再彈回
+  const landed = 0.7 + 0.12 * (items.length - 1)
+  if (front) timeline.fromTo(front, { scaleY: 1, transformOrigin: '50% 100%' }, { scaleY: 0.955, duration: 0.12, ease: 'power1.out', yoyo: true, repeat: 1 }, landed - 0.05)
+  // 一行字
+  if (caption) timeline.fromTo(caption, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }, landed + 0.15)
+}
+
+const onKey = (event) => {
+  if (event.key === 'Escape') skip()
+}
+
 const load = async () => {
+  const version = ++loadVersion
   status.value = 'loading'
+  products.value = new Map()
+  celebrating.value = takeFlag()
+  animState.value = 'idle'
 
   try {
     const found = await getOrder(token.value, route.params.orderId)
+    if (version !== loadVersion) return
 
     if (!found) {
       order.value = null
@@ -51,7 +137,18 @@ const load = async () => {
 
     order.value = found
     status.value = 'ready'
+    try {
+      const ids = [...new Set(found.items.map((item) => item.productId))]
+      const list = await getProducts({ ids })
+      if (version !== loadVersion) return
+      products.value = new Map(list.map((product) => [product.productId, product]))
+    } catch {
+      // 衣服畫不出來就沒有那段動畫，其餘照舊
+    }
+    if (celebrating.value) play()
+    else animState.value = 'done'
   } catch (error) {
+    if (version !== loadVersion) return
     if (error?.code === 'UNAUTHORIZED') {
       await logout()
       await router.replace({
@@ -65,7 +162,18 @@ const load = async () => {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  window.addEventListener('keydown', onKey)
+})
+
+watch(() => route.params.orderId, load)
+
+onBeforeUnmount(() => {
+  loadVersion += 1
+  window.removeEventListener('keydown', onKey)
+  timeline?.kill()
+})
 </script>
 
 <template>
@@ -92,6 +200,29 @@ onMounted(load)
   </div>
 
   <template v-else-if="order">
+    <!-- 提袋：訂單裡的衣服站在袋子裡（後片在衣服後面、前片在前面，衣服露出一截）；剛下單才有落下來的動畫 -->
+    <section v-if="garments.length" ref="stage" class="celebrate" :data-state="animState" aria-label="訂單裡的衣服">
+      <button v-if="animState === 'playing'" type="button" class="link skip-anim" @click="skip">跳過</button>
+      <div class="bag" aria-hidden="true">
+        <svg class="bag-back" viewBox="0 0 320 230" width="320" height="230">
+          <path d="M130 96c0-30 60-30 60 0" fill="none" stroke="var(--field-line)" stroke-width="2" />
+          <path d="M100 96h120l-6 118H106Z" fill="var(--surface)" stroke="var(--field-line)" stroke-width="2" stroke-linejoin="round" />
+        </svg>
+        <div class="garments">
+          <div v-for="(garment, index) in garments" :key="garment.key" class="slot" :style="slotStyle(index)">
+            <div class="drop">
+              <GarmentImage :kind="garment.kind" :colour="garment.hex" :fabric="garment.fabric" :height="96" :alt="garment.name" />
+            </div>
+          </div>
+        </div>
+        <svg class="bag-front" viewBox="0 0 320 230" width="320" height="230">
+          <path d="M100 118h120l-6 96H106Z" fill="var(--surface)" stroke="var(--field-line)" stroke-width="2" stroke-linejoin="round" />
+          <path d="M112 136h96" fill="none" stroke="var(--line)" stroke-width="2" />
+        </svg>
+      </div>
+      <p class="celebrate-note">收到了，共 {{ itemCount }} 件。</p>
+    </section>
+
     <p class="lead">
       謝謝你的訂購。{{ note }}
     </p>
@@ -227,6 +358,58 @@ onMounted(load)
   border-radius: var(--radius);
 }
 
+/* 提袋的舞台：320×230，置中；衣服與前片的位置全在 CSS，動畫只動 transform 與 opacity（.drop 是每件的外框；GarmentImage 自己的根也叫 .garment，別撞名） */
+.celebrate {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--s1);
+  margin-bottom: var(--s3);
+}
+
+.skip-anim {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.bag {
+  position: relative;
+  width: 320px;
+  max-width: 100%;
+  height: 230px;
+  overflow: hidden;
+}
+
+.bag svg {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.garments {
+  position: absolute;
+  inset: 0;
+}
+
+.slot {
+  position: absolute;
+  left: 50%;
+  top: 100px;
+  transform: translateX(calc(-50% + var(--dx, 0px)));
+}
+
+.drop {
+  display: block;
+  line-height: 0;
+}
+
+.celebrate-note {
+  color: var(--ink-soft);
+  font-size: var(--fs-0);
+}
+
 .lead {
   margin-bottom: var(--s3);
 }
@@ -342,10 +525,6 @@ onMounted(load)
 @media (max-width: 30rem) {
   .panel {
     padding: var(--s2);
-  }
-
-  .done-items li {
-    align-items: flex-start;
   }
 }
 </style>

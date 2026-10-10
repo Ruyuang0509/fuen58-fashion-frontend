@@ -17,6 +17,7 @@ import {
   SHIPPING_FEE,
   formatPrice,
 } from '@/products/labels'
+import { gsap, reducedMotion } from '@/motion/gsap'
 import { useCart } from '@/stores/cart'
 import { useSession } from '@/stores/session'
 
@@ -29,6 +30,16 @@ const status = ref('loading')
 const products = ref(new Map())
 const addresses = ref([])
 const step = ref(1)
+// 兩步之間的轉場（第十七輪子輪 3；功能規劃 4「結帳步驟連續轉場」）：往前新的一步從右邊滑進來、往回從左邊；
+// 舊的一步直接拿掉（不等它離場，焦點才能立刻到新標題）；減少動態時直接換
+const direction = ref('forward')
+function onStepEnter(el, done) {
+  if (reducedMotion()) {
+    done()
+    return
+  }
+  gsap.fromTo(el, { x: direction.value === 'forward' ? 28 : -28, opacity: 0 }, { x: 0, opacity: 1, duration: 0.32, ease: 'power3.out', clearProps: 'transform,opacity', onComplete: done })
+}
 const choice = ref(null)
 const fresh = reactive({
   recipient: '',
@@ -188,12 +199,14 @@ const toPayment = async () => {
     return
   }
 
+  direction.value = 'forward'
   step.value = 2
   await nextTick()
   document.getElementById('step2-title')?.focus()
 }
 
 const backToAddress = async () => {
+  direction.value = 'back'
   step.value = 1
   formError.value = ''
   await nextTick()
@@ -258,6 +271,12 @@ const placeOrder = async () => {
     // 先顯示成立狀態，清空購物車時才不會閃出空購物車。
     placed.value = true
     clear()
+    // 完成頁只在「剛下單」播那段短動畫：留個記號，完成頁讀到就播、讀完就拿掉（重新整理不再播）
+    try {
+      sessionStorage.setItem(`celebrate:${order.id}`, '1')
+    } catch {
+      // 記不住就不播
+    }
     await router.push({
       name: 'checkout-done',
       params: { orderId: order.id },
@@ -325,6 +344,7 @@ onMounted(load)
       </li>
     </ol>
 
+    <Transition :css="false" @enter="onStepEnter">
     <form
       v-if="step === 1"
       class="checkout-step1 panel"
@@ -611,6 +631,7 @@ onMounted(load)
         </button>
       </div>
     </form>
+    </Transition>
   </template>
 </template>
 
@@ -738,6 +759,10 @@ fieldset {
   list-style: none;
   color: var(--ink-soft);
   font-size: var(--fs-0);
+}
+
+.steps li {
+  transition: color var(--ease);
 }
 
 .steps .on {
