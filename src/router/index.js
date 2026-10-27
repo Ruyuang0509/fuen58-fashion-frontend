@@ -69,6 +69,8 @@ const routes = [
 
   // 試做：three.js 的一片布（不連進導覽，網址直接打）。停損條件在 vault 筆記第 13 節；判定後這條路由會拿掉或轉正
   { path: '/lab/cloth', name: 'lab-cloth', component: () => import('@/views/lab/ClothLabView.vue'), meta: { title: '試做：一片布', zone: 'explore', bare: true } },
+  // 試做：穿搭卡牆（HTML-in-Canvas × WebGPU；只有 Chromium 155 以上加旗標跑得起來，其他退回卡片格）。停損條件在 docs/29
+  { path: '/lab/plates', name: 'lab-plates', component: () => import('@/views/lab/PlatesLabView.vue'), meta: { title: '試做：穿搭卡牆', zone: 'explore', bare: true } },
 
   // 其他網址一律到這裡。要放在最後。
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/NotFoundView.vue'), meta: { title: '找不到頁面', zone: 'transaction' } },

@@ -54,6 +54,7 @@ npm run dev
 26. [docs/26-搜尋建議逐檔解說.md](docs/26-搜尋建議逐檔解說.md)：子輪 2——頂欄搜尋框的即時建議（單品、品牌、路線、搜尋這個詞；WAI-ARIA combobox：焦點留在輸入框、鍵盤上下選、Esc 兩段）
 27. [docs/27-折扣碼逐檔解說.md](docs/27-折扣碼逐檔解說.md)：子輪 3——結帳第二步的折扣碼（四個示範碼：滿額折、打折上限、免運、已過期）、訂單記 `coupon`／`discount`、契約 §8／§15／§16
 28. [docs/28-契約稽核核對與增補.md](docs/28-契約稽核核對與增補.md)：契約稽核的逐條核對——子代理稽核的 21 條對程式碼一條一條核（成立／不成立／已過時，附 file:line）、成立的 P0／P1 寫進契約（都是提案，標〔第十八輪稽核增補・待 11/2 全組確認〕）、沒核的清單
+29. [docs/29-html-in-canvas試做-穿搭卡牆.md](docs/29-html-in-canvas試做-穿搭卡牆.md)：HTML-in-Canvas × WebGPU 的試做（`/lab/plates`）與停損條件——同一張 OutfitCard 放到 GPU 畫的微彎牆上，連結、加入購物車、Tab 都還是真的 DOM；只有 Chromium 155 以上加旗標能看，其他退回卡片格；headless Chrome 155 驗過，使用者判定前不進正式頁
 
 給後端組員的：[docs/api-契約草案.md](docs/api-契約草案.md)（端點、欄位、錯誤格式；11/2 看 DB 前要對）。
 

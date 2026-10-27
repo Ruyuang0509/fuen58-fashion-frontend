@@ -1,0 +1,17 @@
+env {"brands":["Google Chrome/155","Chromium/155","Not(A:Brand/24"],"draw":true,"geom":true,"mode":"plates","plates":true,"stats":"FPS 130　抓圖/s 0　paint/s 0　累計抓圖 12　卡 6　nvidia blackwell"}
+載入後 {"captures":12,"paints":5,"capsSec":0,"fps":130,"perCard":[2,2,2,2,2,2]}
+截圖 01-wall.png
+滑過第三張：:hover=true transform 變了=true
+截圖 02-hover.png
+按鈕中心 {"x":575.7352752685547,"y":809.7525634765625,"w":142.96853637695312,"h":33.622314453125} elementFromPoint=btn
+點整套加入購物車：feedback="已加入 4 件" cart 筆數=4
+截圖 03-added.png
+Tab 順序 ["plate3:fav has-label","plate4:photo","plate4:title"]
+截圖 04-tab.png
+閒置 2 秒：抓圖 69 → 69，fps 131
+點標題後 pathname=/outfits/3
+截圖 05-outfit-page.png
+回到牆 {"plates":true,"captures":113}
+console 錯誤 0
+PASS
+DOES NOT PROVE: CDP 合成事件不是真人指標；一台桌機、一個視窗；讀屏沒測；旗標開在獨立的 headless 設定檔，不是使用者平常的 Chrome。
